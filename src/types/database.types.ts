@@ -1,0 +1,109 @@
+export type CheckinType = 'morning' | 'evening';
+
+export type SleepPosition = 'back' | 'side' | 'stomach';
+
+export interface CheckinSymptoms {
+  tingling?: boolean;
+  numbness?: boolean;
+  headache?: boolean;
+  radiating_to?: string;
+}
+
+export interface Checkin {
+  id: string;
+  user_id: string;
+  type: CheckinType;
+  checkin_date: string;
+
+  pain_level: number;
+  stiffness_level: number | null;
+  range_of_motion: number | null;
+
+  sleep_quality: number | null;
+  sleep_hours: number | null;
+  woke_up_with_pain: boolean | null;
+  sleep_position: SleepPosition | null;
+
+  activity_level: number | null;
+  screen_time_hours: number | null;
+  did_exercises: boolean | null;
+  exercise_notes: string | null;
+
+  symptoms: CheckinSymptoms;
+  triggers: string[];
+  notes: string | null;
+
+  created_at: string;
+  updated_at: string;
+}
+
+// Morning-only and evening-only columns are always present in a select result
+// (null when not relevant), but a single insert only ever supplies one side —
+// so those columns are optional here even though `Checkin` has them required.
+export type CheckinInsert = Omit<
+  Checkin,
+  | 'id'
+  | 'created_at'
+  | 'updated_at'
+  | 'checkin_date'
+  | 'sleep_quality'
+  | 'sleep_hours'
+  | 'woke_up_with_pain'
+  | 'sleep_position'
+  | 'activity_level'
+  | 'screen_time_hours'
+  | 'did_exercises'
+  | 'exercise_notes'
+> & {
+  id?: string;
+  checkin_date?: string;
+  created_at?: string;
+  updated_at?: string;
+  sleep_quality?: number | null;
+  sleep_hours?: number | null;
+  woke_up_with_pain?: boolean | null;
+  sleep_position?: string | null;
+  activity_level?: number | null;
+  screen_time_hours?: number | null;
+  did_exercises?: boolean | null;
+  exercise_notes?: string | null;
+};
+
+export interface FlareUp {
+  id: string;
+  user_id: string;
+  occurred_at: string;
+  pain_level: number;
+  likely_cause: string | null;
+  description: string | null;
+  created_at: string;
+}
+
+export type FlareUpInsert = Omit<FlareUp, 'id' | 'created_at'> & {
+  id?: string;
+  created_at?: string;
+};
+
+export interface ReminderSettings {
+  user_id: string;
+  morning_time: string;
+  evening_time: string;
+  timezone: string;
+  push_enabled: boolean;
+  updated_at: string;
+}
+
+export type ReminderSettingsUpsert = Partial<Omit<ReminderSettings, 'user_id' | 'updated_at'>> & {
+  user_id: string;
+};
+
+export interface Profile {
+  id: string;
+  full_name: string | null;
+  injury_started_on: string | null;
+  injury_description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type ProfileUpdate = Partial<Pick<Profile, 'full_name' | 'injury_started_on' | 'injury_description'>>;

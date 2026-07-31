@@ -44,6 +44,18 @@ function RootLayoutNav() {
           name="modal/edit-profile"
           options={{ presentation: 'modal', headerShown: true, title: 'Edit Profile' }}
         />
+        <Stack.Screen
+          name="checkin/[type]"
+          options={{ presentation: 'modal', headerShown: true, title: 'Check-in' }}
+        />
+        <Stack.Screen
+          name="checkin/backfill"
+          options={{ presentation: 'modal', headerShown: true, title: 'Backfill Check-in' }}
+        />
+        <Stack.Screen
+          name="flare-up/new"
+          options={{ presentation: 'modal', headerShown: true, title: 'Log Flare-up' }}
+        />
       </Stack>
     </ErrorBoundary>
   );
