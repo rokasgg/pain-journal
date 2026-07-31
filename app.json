@@ -1,14 +1,15 @@
 {
   "expo": {
-    "name": "my-rn-boilerplate",
-    "slug": "my-rn-boilerplate",
+    "name": "pain-journal",
+    "slug": "pain-journal",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myrnboilerplate",
+    "scheme": "painjournal",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.rokas.painjournal"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +18,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.rokas.painjournal"
     },
     "web": {
       "bundler": "metro",

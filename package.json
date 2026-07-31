@@ -1,5 +1,5 @@
 {
-  "name": "my-rn-boilerplate",
+  "name": "pain-journal",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
