@@ -22,12 +22,16 @@
     "production": {
       "distribution": "store",
       "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "https://your-prod-project.supabase.co",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "your-prod-anon-key"
+        "EXPO_PUBLIC_SUPABASE_URL": "https://lqdmttrkjdjgsuejooii.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_rCYfulaorI3kyuO9Izn_lg_jDAEymCw"
       }
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6796703811"
+      }
+    }
   }
 }

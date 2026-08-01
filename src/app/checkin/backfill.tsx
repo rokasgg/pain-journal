@@ -1,6 +1,4 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { format } from 'date-fns';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Controller, useForm, type Control } from 'react-hook-form';
@@ -11,8 +9,10 @@ import { MorningFields } from '@/components/checkin/MorningFields';
 import { PainSlider } from '@/components/checkin/PainSlider';
 import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
+import { DatePickerField } from '@/components/ui/DatePickerField';
 import type { CheckinType } from '@/types/database.types';
 import { useUpsertCheckin } from '@/hooks/useCheckins';
+import { todayLocalDate } from '@/lib/dates';
 import { colors } from '@/lib/theme';
 import {
   eveningCheckinSchema,
@@ -54,8 +54,7 @@ export default function BackfillModal() {
   const router = useRouter();
   const upsertCheckin = useUpsertCheckin();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [checkinDate, setCheckinDate] = useState<string>(todayLocalDate());
   const [checkinType, setCheckinType] = useState<CheckinType>('morning');
   const isMorning = checkinType === 'morning';
 
@@ -77,7 +76,7 @@ export default function BackfillModal() {
 
     const { error } = await upsertCheckin.mutateAsync({
       type: checkinType,
-      checkin_date: format(date, 'yyyy-MM-dd'),
+      checkin_date: checkinDate,
       ...data,
     });
 
@@ -94,26 +93,7 @@ export default function BackfillModal() {
 
   return (
     <ScrollView className="flex-1 bg-white dark:bg-black" contentContainerClassName="gap-6 px-6 py-6">
-      <View className="gap-2">
-        <Text className="text-sm font-medium text-black dark:text-white">Date</Text>
-        <Pressable
-          onPress={() => setShowDatePicker(true)}
-          className="rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700"
-        >
-          <Text className="text-black dark:text-white">{format(date, 'EEE, MMM d yyyy')}</Text>
-        </Pressable>
-        {showDatePicker && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            maximumDate={new Date()}
-            onChange={(_event, selectedDate) => {
-              setShowDatePicker(false);
-              if (selectedDate) setDate(selectedDate);
-            }}
-          />
-        )}
-      </View>
+      <DatePickerField label="Date" value={checkinDate} onChange={setCheckinDate} maximumDate={new Date()} />
 
       <View className="gap-2">
         <Text className="text-sm font-medium text-black dark:text-white">Type</Text>

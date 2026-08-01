@@ -1,0 +1,96 @@
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format, parseISO } from 'date-fns';
+import { useState } from 'react';
+import { Platform, Pressable, Text, View } from 'react-native';
+
+export interface DatePickerFieldProps {
+  label?: string;
+  value: string | null;
+  onChange: (date: string) => void;
+  placeholder?: string;
+  maximumDate?: Date;
+  className?: string;
+  labelClassName?: string;
+}
+
+export function DatePickerField({
+  label,
+  value,
+  onChange,
+  placeholder = 'Select a date',
+  maximumDate,
+  className,
+  labelClassName,
+}: DatePickerFieldProps) {
+  const [showPicker, setShowPicker] = useState(false);
+  const [pendingDate, setPendingDate] = useState<Date>(() => (value ? parseISO(value) : new Date()));
+
+  const openPicker = () => {
+    setPendingDate(value ? parseISO(value) : new Date());
+    setShowPicker(true);
+  };
+
+  return (
+    <View className={`gap-1.5 ${className ?? ''}`}>
+      {label && (
+        <Text className={`text-sm font-medium text-black dark:text-white ${labelClassName ?? ''}`}>
+          {label}
+        </Text>
+      )}
+
+      <Pressable
+        onPress={openPicker}
+        accessibilityRole="button"
+        className="rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700"
+      >
+        <Text className={value ? 'text-black dark:text-white' : 'text-gray-500'}>
+          {value ? format(parseISO(value), 'EEE, MMM d yyyy') : placeholder}
+        </Text>
+      </Pressable>
+
+      {showPicker && Platform.OS === 'ios' && (
+        <View className="rounded-lg border border-gray-300 dark:border-gray-700">
+          <DateTimePicker
+            value={pendingDate}
+            mode="date"
+            display="spinner"
+            maximumDate={maximumDate}
+            onValueChange={(_event, selectedDate) => setPendingDate(selectedDate)}
+          />
+          <View className="flex-row border-t border-gray-300 dark:border-gray-700">
+            <Pressable
+              onPress={() => setShowPicker(false)}
+              accessibilityRole="button"
+              className="flex-1 items-center border-r border-gray-300 py-2.5 dark:border-gray-700"
+            >
+              <Text className="text-black dark:text-white">Cancel</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                onChange(format(pendingDate, 'yyyy-MM-dd'));
+                setShowPicker(false);
+              }}
+              accessibilityRole="button"
+              className="flex-1 items-center py-2.5"
+            >
+              <Text className="font-semibold text-black dark:text-white">Done</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      {showPicker && Platform.OS !== 'ios' && (
+        <DateTimePicker
+          value={pendingDate}
+          mode="date"
+          maximumDate={maximumDate}
+          onValueChange={(_event, selectedDate) => {
+            setShowPicker(false);
+            onChange(format(selectedDate, 'yyyy-MM-dd'));
+          }}
+          onDismiss={() => setShowPicker(false)}
+        />
+      )}
+    </View>
+  );
+}

@@ -1,5 +1,6 @@
+import { Link } from 'expo-router';
 import { useMemo } from 'react';
-import { FlatList, Text, View } from 'react-native';
+import { FlatList, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EntryListItem, type HistoryEntry } from '@/components/history/EntryListItem';
@@ -30,7 +31,18 @@ export default function HistoryScreen() {
         contentContainerClassName="gap-3 px-6 py-8"
         ListHeaderComponent={
           <View className="gap-6 pb-4">
-            <Text className="text-2xl font-bold text-black dark:text-white">History</Text>
+            <View className="flex-row items-center justify-between">
+              <Text className="text-2xl font-bold text-black dark:text-white">History</Text>
+
+              <Link href="/checkin/backfill" asChild>
+                <Pressable className="rounded-full bg-black px-3 py-1.5 dark:bg-white">
+                  <Text className="text-sm font-semibold text-white dark:text-black">
+                    Add past entry
+                  </Text>
+                </Pressable>
+              </Link>
+            </View>
+
             <PainTrendChart checkins={checkins} />
           </View>
         }

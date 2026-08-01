@@ -11,9 +11,9 @@ export function useProfile() {
     queryKey: ['profile', user?.id],
     queryFn: async (): Promise<Profile | null> => {
       if (!user) return null;
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle();
       if (error) throw error;
-      return data as Profile;
+      return data as Profile | null;
     },
     enabled: !!user,
     staleTime: 60_000,
@@ -30,7 +30,10 @@ export function useUpdateProfile() {
     mutationFn: async (updates: ProfileUpdate): Promise<{ error: string | null }> => {
       if (!user) return { error: 'Not signed in.' };
 
-      const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
+      // Upsert rather than update — some accounts (pre-dating the profiles
+      // trigger, or created via the dev-auth bypass) have no profiles row
+      // yet, and a plain `.update()` would silently affect zero rows.
+      const { error } = await supabase.from('profiles').upsert({ id: user.id, ...updates });
       return { error: error?.message ?? null };
     },
     onSuccess: (result) => {

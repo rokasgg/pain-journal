@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { DatePickerField } from '@/components/ui/DatePickerField';
 import { Input } from '@/components/ui/Input';
 import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
@@ -12,45 +13,26 @@ import { useReminderSettings, useUpdateReminderSettings } from '@/hooks/useRemin
 import { useSession } from '@/hooks/useSession';
 import { colors } from '@/lib/theme';
 import { useAuthStore } from '@/store/useAuthStore';
+import type { Profile, ReminderSettings } from '@/types/database.types';
 import { pickAvatarImage } from '@/utils/image';
 import { toast } from '@/utils/toast';
 
-export default function SettingsScreen() {
-  const router = useRouter();
-  const { user } = useSession();
-  const uploadAvatar = useAuthStore((state) => state.uploadAvatar);
-  const updateProfile = useAuthStore((state) => state.updateProfile);
-  const resetPassword = useAuthStore((state) => state.resetPassword);
-  const signOut = useAuthStore((state) => state.signOut);
-  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+interface InjuryInfoSectionProps {
+  profile: Profile | null;
+}
 
-  const { profile } = useProfile();
+// Keyed by `profile?.id` from the parent so this remounts (with fresh
+// defaultValues) the moment the profile query resolves, instead of trying to
+// sync local state into an already-mounted form — that "sync on render"
+// approach proved unreliable here (see settings.tsx history).
+function InjuryInfoSection({ profile }: InjuryInfoSectionProps) {
   const updateProfileMutation = useUpdateProfile();
-  const { settings } = useReminderSettings();
-  const updateReminderSettingsMutation = useUpdateReminderSettings();
+  const [injuryStartedOn, setInjuryStartedOn] = useState<string | null>(
+    profile?.injury_started_on ?? null,
+  );
+  const [injuryDescription, setInjuryDescription] = useState(profile?.injury_description ?? '');
 
-  const [injuryStartedOn, setInjuryStartedOn] = useState('');
-  const [injuryDescription, setInjuryDescription] = useState('');
-  const [morningTime, setMorningTime] = useState('08:00');
-  const [eveningTime, setEveningTime] = useState('21:00');
-
-  // Sync local editable state from the query cache the first time each
-  // arrives, without an effect (see https://react.dev/learn/you-might-not-need-an-effect).
-  const [syncedProfile, setSyncedProfile] = useState(profile);
-  if (profile !== syncedProfile) {
-    setSyncedProfile(profile);
-    setInjuryStartedOn(profile?.injury_started_on ?? '');
-    setInjuryDescription(profile?.injury_description ?? '');
-  }
-
-  const [syncedSettings, setSyncedSettings] = useState(settings);
-  if (settings !== syncedSettings) {
-    setSyncedSettings(settings);
-    if (settings?.morning_time) setMorningTime(settings.morning_time);
-    if (settings?.evening_time) setEveningTime(settings.evening_time);
-  }
-
-  const handleSaveInjuryInfo = async () => {
+  const handleSave = async () => {
     const { error } = await updateProfileMutation.mutateAsync({
       injury_started_on: injuryStartedOn || null,
       injury_description: injuryDescription || null,
@@ -64,7 +46,52 @@ export default function SettingsScreen() {
     toast.success('Injury info updated!');
   };
 
-  const handleSaveReminders = async () => {
+  return (
+    <View className="gap-3">
+      <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+        Injury Info
+      </Text>
+
+      <DatePickerField
+        label="Injury start date"
+        value={injuryStartedOn}
+        onChange={setInjuryStartedOn}
+        maximumDate={new Date()}
+      />
+      <Input
+        label="Description"
+        placeholder="What happened?"
+        multiline
+        numberOfLines={3}
+        value={injuryDescription}
+        onChangeText={setInjuryDescription}
+      />
+
+      <Pressable
+        onPress={handleSave}
+        disabled={updateProfileMutation.isPending}
+        className="items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
+      >
+        {updateProfileMutation.isPending ? (
+          <ActivityIndicator color={colors.white} />
+        ) : (
+          <Text className="font-semibold text-white dark:text-black">Save Injury Info</Text>
+        )}
+      </Pressable>
+    </View>
+  );
+}
+
+interface ReminderSettingsSectionProps {
+  settings: ReminderSettings | null;
+}
+
+function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
+  const updateReminderSettingsMutation = useUpdateReminderSettings();
+  const [morningTime, setMorningTime] = useState(settings?.morning_time ?? '08:00');
+  const [eveningTime, setEveningTime] = useState(settings?.evening_time ?? '21:00');
+
+  const handleSave = async () => {
     const { error } = await updateReminderSettingsMutation.mutateAsync({
       morning_time: morningTime,
       evening_time: eveningTime,
@@ -77,6 +104,42 @@ export default function SettingsScreen() {
 
     toast.success('Reminder settings updated!');
   };
+
+  return (
+    <View className="gap-3">
+      <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+        Reminders
+      </Text>
+
+      <Input label="Morning reminder" placeholder="08:00" value={morningTime} onChangeText={setMorningTime} />
+      <Input label="Evening reminder" placeholder="21:00" value={eveningTime} onChangeText={setEveningTime} />
+
+      <Pressable
+        onPress={handleSave}
+        disabled={updateReminderSettingsMutation.isPending}
+        className="items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
+      >
+        {updateReminderSettingsMutation.isPending ? (
+          <ActivityIndicator color={colors.white} />
+        ) : (
+          <Text className="font-semibold text-white dark:text-black">Save Reminders</Text>
+        )}
+      </Pressable>
+    </View>
+  );
+}
+
+export default function SettingsScreen() {
+  const router = useRouter();
+  const { user } = useSession();
+  const uploadAvatar = useAuthStore((state) => state.uploadAvatar);
+  const updateProfile = useAuthStore((state) => state.updateProfile);
+  const resetPassword = useAuthStore((state) => state.resetPassword);
+  const signOut = useAuthStore((state) => state.signOut);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const { profile, isLoading: isProfileLoading } = useProfile();
+  const { settings, isLoading: isSettingsLoading } = useReminderSettings();
 
   const name = (user?.user_metadata?.name as string | undefined) ?? 'Anonymous';
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
@@ -226,54 +289,17 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        <View className="gap-3">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-            Injury Info
-          </Text>
+        {isProfileLoading ? (
+          <ActivityIndicator />
+        ) : (
+          <InjuryInfoSection key={profile?.id ?? 'none'} profile={profile} />
+        )}
 
-          <Input label="Injury start date" placeholder="YYYY-MM-DD" value={injuryStartedOn} onChangeText={setInjuryStartedOn} />
-          <Input
-            label="Description"
-            placeholder="What happened?"
-            multiline
-            numberOfLines={3}
-            value={injuryDescription}
-            onChangeText={setInjuryDescription}
-          />
-
-          <Pressable
-            onPress={handleSaveInjuryInfo}
-            disabled={updateProfileMutation.isPending}
-            className="items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
-          >
-            {updateProfileMutation.isPending ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text className="font-semibold text-white dark:text-black">Save Injury Info</Text>
-            )}
-          </Pressable>
-        </View>
-
-        <View className="gap-3">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-            Reminders
-          </Text>
-
-          <Input label="Morning reminder" placeholder="08:00" value={morningTime} onChangeText={setMorningTime} />
-          <Input label="Evening reminder" placeholder="21:00" value={eveningTime} onChangeText={setEveningTime} />
-
-          <Pressable
-            onPress={handleSaveReminders}
-            disabled={updateReminderSettingsMutation.isPending}
-            className="items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
-          >
-            {updateReminderSettingsMutation.isPending ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text className="font-semibold text-white dark:text-black">Save Reminders</Text>
-            )}
-          </Pressable>
-        </View>
+        {isSettingsLoading ? (
+          <ActivityIndicator />
+        ) : (
+          <ReminderSettingsSection key={settings ? 'loaded' : 'none'} settings={settings} />
+        )}
 
         <Pressable
           onPress={handleSignOut}
