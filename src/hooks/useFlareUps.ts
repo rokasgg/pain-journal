@@ -29,6 +29,29 @@ export function useFlareUps(days = 30) {
   return { flareUps: flareUps ?? [], isLoading };
 }
 
+export function useUpdateFlareUp() {
+  const { user } = useSession();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      ...updates
+    }: { id: string } & Partial<Omit<FlareUpInsert, 'user_id'>>): Promise<{ error: string | null }> => {
+      if (!user) return { error: 'Not signed in.' };
+
+      const { error } = await supabase.from('flare_ups').update(updates).eq('id', id).eq('user_id', user.id);
+
+      return { error: error?.message ?? null };
+    },
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: ['flareUps', user?.id] });
+      }
+    },
+  });
+}
+
 export function useCreateFlareUp() {
   const { user } = useSession();
   const queryClient = useQueryClient();

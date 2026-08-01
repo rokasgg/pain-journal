@@ -1,58 +1,70 @@
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { FlatList, Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { EntryListItem, type HistoryEntry } from '@/components/history/EntryListItem';
+import { MonthCalendar, type DayMarker } from '@/components/history/MonthCalendar';
 import { PainTrendChart } from '@/components/history/PainTrendChart';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useFlareUps } from '@/hooks/useFlareUps';
 
 export default function HistoryScreen() {
-  const { checkins } = useCheckinHistory(30);
-  const { flareUps } = useFlareUps(30);
+  const router = useRouter();
+  const { checkins } = useCheckinHistory(90);
+  const { flareUps } = useFlareUps(90);
 
-  const entries: HistoryEntry[] = useMemo(() => {
-    const checkinEntries: HistoryEntry[] = checkins.map((data) => ({ kind: 'checkin', data }));
-    const flareUpEntries: HistoryEntry[] = flareUps.map((data) => ({ kind: 'flareUp', data }));
+  const calendarMarkers = useMemo(() => {
+    const markers: Record<string, DayMarker> = {};
 
-    return [...checkinEntries, ...flareUpEntries].sort((a, b) => {
-      const aDate = a.kind === 'checkin' ? a.data.checkin_date : a.data.occurred_at;
-      const bDate = b.kind === 'checkin' ? b.data.checkin_date : b.data.occurred_at;
-      return bDate.localeCompare(aDate);
-    });
+    for (const checkin of checkins) {
+      const marker = (markers[checkin.checkin_date] ??= {
+        hasMorning: false,
+        hasEvening: false,
+        hasFlareUp: false,
+      });
+      if (checkin.type === 'morning') marker.hasMorning = true;
+      else marker.hasEvening = true;
+    }
+
+    for (const flareUp of flareUps) {
+      const dateStr = flareUp.occurred_at.slice(0, 10);
+      const marker = (markers[dateStr] ??= { hasMorning: false, hasEvening: false, hasFlareUp: false });
+      marker.hasFlareUp = true;
+    }
+
+    return markers;
   }, [checkins, flareUps]);
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-black" edges={['top']}>
-      <FlatList
-        data={entries}
-        keyExtractor={(entry) => `${entry.kind}-${entry.data.id}`}
-        contentContainerClassName="gap-3 px-6 py-8"
-        ListHeaderComponent={
-          <View className="gap-6 pb-4">
-            <View className="flex-row items-center justify-between">
-              <Text className="text-2xl font-bold text-black dark:text-white">History</Text>
+      <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-8">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-2xl font-bold text-black dark:text-white">History</Text>
 
-              <Link href="/checkin/backfill" asChild>
-                <Pressable className="rounded-full bg-black px-3 py-1.5 dark:bg-white">
-                  <Text className="text-sm font-semibold text-white dark:text-black">
-                    Add past entry
-                  </Text>
-                </Pressable>
-              </Link>
-            </View>
+          <View className="flex-row gap-2">
+            <Link href="/flare-up/new" asChild>
+              <Pressable className="rounded-full border border-red-600 px-3 py-1.5 dark:border-red-500">
+                <Text className="text-sm font-semibold text-red-600 dark:text-red-500">
+                  Log flare-up
+                </Text>
+              </Pressable>
+            </Link>
 
-            <PainTrendChart checkins={checkins} />
+            <Link href="/checkin/backfill" asChild>
+              <Pressable className="rounded-full bg-black px-3 py-1.5 dark:bg-white">
+                <Text className="text-sm font-semibold text-white dark:text-black">Add past entry</Text>
+              </Pressable>
+            </Link>
           </View>
-        }
-        renderItem={({ item }) => <EntryListItem entry={item} />}
-        ListEmptyComponent={
-          <Text className="text-sm text-gray-500 dark:text-gray-400">
-            No entries yet — log a check-in to see your trend here.
-          </Text>
-        }
-      />
+        </View>
+
+        <PainTrendChart checkins={checkins} />
+
+        <MonthCalendar
+          markers={calendarMarkers}
+          onSelectDate={(date) => router.push(`/history/day/${date}`)}
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -53,8 +53,24 @@ function RootLayoutNav() {
           options={{ presentation: 'modal', headerShown: true, title: 'Backfill Check-in' }}
         />
         <Stack.Screen
+          name="checkin/edit/[id]"
+          options={{ presentation: 'modal', headerShown: true, title: 'Edit Check-in' }}
+        />
+        <Stack.Screen
           name="flare-up/new"
           options={{ presentation: 'modal', headerShown: true, title: 'Log Flare-up' }}
+        />
+        <Stack.Screen
+          name="flare-up/edit/[id]"
+          options={{ presentation: 'modal', headerShown: true, title: 'Edit Flare-up' }}
+        />
+        <Stack.Screen
+          name="history/[kind]/[id]"
+          options={{ presentation: 'modal', headerShown: true, title: 'Entry Details' }}
+        />
+        <Stack.Screen
+          name="history/day/[date]"
+          options={{ presentation: 'modal', headerShown: true, title: 'Day Details' }}
         />
       </Stack>
     </ErrorBoundary>

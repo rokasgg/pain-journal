@@ -1,4 +1,5 @@
-import { ScrollView, Text, View } from 'react-native';
+import { Link } from 'expo-router';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
@@ -13,6 +14,12 @@ export default function HomeScreen() {
 
         <DaysSinceInjury />
         <CheckinStatusCard />
+
+        <Link href="/flare-up/new" asChild>
+          <Pressable className="items-center rounded-lg border border-red-600 py-3 dark:border-red-500">
+            <Text className="font-semibold text-red-600 dark:text-red-500">Log a flare-up</Text>
+          </Pressable>
+        </Link>
 
         <View className="gap-2">
           <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
