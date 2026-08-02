@@ -102,6 +102,8 @@ export interface Profile {
   full_name: string | null;
   injury_started_on: string | null;
   injury_description: string | null;
+  last_pattern_analysis: string | null;
+  last_pattern_analysis_at: string | null;
   created_at: string;
   updated_at: string;
 }

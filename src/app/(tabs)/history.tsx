@@ -1,4 +1,4 @@
-import { Link, useRouter } from 'expo-router';
+import { Link, useRouter, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -59,6 +59,12 @@ export default function HistoryScreen() {
         </View>
 
         <PainTrendChart checkins={checkins} />
+
+        <Link href={'/history/patterns' as Href} asChild>
+          <Pressable className="items-center rounded-lg border border-gray-300 py-3 dark:border-gray-700">
+            <Text className="font-semibold text-black dark:text-white">Find patterns with AI</Text>
+          </Pressable>
+        </Link>
 
         <MonthCalendar
           markers={calendarMarkers}

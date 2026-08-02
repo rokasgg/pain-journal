@@ -72,6 +72,10 @@ function RootLayoutNav() {
           name="history/day/[date]"
           options={{ presentation: 'modal', headerShown: true, title: 'Day Details' }}
         />
+        <Stack.Screen
+          name="history/patterns"
+          options={{ presentation: 'modal', headerShown: true, title: 'Pattern Analysis' }}
+        />
       </Stack>
     </ErrorBoundary>
   );
