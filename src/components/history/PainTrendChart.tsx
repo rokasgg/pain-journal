@@ -1,5 +1,6 @@
+import { matchFont } from '@shopify/react-native-skia';
 import { useMemo } from 'react';
-import { useColorScheme, View } from 'react-native';
+import { Platform, Text, useColorScheme, View } from 'react-native';
 import { CartesianChart, Line } from 'victory-native';
 
 import { colors } from '@/lib/theme';
@@ -15,9 +16,16 @@ interface ChartPoint extends Record<string, unknown> {
   pain: number;
 }
 
+const font = matchFont({
+  fontFamily: Platform.select({ ios: 'Helvetica', default: 'sans-serif' }),
+  fontSize: 11,
+});
+
 export function PainTrendChart({ checkins }: PainTrendChartProps) {
   const isDark = useColorScheme() === 'dark';
   const lineColor = isDark ? colors.white : colors.black;
+  const gridColor = isDark ? colors.borderDark : colors.borderLight;
+  const labelColor = colors.gray;
 
   const data: ChartPoint[] = useMemo(
     () =>
@@ -32,10 +40,31 @@ export function PainTrendChart({ checkins }: PainTrendChartProps) {
   }
 
   return (
-    <View className="h-52 w-full">
-      <CartesianChart data={data} xKey="index" yKeys={['pain']} domain={{ y: [0, 10] }}>
-        {({ points }) => <Line points={points.pain} color={lineColor} strokeWidth={2} curveType="natural" />}
-      </CartesianChart>
+    <View className="gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
+      <View>
+        <Text className="text-base font-semibold text-black dark:text-white">Pain Intensity</Text>
+        <Text className="text-sm text-gray-500 dark:text-gray-400">Reported pain level, 0–10</Text>
+      </View>
+
+      <View className="h-52 w-full">
+        <CartesianChart
+          data={data}
+          xKey="index"
+          yKeys={['pain']}
+          domain={{ y: [0, 10] }}
+          axisOptions={{
+            font,
+            tickCount: { x: 0, y: 6 },
+            lineColor: gridColor,
+            labelColor,
+            formatYLabel: (label) => String(Math.round(label)),
+          }}
+        >
+          {({ points }) => (
+            <Line points={points.pain} color={lineColor} strokeWidth={2} curveType="natural" />
+          )}
+        </CartesianChart>
+      </View>
     </View>
   );
 }
