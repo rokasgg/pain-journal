@@ -32,7 +32,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           ref={ref}
           placeholderTextColor={colors.gray}
           secureTextEntry={hideText}
-          className={`rounded-lg border px-4 py-3 text-black dark:text-white ${
+          className={`rounded-lg border bg-surface px-4 py-3 text-black dark:bg-surfaceDark dark:text-white ${
             error ? 'border-red-600 dark:border-red-500' : 'border-gray-300 dark:border-gray-700'
           } ${isPassword ? 'pr-12' : ''} ${className ?? ''}`}
           {...props}

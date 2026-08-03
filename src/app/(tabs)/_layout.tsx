@@ -12,10 +12,10 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: isDark ? colors.white : colors.black,
+        tabBarActiveTintColor: isDark ? colors.primaryDark : colors.primary,
         tabBarInactiveTintColor: colors.gray,
         tabBarStyle: {
-          backgroundColor: isDark ? colors.black : colors.white,
+          backgroundColor: isDark ? colors.surfaceDark : colors.surface,
           borderTopColor: isDark ? colors.borderDark : colors.borderLight,
         },
       }}

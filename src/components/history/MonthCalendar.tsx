@@ -87,13 +87,13 @@ export function MonthCalendar({ markers, onSelectDate, className }: MonthCalenda
             >
               <View
                 className={`h-8 w-8 items-center justify-center rounded-full ${
-                  today ? 'bg-black dark:bg-white' : ''
+                  today ? 'bg-primary dark:bg-primaryDark' : ''
                 }`}
               >
                 <Text
                   className={`text-sm ${
                     today
-                      ? 'font-semibold text-white dark:text-black'
+                      ? 'font-semibold text-white'
                       : inMonth
                         ? 'text-black dark:text-white'
                         : 'text-gray-300 dark:text-gray-700'

@@ -4,4 +4,12 @@ export const colors = {
   gray: '#8e8e93',
   borderLight: '#e5e7eb',
   borderDark: '#27272a',
+  background: '#EAF3FA',
+  backgroundDark: '#0B1410',
+  surface: '#ffffff',
+  surfaceDark: '#111C16',
+  primary: '#3B6247',
+  primaryDark: '#4F7A5C',
+  primaryMuted: '#DCEBF5',
+  primaryMutedDark: '#16232B',
 } as const;

@@ -1,41 +1,50 @@
-import { Pressable, Text, View } from 'react-native';
+import Slider from '@react-native-community/slider';
+import { Text, View, useColorScheme } from 'react-native';
+
+import { colors } from '@/lib/theme';
 
 export interface PainSliderProps {
   label: string;
   value: number | null;
   onChange: (value: number) => void;
   className?: string;
+  minLabel?: string;
+  maxLabel?: string;
 }
 
-const LEVELS = Array.from({ length: 11 }, (_, i) => i);
+export function PainSlider({
+  label,
+  value,
+  onChange,
+  className,
+  minLabel = 'None',
+  maxLabel = 'Severe',
+}: PainSliderProps) {
+  const isDark = useColorScheme() === 'dark';
+  const trackColor = isDark ? colors.primaryDark : colors.primary;
 
-export function PainSlider({ label, value, onChange, className }: PainSliderProps) {
   return (
     <View className={`gap-2 ${className ?? ''}`}>
-      <Text className="text-sm font-medium text-black dark:text-white">{label}</Text>
-      <View className="flex-row flex-wrap gap-2">
-        {LEVELS.map((level) => {
-          const isActive = value === level;
-          return (
-            <Pressable
-              key={level}
-              onPress={() => onChange(level)}
-              accessibilityRole="button"
-              accessibilityLabel={`${label}: ${level}`}
-              className={`h-9 w-9 items-center justify-center rounded-full ${
-                isActive ? 'bg-black dark:bg-white' : 'border border-gray-300 dark:border-gray-700'
-              }`}
-            >
-              <Text
-                className={`text-sm font-semibold ${
-                  isActive ? 'text-white dark:text-black' : 'text-black dark:text-white'
-                }`}
-              >
-                {level}
-              </Text>
-            </Pressable>
-          );
-        })}
+      <View className="flex-row items-center justify-between">
+        <Text className="text-sm font-medium text-black dark:text-white">{label}</Text>
+        <Text className="text-base font-bold text-black dark:text-white">{value ?? 0}</Text>
+      </View>
+
+      <Slider
+        minimumValue={0}
+        maximumValue={10}
+        step={1}
+        value={value ?? 0}
+        onValueChange={onChange}
+        minimumTrackTintColor={trackColor}
+        maximumTrackTintColor={isDark ? colors.borderDark : colors.borderLight}
+        thumbTintColor={trackColor}
+        accessibilityLabel={label}
+      />
+
+      <View className="flex-row justify-between">
+        <Text className="text-xs text-gray-500 dark:text-gray-400">{minLabel}</Text>
+        <Text className="text-xs text-gray-500 dark:text-gray-400">{maxLabel}</Text>
       </View>
     </View>
   );

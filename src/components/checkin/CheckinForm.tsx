@@ -69,7 +69,7 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
   };
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-black" contentContainerClassName="gap-6 px-6 py-6">
+    <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
       {header}
 
       <Controller
@@ -84,7 +84,7 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
         control={control}
         name="stiffness_level"
         render={({ field: { value, onChange } }) => (
-          <PainSlider label="Stiffness" value={value} onChange={onChange} />
+          <PainSlider label="Stiffness" value={value} onChange={onChange} minLabel="Flexible" maxLabel="Rigid" />
         )}
       />
 
@@ -92,7 +92,7 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
         control={control}
         name="range_of_motion"
         render={({ field: { value, onChange } }) => (
-          <PainSlider label="Range of motion" value={value} onChange={onChange} />
+          <PainSlider label="Range of motion" value={value} onChange={onChange} minLabel="Limited" maxLabel="Full" />
         )}
       />
 
@@ -119,12 +119,12 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
       <Pressable
         onPress={handleSubmit(handleSave)}
         disabled={isSubmitting}
-        className="items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
+        className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
       >
         {isSubmitting ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text className="font-semibold text-white dark:text-black">{submitLabel}</Text>
+          <Text className="font-semibold text-white">{submitLabel}</Text>
         )}
       </Pressable>
     </ScrollView>

@@ -26,12 +26,12 @@ export function TriggerChips({ value, onChange, className }: TriggerChipsProps) 
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
               className={`rounded-full px-3 py-2 ${
-                isActive ? 'bg-black dark:bg-white' : 'border border-gray-300 dark:border-gray-700'
+                isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
               }`}
             >
               <Text
                 className={`text-sm font-medium ${
-                  isActive ? 'text-white dark:text-black' : 'text-black dark:text-white'
+                  isActive ? 'text-white' : 'text-black dark:text-white'
                 }`}
               >
                 {option.label}

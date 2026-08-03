@@ -75,7 +75,7 @@ export default function EditProfileModal() {
   };
 
   return (
-    <View className="flex-1 gap-6 bg-white px-6 py-6 dark:bg-black">
+    <View className="flex-1 gap-6 bg-background px-6 py-6 dark:bg-backgroundDark">
       <View className="items-center gap-3">
         <Pressable onPress={handlePickAvatar} accessibilityRole="button" accessibilityLabel="Change avatar">
           {displayedAvatar ? (
@@ -122,12 +122,12 @@ export default function EditProfileModal() {
         <Pressable
           onPress={handleSubmit(onSubmit)}
           disabled={isSubmitting}
-          className="flex-1 items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
+          className="flex-1 items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
         >
           {isSubmitting ? (
             <ActivityIndicator color={colors.white} />
           ) : (
-            <Text className="font-semibold text-white dark:text-black">Save</Text>
+            <Text className="font-semibold text-white">Save</Text>
           )}
         </Pressable>
       </View>

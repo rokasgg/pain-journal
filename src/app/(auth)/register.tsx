@@ -37,8 +37,8 @@ export default function RegisterScreen() {
   };
 
   return (
-    <View className="flex-1 justify-center gap-4 bg-white px-6 dark:bg-black">
-      <Text className="mb-4 text-center text-2xl font-bold text-black dark:text-white">
+    <View className="flex-1 justify-center gap-4 bg-background px-6 dark:bg-backgroundDark">
+      <Text className="mb-4 text-center text-2xl font-bold text-primary dark:text-primaryDark">
         Register
       </Text>
 
@@ -109,12 +109,12 @@ export default function RegisterScreen() {
       <Pressable
         onPress={handleSubmit(onSubmit)}
         disabled={isSubmitting}
-        className="mt-2 items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
+        className="mt-2 items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
       >
         {isSubmitting ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text className="font-semibold text-white dark:text-black">Create Account</Text>
+          <Text className="font-semibold text-white">Create Account</Text>
         )}
       </Pressable>
 

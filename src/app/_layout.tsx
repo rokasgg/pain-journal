@@ -29,7 +29,7 @@ function RootLayoutNav() {
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white dark:bg-black">
+      <View className="flex-1 items-center justify-center bg-background dark:bg-backgroundDark">
         <ActivityIndicator />
       </View>
     );

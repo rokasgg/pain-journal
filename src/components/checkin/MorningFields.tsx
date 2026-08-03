@@ -69,12 +69,12 @@ export function MorningFields({ control }: MorningFieldsProps) {
                     accessibilityRole="button"
                     accessibilityState={{ selected: isActive }}
                     className={`flex-1 items-center rounded-lg py-2.5 ${
-                      isActive ? 'bg-black dark:bg-white' : 'border border-gray-300 dark:border-gray-700'
+                      isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
                     }`}
                   >
                     <Text
                       className={`text-sm font-medium ${
-                        isActive ? 'text-white dark:text-black' : 'text-black dark:text-white'
+                        isActive ? 'text-white' : 'text-black dark:text-white'
                       }`}
                     >
                       {option.label}

@@ -1,8 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { useProfile } from '@/hooks/useProfile';
 import { daysSince } from '@/lib/dates';
+import { colors } from '@/lib/theme';
 
 export function DaysSinceInjury() {
   const { profile } = useProfile();
@@ -10,10 +12,9 @@ export function DaysSinceInjury() {
   if (!profile?.injury_started_on) {
     return (
       <Link href="/(tabs)/settings" asChild>
-        <Pressable className="rounded-lg border border-gray-200 px-4 py-3 dark:border-gray-800">
-          <Text className="text-sm text-gray-500 dark:text-gray-400">
-            Set your injury start date in Settings to track days since injury.
-          </Text>
+        <Pressable className="flex-row items-center gap-1.5 rounded-full bg-primaryMuted px-3 py-2 dark:bg-primaryMutedDark">
+          <Ionicons name="time-outline" size={14} color={colors.primary} />
+          <Text className="text-xs font-medium text-black dark:text-white">Set injury date</Text>
         </Pressable>
       </Link>
     );
@@ -22,9 +23,9 @@ export function DaysSinceInjury() {
   const days = daysSince(profile.injury_started_on);
 
   return (
-    <View className="items-center gap-1 rounded-lg border border-gray-200 py-4 dark:border-gray-800">
-      <Text className="text-3xl font-bold text-black dark:text-white">{days}</Text>
-      <Text className="text-sm text-gray-500 dark:text-gray-400">days since injury</Text>
+    <View className="flex-row items-center gap-1.5 rounded-full bg-primaryMuted px-3 py-2 dark:bg-primaryMutedDark">
+      <Ionicons name="time-outline" size={14} color={colors.primary} />
+      <Text className="text-xs font-medium text-black dark:text-white">{days} days since injury</Text>
     </View>
   );
 }

@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DatePickerField } from '@/components/ui/DatePickerField';
@@ -70,12 +70,12 @@ function InjuryInfoSection({ profile }: InjuryInfoSectionProps) {
       <Pressable
         onPress={handleSave}
         disabled={updateProfileMutation.isPending}
-        className="items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
+        className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
       >
         {updateProfileMutation.isPending ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text className="font-semibold text-white dark:text-black">Save Injury Info</Text>
+          <Text className="font-semibold text-white">Save Injury Info</Text>
         )}
       </Pressable>
     </View>
@@ -90,11 +90,13 @@ function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
   const updateReminderSettingsMutation = useUpdateReminderSettings();
   const [morningTime, setMorningTime] = useState(settings?.morning_time ?? '08:00');
   const [eveningTime, setEveningTime] = useState(settings?.evening_time ?? '21:00');
+  const [pushEnabled, setPushEnabled] = useState(settings?.push_enabled ?? true);
 
   const handleSave = async () => {
     const { error } = await updateReminderSettingsMutation.mutateAsync({
       morning_time: morningTime,
       evening_time: eveningTime,
+      push_enabled: pushEnabled,
     });
 
     if (error) {
@@ -111,18 +113,27 @@ function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
         Reminders
       </Text>
 
+      <View className="flex-row items-center justify-between rounded-2xl bg-primaryMuted px-4 py-3 dark:bg-primaryMutedDark">
+        <Text className="text-base text-black dark:text-white">Push notifications</Text>
+        <Switch
+          value={pushEnabled}
+          onValueChange={setPushEnabled}
+          trackColor={{ true: colors.primary }}
+        />
+      </View>
+
       <Input label="Morning reminder" placeholder="08:00" value={morningTime} onChangeText={setMorningTime} />
       <Input label="Evening reminder" placeholder="21:00" value={eveningTime} onChangeText={setEveningTime} />
 
       <Pressable
         onPress={handleSave}
         disabled={updateReminderSettingsMutation.isPending}
-        className="items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
+        className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
       >
         {updateReminderSettingsMutation.isPending ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text className="font-semibold text-white dark:text-black">Save Reminders</Text>
+          <Text className="font-semibold text-white">Save Reminders</Text>
         )}
       </Pressable>
     </View>
@@ -204,7 +215,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-black" edges={['top']}>
+    <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top']}>
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-8">
         <View className="items-center gap-3">
           <View className="relative">
@@ -225,7 +236,7 @@ export default function SettingsScreen() {
               disabled={isUploadingAvatar}
               accessibilityRole="button"
               accessibilityLabel="Change avatar"
-              className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full bg-black dark:bg-white"
+              className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full bg-primary dark:bg-primaryDark"
             >
               {isUploadingAvatar ? (
                 <ActivityIndicator size="small" color={colors.white} />

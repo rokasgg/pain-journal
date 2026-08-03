@@ -4,7 +4,7 @@ type ButtonVariant = 'primary' | 'secondary' | 'outline';
 
 const variantStyles: Record<ButtonVariant, { container: string; text: string }> = {
   primary: {
-    container: 'bg-blue-600 active:bg-blue-700',
+    container: 'bg-primary dark:bg-primaryDark active:opacity-90',
     text: 'text-white',
   },
   secondary: {

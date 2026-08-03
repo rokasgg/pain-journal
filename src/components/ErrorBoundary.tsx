@@ -27,13 +27,13 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   render() {
     if (this.state.hasError) {
       return (
-        <View className="flex-1 items-center justify-center gap-4 bg-white px-6 dark:bg-black">
+        <View className="flex-1 items-center justify-center gap-4 bg-background px-6 dark:bg-backgroundDark">
           <Text className="text-center text-lg font-semibold text-black dark:text-white">
             Something went wrong.
           </Text>
           <Pressable
             onPress={this.reset}
-            className="items-center rounded-lg bg-black px-6 py-3 dark:bg-white"
+            className="items-center rounded-lg bg-primary px-6 py-3 dark:bg-primaryDark"
           >
             <Text className="font-semibold text-white dark:text-black">Try again</Text>
           </Pressable>

@@ -38,9 +38,12 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className="flex-1 justify-center gap-4 bg-white px-6 dark:bg-black">
-      <Text className="mb-4 text-center text-2xl font-bold text-black dark:text-white">
-        Login
+    <View className="flex-1 justify-center gap-4 bg-background px-6 dark:bg-backgroundDark">
+      <Text className="mb-1 text-center text-2xl font-bold text-primary dark:text-primaryDark">
+        Pain Journal
+      </Text>
+      <Text className="mb-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        Log in to continue tracking your recovery.
       </Text>
 
       <Controller
@@ -79,12 +82,12 @@ export default function LoginScreen() {
       <Pressable
         onPress={handleSubmit(onSubmit)}
         disabled={isSubmitting}
-        className="mt-2 items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
+        className="mt-2 items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
       >
         {isSubmitting ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text className="font-semibold text-white dark:text-black">Log In</Text>
+          <Text className="font-semibold text-white">Log In</Text>
         )}
       </Pressable>
 

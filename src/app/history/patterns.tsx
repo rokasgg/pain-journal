@@ -19,7 +19,7 @@ export default function PatternsModal() {
   const analyzedAt = profile?.last_pattern_analysis_at ?? null;
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-black" contentContainerClassName="gap-6 px-6 py-6">
+    <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
       <Text className="text-sm text-gray-500 dark:text-gray-400">
         Claude looks at your last 90 days of check-ins and flare-ups to surface correlations you
         might not notice from the chart alone.
@@ -45,12 +45,12 @@ export default function PatternsModal() {
       <Pressable
         onPress={handleRun}
         disabled={isPending}
-        className="items-center rounded-lg bg-black py-3 disabled:opacity-50 dark:bg-white"
+        className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
       >
         {isPending ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text className="font-semibold text-white dark:text-black">
+          <Text className="font-semibold text-white">
             {analysis ? 'Re-run analysis' : 'Run analysis'}
           </Text>
         )}

@@ -14,6 +14,7 @@ export interface SymptomCheckboxesProps {
 
 export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckboxesProps) {
   const isDark = useColorScheme() === 'dark';
+  const checkedColor = isDark ? colors.primaryDark : colors.primary;
   const anySymptomChecked = SYMPTOM_OPTIONS.some((option) => value[option.value]);
 
   const toggle = (key: (typeof SYMPTOM_OPTIONS)[number]['value']) => {
@@ -38,7 +39,7 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
               <Ionicons
                 name={checked ? 'checkbox' : 'square-outline'}
                 size={22}
-                color={checked ? (isDark ? colors.white : colors.black) : colors.gray}
+                color={checked ? checkedColor : colors.gray}
               />
               <Text className="text-base text-black dark:text-white">{option.label}</Text>
             </Pressable>

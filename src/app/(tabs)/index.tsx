@@ -1,5 +1,7 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Link } from 'expo-router';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
@@ -7,26 +9,51 @@ import { DaysSinceInjury } from '@/components/home/DaysSinceInjury';
 import { TrendSparkline } from '@/components/home/TrendSparkline';
 
 export default function HomeScreen() {
-  return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-black" edges={['top']}>
-      <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-8">
-        <Text className="text-2xl font-bold text-black dark:text-white">Today</Text>
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
 
-        <DaysSinceInjury />
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await queryClient.refetchQueries({
+      predicate: (query) => ['profile', 'checkins'].includes(query.queryKey[0] as string),
+    });
+    setRefreshing(false);
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top']}>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-6 px-6 py-8"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+      >
+        <View className="flex-row items-start justify-between">
+          <View>
+            <Text className="text-2xl font-bold text-black dark:text-white">Today&apos;s Status</Text>
+            <Text className="text-sm text-gray-500 dark:text-gray-400">
+              Your wellness check-ins for today
+            </Text>
+          </View>
+          <DaysSinceInjury />
+        </View>
+
         <CheckinStatusCard />
 
         <Link href="/flare-up/new" asChild>
-          <Pressable className="items-center rounded-lg border border-red-600 py-3 dark:border-red-500">
-            <Text className="font-semibold text-red-600 dark:text-red-500">Log a flare-up</Text>
+          <Pressable className="items-center rounded-lg bg-primary py-3 dark:bg-primaryDark">
+            <Text className="font-semibold text-white">+ Log a flare-up</Text>
           </Pressable>
         </Link>
 
-        <View className="gap-2">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-            Last 7 days
-          </Text>
-          <TrendSparkline />
-        </View>
+        <Link href="/checkin/backfill" asChild>
+          <Pressable className="items-center py-1">
+            <Text className="text-sm font-medium text-primary dark:text-primaryDark">
+              Backfill a day
+            </Text>
+          </Pressable>
+        </Link>
+
+        <TrendSparkline />
       </ScrollView>
     </SafeAreaView>
   );

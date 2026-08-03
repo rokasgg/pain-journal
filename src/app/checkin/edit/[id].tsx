@@ -46,7 +46,7 @@ export default function EditCheckinModal() {
 
   if (!checkin) {
     return (
-      <View className="flex-1 items-center justify-center bg-white px-6 dark:bg-black">
+      <View className="flex-1 items-center justify-center bg-background px-6 dark:bg-backgroundDark">
         <Text className="text-gray-500 dark:text-gray-400">Entry not found.</Text>
       </View>
     );
