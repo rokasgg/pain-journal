@@ -1,4 +1,3 @@
-import { startOfWeek } from 'date-fns';
 import { Link, useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -21,19 +20,12 @@ export default function HistoryScreen() {
   const router = useRouter();
   const [rangeDays, setRangeDays] = useState<number>(7);
 
+  const activeRange = RANGE_OPTIONS.find((option) => option.days === rangeDays) ?? RANGE_OPTIONS[0];
+
   const { checkins } = useCheckinHistory(rangeDays);
   const { flareUps } = useFlareUps(rangeDays);
-  const { flareUps: recentFlareUps } = useFlareUps(7);
   const { checkins: allCheckins } = useCheckinHistory(90);
   const { flareUps: allFlareUps } = useFlareUps(90);
-
-  // "This week" means the current calendar week (Monday-start, matching
-  // MonthCalendar), not a rolling 7-day window — useFlareUps(7) fetches a
-  // superset wide enough to cover it, filtered down here.
-  const flaresThisWeek = useMemo(() => {
-    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString();
-    return recentFlareUps.filter((f) => f.occurred_at >= weekStart);
-  }, [recentFlareUps]);
 
   const avgPain = useMemo(() => {
     if (checkins.length === 0) return null;
@@ -150,11 +142,11 @@ export default function HistoryScreen() {
 
         <View className="flex-row gap-3">
           <StatTile
-            label="Avg Daily Pain"
+            label={`Avg Daily Pain (${activeRange.label})`}
             value={avgPain !== null ? avgPain.toFixed(1) : '—'}
             trend={avgPainTrend}
           />
-          <StatTile label="Flares This Week" value={String(flaresThisWeek.length)} />
+          <StatTile label={`Flares (${activeRange.label})`} value={String(flareUps.length)} />
         </View>
 
         <PainTrendChart checkins={checkins} />
