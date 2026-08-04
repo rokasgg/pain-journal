@@ -1,7 +1,7 @@
-import { Alert } from 'react-native';
+import { useToastModalStore } from '@/store/useToastModalStore';
 
 export const toast = {
-  success: (title: string) => Alert.alert(title),
-  error: (title: string) => Alert.alert(title),
-  info: (title: string) => Alert.alert(title),
+  success: (message: string) => useToastModalStore.getState().show(message, 'default'),
+  error: (message: string) => useToastModalStore.getState().show(message, 'destructive'),
+  info: (message: string) => useToastModalStore.getState().show(message, 'default'),
 };

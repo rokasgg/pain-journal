@@ -90,6 +90,32 @@ export type FlareUpInsert = Omit<FlareUp, 'id' | 'created_at'> & {
   created_at?: string;
 };
 
+export type MuscleStatus = 'weak' | 'tight' | 'normal' | 'improving';
+
+export interface PhysioAssessment {
+  id: string;
+  user_id: string;
+  visit_date: string;
+  physio_name: string | null;
+  overall_notes: string | null;
+  created_at: string;
+  muscle_findings?: MuscleFinding[];
+}
+
+export type PhysioAssessmentInsert = Omit<PhysioAssessment, 'id' | 'user_id' | 'created_at' | 'muscle_findings'>;
+
+export interface MuscleFinding {
+  id: string;
+  assessment_id: string;
+  muscle_name: string;
+  status: MuscleStatus;
+  side: string | null;
+  severity: number | null;
+  notes: string | null;
+}
+
+export type MuscleFindingInsert = Omit<MuscleFinding, 'id' | 'assessment_id'>;
+
 export interface ReminderSettings {
   user_id: string;
   morning_time: string;
@@ -110,6 +136,10 @@ export interface Profile {
   injury_description: string | null;
   last_pattern_analysis: string | null;
   last_pattern_analysis_at: string | null;
+  last_physio_summary: string | null;
+  last_physio_summary_at: string | null;
+  last_physio_focus_summary: string | null;
+  last_physio_focus_summary_at: string | null;
   created_at: string;
   updated_at: string;
 }

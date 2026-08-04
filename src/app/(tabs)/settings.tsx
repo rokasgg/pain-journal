@@ -2,9 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { DatePickerField } from '@/components/ui/DatePickerField';
 import { Input } from '@/components/ui/Input';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
@@ -17,6 +18,7 @@ import { colors } from '@/lib/theme';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { Profile, ReminderSettings } from '@/types/database.types';
 import { pickAvatarImage } from '@/utils/image';
+import { requestNotificationPermission } from '@/utils/notifications';
 import { toast } from '@/utils/toast';
 
 interface InjuryInfoSectionProps {
@@ -97,10 +99,21 @@ function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
   const [pushEnabled, setPushEnabled] = useState(settings?.push_enabled ?? true);
 
   const handleSave = async () => {
+    let nextPushEnabled = pushEnabled;
+
+    if (pushEnabled) {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        toast.error(t('settings.notificationPermissionDenied'));
+        nextPushEnabled = false;
+        setPushEnabled(false);
+      }
+    }
+
     const { error } = await updateReminderSettingsMutation.mutateAsync({
       morning_time: morningTime,
       evening_time: eveningTime,
-      push_enabled: pushEnabled,
+      push_enabled: nextPushEnabled,
     });
 
     if (error) {
@@ -153,6 +166,7 @@ export default function SettingsScreen() {
   const resetPassword = useAuthStore((state) => state.resetPassword);
   const signOut = useAuthStore((state) => state.signOut);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [isSignOutModalVisible, setIsSignOutModalVisible] = useState(false);
 
   const { profile, isLoading: isProfileLoading } = useProfile();
   const { settings, isLoading: isSettingsLoading } = useReminderSettings();
@@ -199,24 +213,16 @@ export default function SettingsScreen() {
     toast.success(t('auth.passwordResetEmailSent'));
   };
 
-  const handleSignOut = () => {
-    Alert.alert(t('settings.signOutConfirmTitle'), t('settings.signOutConfirmMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('settings.signOut'),
-        style: 'destructive',
-        onPress: async () => {
-          const { error } = await signOut();
+  const handleConfirmSignOut = async () => {
+    setIsSignOutModalVisible(false);
+    const { error } = await signOut();
 
-          if (error) {
-            toast.error(error);
-            return;
-          }
+    if (error) {
+      toast.error(error);
+      return;
+    }
 
-          toast.success(t('settings.signedOut'));
-        },
-      },
-    ]);
+    toast.success(t('settings.signedOut'));
   };
 
   return (
@@ -330,12 +336,22 @@ export default function SettingsScreen() {
         )}
 
         <Pressable
-          onPress={handleSignOut}
+          onPress={() => setIsSignOutModalVisible(true)}
           className="items-center rounded-lg border border-red-600 py-3 dark:border-red-500"
         >
           <Text className="font-semibold text-red-600 dark:text-red-500">{t('settings.signOut')}</Text>
         </Pressable>
       </ScrollView>
+
+      <ConfirmModal
+        visible={isSignOutModalVisible}
+        title={t('settings.signOutConfirmTitle')}
+        message={t('settings.signOutConfirmMessage')}
+        confirmLabel={t('settings.signOut')}
+        variant="destructive"
+        onConfirm={handleConfirmSignOut}
+        onCancel={() => setIsSignOutModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }

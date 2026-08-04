@@ -1,4 +1,4 @@
-import { matchFont } from '@shopify/react-native-skia';
+import { Circle, matchFont } from '@shopify/react-native-skia';
 import { format, parseISO } from 'date-fns';
 import { useMemo } from 'react';
 import { Platform, Text, useColorScheme, View } from 'react-native';
@@ -31,13 +31,24 @@ export function PainTrendChart({ checkins }: PainTrendChartProps) {
   const gridColor = isDark ? colors.borderDark : colors.borderLight;
   const labelColor = colors.gray;
 
-  const data: ChartPoint[] = useMemo(
-    () =>
-      [...checkins]
-        .sort((a, b) => a.checkin_date.localeCompare(b.checkin_date))
-        .map((checkin, index) => ({ index, pain: checkin.pain_level, date: checkin.checkin_date })),
-    [checkins],
-  );
+  const data: ChartPoint[] = useMemo(() => {
+    // One point per day — average morning/evening together — so dots and the
+    // line correspond to the day labels on the x-axis instead of doubling up.
+    const byDate = new Map<string, number[]>();
+    for (const checkin of checkins) {
+      const levels = byDate.get(checkin.checkin_date) ?? [];
+      levels.push(checkin.pain_level);
+      byDate.set(checkin.checkin_date, levels);
+    }
+
+    return [...byDate.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, levels], index) => ({
+        index,
+        pain: levels.reduce((sum, level) => sum + level, 0) / levels.length,
+        date,
+      }));
+  }, [checkins]);
 
   if (data.length < 2) {
     return null;
@@ -56,6 +67,7 @@ export function PainTrendChart({ checkins }: PainTrendChartProps) {
           xKey="index"
           yKeys={['pain']}
           domain={{ y: [0, 10] }}
+          domainPadding={{ left: 12, right: 12, top: 12, bottom: 12 }}
           axisOptions={{
             font,
             tickCount: { x: Math.min(5, data.length), y: 6 },
@@ -69,7 +81,13 @@ export function PainTrendChart({ checkins }: PainTrendChartProps) {
           }}
         >
           {({ points }) => (
-            <Line points={points.pain} color={lineColor} strokeWidth={2} curveType="natural" />
+            <>
+              <Line points={points.pain} color={lineColor} strokeWidth={2} curveType="linear" />
+              {points.pain.map(
+                (point, index) =>
+                  point.y != null && <Circle key={index} cx={point.x} cy={point.y} r={4} color={lineColor} />,
+              )}
+            </>
           )}
         </CartesianChart>
       </View>

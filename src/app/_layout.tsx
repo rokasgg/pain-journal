@@ -6,7 +6,9 @@ import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { ToastModalHost } from '@/components/ui/ToastModalHost';
 import { useSession } from '@/hooks/useSession';
+import { useSyncReminderNotifications } from '@/hooks/useSyncReminderNotifications';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { queryClient } from '@/lib/queryClient';
 
@@ -15,6 +17,8 @@ function RootLayoutNav() {
   const { t } = useTranslation();
   const segments = useSegments();
   const router = useRouter();
+
+  useSyncReminderNotifications();
 
   useEffect(() => {
     if (isLoading) return;
@@ -78,7 +82,28 @@ function RootLayoutNav() {
           name="history/patterns"
           options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.patternAnalysis') }}
         />
+        <Stack.Screen
+          name="history/physio-summary"
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.physioSummary') }}
+        />
+        <Stack.Screen
+          name="physio-visit/new"
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.logPhysioVisit') }}
+        />
+        <Stack.Screen
+          name="physio-visit/edit/[id]"
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editPhysioVisit') }}
+        />
+        <Stack.Screen
+          name="history/physio-visits"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.physioVisits'),
+            headerBackTitle: t('tabs.home'),
+          }}
+        />
       </Stack>
+      <ToastModalHost />
     </ErrorBoundary>
   );
 }

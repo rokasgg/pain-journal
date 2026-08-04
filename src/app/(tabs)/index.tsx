@@ -6,6 +6,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
 import { DaysSinceInjury } from '@/components/home/DaysSinceInjury';
+import { PhysioFocusCard } from '@/components/home/PhysioFocusCard';
+import { PhysioSummaryCard } from '@/components/home/PhysioSummaryCard';
 import { TopTriggers } from '@/components/home/TopTriggers';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -17,7 +19,8 @@ export default function HomeScreen() {
   const handleRefresh = async () => {
     setRefreshing(true);
     await queryClient.refetchQueries({
-      predicate: (query) => ['profile', 'checkins', 'flareUps'].includes(query.queryKey[0] as string),
+      predicate: (query) =>
+        ['profile', 'checkins', 'flareUps', 'physioAssessments'].includes(query.queryKey[0] as string),
     });
     setRefreshing(false);
   };
@@ -54,6 +57,10 @@ export default function HomeScreen() {
             </Text>
           </Pressable>
         </Link>
+
+        <PhysioSummaryCard />
+
+        <PhysioFocusCard />
 
         <TopTriggers />
       </ScrollView>
