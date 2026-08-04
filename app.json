@@ -12,6 +12,9 @@
       "bundleIdentifier": "com.rokas.painjournal",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "aps-environment": "production"
       }
     },
     "android": {
