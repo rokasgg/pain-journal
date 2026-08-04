@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { PainSlider } from '@/components/checkin/PainSlider';
 import { InfoButton } from '@/components/ui/InfoButton';
 import { Input } from '@/components/ui/Input';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { EveningCheckinFormData } from '@/lib/validations/checkin';
 
 export interface EveningFieldsProps {
@@ -11,6 +12,7 @@ export interface EveningFieldsProps {
 }
 
 export function EveningFields({ control }: EveningFieldsProps) {
+  const { t } = useTranslation();
   const didExercises = useWatch({ control, name: 'did_exercises' });
 
   return (
@@ -20,10 +22,10 @@ export function EveningFields({ control }: EveningFieldsProps) {
         name="activity_level"
         render={({ field: { value, onChange } }) => (
           <PainSlider
-            label="Activity level"
+            label={t('checkin.activityLevel')}
             value={value}
             onChange={onChange}
-            info="How physically active your day was overall — walking, chores, work — not a dedicated workout. That's tracked separately below if you did one."
+            info={t('checkin.activityLevelInfo')}
           />
         )}
       />
@@ -33,12 +35,12 @@ export function EveningFields({ control }: EveningFieldsProps) {
         name="screen_time_hours"
         render={({ field: { value, onChange, onBlur } }) => (
           <Input
-            label="Screen time (hours)"
+            label={t('checkin.screenTimeHours')}
             keyboardType="decimal-pad"
             value={value?.toString() ?? ''}
             onChangeText={(text) => onChange(text ? Number(text) : null)}
             onBlur={onBlur}
-            info="Roughly how many hours you spent looking at a screen today (phone, computer, TV) — prolonged screen time is a common neck-strain trigger."
+            info={t('checkin.screenTimeHoursInfo')}
           />
         )}
       />
@@ -54,14 +56,14 @@ export function EveningFields({ control }: EveningFieldsProps) {
             className="flex-row items-center justify-between rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700"
           >
             <View className="flex-row items-center gap-1.5">
-              <Text className="text-base text-black dark:text-white">Did PT/stretches today</Text>
+              <Text className="text-base text-black dark:text-white">{t('checkin.didExercises')}</Text>
               <InfoButton
-                title="Did PT/stretches today"
-                message="Whether you did a dedicated physical therapy, stretching, or exercise session today — separate from your day's general activity level above."
+                title={t('checkin.didExercises')}
+                message={t('checkin.didExercisesInfo')}
               />
             </View>
             <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              {value ? 'Yes' : 'No'}
+              {value ? t('common.yes') : t('common.no')}
             </Text>
           </Pressable>
         )}
@@ -74,12 +76,12 @@ export function EveningFields({ control }: EveningFieldsProps) {
             name="exercise_intensity"
             render={({ field: { value, onChange } }) => (
               <PainSlider
-                label="Exercise intensity"
+                label={t('checkin.exerciseIntensity')}
                 value={value}
                 onChange={onChange}
-                minLabel="Light"
-                maxLabel="Intense"
-                info="How intense that exercise/PT session felt, from 0 (very light) to 10 (very intense)."
+                minLabel={t('checkin.light')}
+                maxLabel={t('checkin.intense')}
+                info={t('checkin.exerciseIntensityInfo')}
               />
             )}
           />
@@ -89,12 +91,12 @@ export function EveningFields({ control }: EveningFieldsProps) {
             name="exercise_hours"
             render={({ field: { value, onChange, onBlur } }) => (
               <Input
-                label="Exercise hours"
+                label={t('checkin.exerciseHours')}
                 keyboardType="decimal-pad"
                 value={value?.toString() ?? ''}
                 onChangeText={(text) => onChange(text ? Number(text) : null)}
                 onBlur={onBlur}
-                info="Roughly how long that exercise/PT session lasted, in hours."
+                info={t('checkin.exerciseHoursInfo')}
               />
             )}
           />
@@ -104,13 +106,13 @@ export function EveningFields({ control }: EveningFieldsProps) {
             name="exercise_notes"
             render={({ field: { value, onChange, onBlur } }) => (
               <Input
-                label="Exercise notes"
+                label={t('checkin.exerciseNotes')}
                 multiline
                 numberOfLines={3}
                 value={value ?? ''}
                 onChangeText={onChange}
                 onBlur={onBlur}
-                info="Any details about what you did — e.g. which stretches, exercises, or activities."
+                info={t('checkin.exerciseNotesInfo')}
               />
             )}
           />

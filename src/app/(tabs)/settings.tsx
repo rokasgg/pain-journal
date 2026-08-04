@@ -7,10 +7,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DatePickerField } from '@/components/ui/DatePickerField';
 import { Input } from '@/components/ui/Input';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useReminderSettings, useUpdateReminderSettings } from '@/hooks/useReminderSettings';
 import { useSession } from '@/hooks/useSession';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { Profile, ReminderSettings } from '@/types/database.types';
@@ -26,6 +28,7 @@ interface InjuryInfoSectionProps {
 // sync local state into an already-mounted form — that "sync on render"
 // approach proved unreliable here (see settings.tsx history).
 function InjuryInfoSection({ profile }: InjuryInfoSectionProps) {
+  const { t } = useTranslation();
   const updateProfileMutation = useUpdateProfile();
   const [injuryStartedOn, setInjuryStartedOn] = useState<string | null>(
     profile?.injury_started_on ?? null,
@@ -43,24 +46,24 @@ function InjuryInfoSection({ profile }: InjuryInfoSectionProps) {
       return;
     }
 
-    toast.success('Injury info updated!');
+    toast.success(t('settings.injuryInfoUpdated'));
   };
 
   return (
     <View className="gap-3">
       <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-        Injury Info
+        {t('settings.injuryInfo')}
       </Text>
 
       <DatePickerField
-        label="Injury start date"
+        label={t('settings.injuryStartDate')}
         value={injuryStartedOn}
         onChange={setInjuryStartedOn}
         maximumDate={new Date()}
       />
       <Input
-        label="Description"
-        placeholder="What happened?"
+        label={t('settings.description')}
+        placeholder={t('settings.whatHappenedPlaceholder')}
         multiline
         numberOfLines={3}
         value={injuryDescription}
@@ -75,7 +78,7 @@ function InjuryInfoSection({ profile }: InjuryInfoSectionProps) {
         {updateProfileMutation.isPending ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text className="font-semibold text-white">Save Injury Info</Text>
+          <Text className="font-semibold text-white">{t('settings.saveInjuryInfo')}</Text>
         )}
       </Pressable>
     </View>
@@ -87,6 +90,7 @@ interface ReminderSettingsSectionProps {
 }
 
 function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
+  const { t } = useTranslation();
   const updateReminderSettingsMutation = useUpdateReminderSettings();
   const [morningTime, setMorningTime] = useState(settings?.morning_time ?? '08:00');
   const [eveningTime, setEveningTime] = useState(settings?.evening_time ?? '21:00');
@@ -104,17 +108,17 @@ function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
       return;
     }
 
-    toast.success('Reminder settings updated!');
+    toast.success(t('settings.remindersUpdated'));
   };
 
   return (
     <View className="gap-3">
       <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-        Reminders
+        {t('settings.reminders')}
       </Text>
 
       <View className="flex-row items-center justify-between rounded-2xl bg-primaryMuted px-4 py-3 dark:bg-primaryMutedDark">
-        <Text className="text-base text-black dark:text-white">Push notifications</Text>
+        <Text className="text-base text-black dark:text-white">{t('settings.pushNotifications')}</Text>
         <Switch
           value={pushEnabled}
           onValueChange={setPushEnabled}
@@ -122,8 +126,8 @@ function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
         />
       </View>
 
-      <Input label="Morning reminder" placeholder="08:00" value={morningTime} onChangeText={setMorningTime} />
-      <Input label="Evening reminder" placeholder="21:00" value={eveningTime} onChangeText={setEveningTime} />
+      <Input label={t('settings.morningReminder')} placeholder="08:00" value={morningTime} onChangeText={setMorningTime} />
+      <Input label={t('settings.eveningReminder')} placeholder="21:00" value={eveningTime} onChangeText={setEveningTime} />
 
       <Pressable
         onPress={handleSave}
@@ -133,7 +137,7 @@ function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
         {updateReminderSettingsMutation.isPending ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text className="font-semibold text-white">Save Reminders</Text>
+          <Text className="font-semibold text-white">{t('settings.saveReminders')}</Text>
         )}
       </Pressable>
     </View>
@@ -142,6 +146,7 @@ function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user } = useSession();
   const uploadAvatar = useAuthStore((state) => state.uploadAvatar);
   const updateProfile = useAuthStore((state) => state.updateProfile);
@@ -152,7 +157,7 @@ export default function SettingsScreen() {
   const { profile, isLoading: isProfileLoading } = useProfile();
   const { settings, isLoading: isSettingsLoading } = useReminderSettings();
 
-  const name = (user?.user_metadata?.name as string | undefined) ?? 'Anonymous';
+  const name = (user?.user_metadata?.name as string | undefined) ?? t('common.anonymous');
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
   const email = user?.email ?? '';
 
@@ -167,7 +172,7 @@ export default function SettingsScreen() {
 
     if (uploadError || !url) {
       setIsUploadingAvatar(false);
-      toast.error(uploadError ?? 'Failed to upload avatar.');
+      toast.error(uploadError ?? t('settings.failedUploadAvatar'));
       return;
     }
 
@@ -179,7 +184,7 @@ export default function SettingsScreen() {
       return;
     }
 
-    toast.success('Avatar updated!');
+    toast.success(t('settings.avatarUpdated'));
   };
 
   const handleResetPassword = async () => {
@@ -191,14 +196,14 @@ export default function SettingsScreen() {
       return;
     }
 
-    toast.success('Password reset email sent!');
+    toast.success(t('auth.passwordResetEmailSent'));
   };
 
   const handleSignOut = () => {
-    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert(t('settings.signOutConfirmTitle'), t('settings.signOutConfirmMessage'), [
+      { text: t('common.cancel'), style: 'cancel' },
       {
-        text: 'Sign Out',
+        text: t('settings.signOut'),
         style: 'destructive',
         onPress: async () => {
           const { error } = await signOut();
@@ -208,7 +213,7 @@ export default function SettingsScreen() {
             return;
           }
 
-          toast.success('Signed out.');
+          toast.success(t('settings.signedOut'));
         },
       },
     ]);
@@ -240,7 +245,7 @@ export default function SettingsScreen() {
               onPress={handleEditAvatar}
               disabled={isUploadingAvatar}
               accessibilityRole="button"
-              accessibilityLabel="Change avatar"
+              accessibilityLabel={t('settings.changeAvatar')}
               className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full bg-primary dark:bg-primaryDark"
             >
               {isUploadingAvatar ? (
@@ -259,14 +264,21 @@ export default function SettingsScreen() {
 
         <View className="gap-3">
           <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-            Appearance
+            {t('settings.appearance')}
           </Text>
           <ThemeSwitcher />
         </View>
 
         <View className="gap-3">
           <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-            Account
+            {t('settings.language')}
+          </Text>
+          <LanguageSwitcher />
+        </View>
+
+        <View className="gap-3">
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+            {t('settings.account')}
           </Text>
 
           <View className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
@@ -276,7 +288,7 @@ export default function SettingsScreen() {
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="person-outline" size={20} color={colors.gray} />
-                <Text className="text-base text-black dark:text-white">Edit Profile</Text>
+                <Text className="text-base text-black dark:text-white">{t('settings.editProfile')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.gray} />
             </Pressable>
@@ -287,18 +299,18 @@ export default function SettingsScreen() {
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="lock-closed-outline" size={20} color={colors.gray} />
-                <Text className="text-base text-black dark:text-white">Reset Password</Text>
+                <Text className="text-base text-black dark:text-white">{t('settings.resetPassword')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.gray} />
             </Pressable>
 
             <Pressable
-              onPress={() => toast.info('Privacy policy coming soon.')}
+              onPress={() => toast.info(t('settings.privacyPolicyComingSoon'))}
               className="flex-row items-center justify-between px-4 py-3.5"
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="document-text-outline" size={20} color={colors.gray} />
-                <Text className="text-base text-black dark:text-white">Privacy Policy</Text>
+                <Text className="text-base text-black dark:text-white">{t('settings.privacyPolicy')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.gray} />
             </Pressable>
@@ -321,7 +333,7 @@ export default function SettingsScreen() {
           onPress={handleSignOut}
           className="items-center rounded-lg border border-red-600 py-3 dark:border-red-500"
         >
-          <Text className="font-semibold text-red-600 dark:text-red-500">Sign Out</Text>
+          <Text className="font-semibold text-red-600 dark:text-red-500">{t('settings.signOut')}</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>

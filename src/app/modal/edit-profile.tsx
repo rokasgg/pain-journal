@@ -8,6 +8,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 
 import { Input } from '@/components/ui/Input';
 import { useSession } from '@/hooks/useSession';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { editProfileSchema, type EditProfileFormData } from '@/lib/validations/profile';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -16,6 +17,7 @@ import { toast } from '@/utils/toast';
 
 export default function EditProfileModal() {
   const router = useRouter();
+  const { t } = useTranslation();
   const { user } = useSession();
   const uploadAvatar = useAuthStore((state) => state.uploadAvatar);
   const updateProfile = useAuthStore((state) => state.updateProfile);
@@ -55,7 +57,7 @@ export default function EditProfileModal() {
 
       if (uploadError || !url) {
         setIsSubmitting(false);
-        toast.error(uploadError ?? 'Failed to upload avatar.');
+        toast.error(uploadError ?? t('settings.failedUploadAvatar'));
         return;
       }
 
@@ -70,7 +72,7 @@ export default function EditProfileModal() {
       return;
     }
 
-    toast.success('Profile updated!');
+    toast.success(t('editProfile.profileUpdated'));
     router.back();
   };
 
@@ -82,7 +84,7 @@ export default function EditProfileModal() {
       automaticallyAdjustKeyboardInsets
     >
       <View className="items-center gap-3">
-        <Pressable onPress={handlePickAvatar} accessibilityRole="button" accessibilityLabel="Change avatar">
+        <Pressable onPress={handlePickAvatar} accessibilityRole="button" accessibilityLabel={t('settings.changeAvatar')}>
           {displayedAvatar ? (
             <Image
               source={{ uri: displayedAvatar }}
@@ -97,7 +99,7 @@ export default function EditProfileModal() {
         </Pressable>
 
         <Pressable onPress={handlePickAvatar}>
-          <Text className="text-sm font-medium text-black dark:text-white">Change Photo</Text>
+          <Text className="text-sm font-medium text-black dark:text-white">{t('editProfile.changePhoto')}</Text>
         </Pressable>
       </View>
 
@@ -106,12 +108,12 @@ export default function EditProfileModal() {
         name="name"
         render={({ field: { onChange, onBlur, value } }) => (
           <Input
-            label="Display Name"
-            placeholder="Jane Doe"
+            label={t('editProfile.displayName')}
+            placeholder={t('auth.namePlaceholder')}
             onChangeText={onChange}
             onBlur={onBlur}
             value={value}
-            error={errors.name?.message}
+            error={errors.name?.message && t(errors.name.message)}
           />
         )}
       />
@@ -121,7 +123,7 @@ export default function EditProfileModal() {
           onPress={() => router.back()}
           className="flex-1 items-center rounded-lg border border-gray-300 py-3 dark:border-gray-700"
         >
-          <Text className="font-semibold text-black dark:text-white">Cancel</Text>
+          <Text className="font-semibold text-black dark:text-white">{t('common.cancel')}</Text>
         </Pressable>
 
         <Pressable
@@ -132,7 +134,7 @@ export default function EditProfileModal() {
           {isSubmitting ? (
             <ActivityIndicator color={colors.white} />
           ) : (
-            <Text className="font-semibold text-white">Save</Text>
+            <Text className="font-semibold text-white">{t('common.save')}</Text>
           )}
         </Pressable>
       </View>

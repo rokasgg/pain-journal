@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 import { CheckinForm, type CheckinFormData } from '@/components/checkin/CheckinForm';
 import { useCheckinHistory, useUpsertCheckin } from '@/hooks/useCheckins';
 import { formatCheckinDate } from '@/lib/dates';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { toast } from '@/utils/toast';
 import type { Checkin } from '@/types/database.types';
 
@@ -41,6 +42,7 @@ function toFormData(checkin: Checkin): CheckinFormData {
 export default function EditCheckinModal() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { t } = useTranslation();
   const { checkins } = useCheckinHistory(90);
   const upsertCheckin = useUpsertCheckin();
 
@@ -49,7 +51,7 @@ export default function EditCheckinModal() {
   if (!checkin) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-6 dark:bg-backgroundDark">
-        <Text className="text-gray-500 dark:text-gray-400">Entry not found.</Text>
+        <Text className="text-gray-500 dark:text-gray-400">{t('common.entryNotFound')}</Text>
       </View>
     );
   }
@@ -66,7 +68,7 @@ export default function EditCheckinModal() {
       return;
     }
 
-    toast.success('Check-in updated!');
+    toast.success(t('checkin.checkinUpdatedToast'));
     router.back();
   };
 
@@ -74,11 +76,11 @@ export default function EditCheckinModal() {
     <CheckinForm
       type={checkin.type}
       defaultValues={toFormData(checkin)}
-      submitLabel="Save Changes"
+      submitLabel={t('checkin.saveChanges')}
       onSubmit={handleSubmit}
       header={
         <Text className="text-sm text-gray-500 dark:text-gray-400">
-          {formatCheckinDate(checkin.checkin_date)} · {checkin.type}
+          {formatCheckinDate(checkin.checkin_date)} · {t(checkin.type === 'morning' ? 'home.morning' : 'home.evening')}
         </Text>
       }
     />

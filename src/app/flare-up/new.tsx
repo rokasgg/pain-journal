@@ -2,11 +2,13 @@ import { useRouter } from 'expo-router';
 
 import { FlareUpForm } from '@/components/checkin/FlareUpForm';
 import { useCreateFlareUp } from '@/hooks/useFlareUps';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { FlareUpFormData } from '@/lib/validations/flareUp';
 import { toast } from '@/utils/toast';
 
 export default function NewFlareUpModal() {
   const router = useRouter();
+  const { t } = useTranslation();
   const createFlareUp = useCreateFlareUp();
 
   const handleSubmit = async (data: FlareUpFormData) => {
@@ -17,9 +19,9 @@ export default function NewFlareUpModal() {
       return;
     }
 
-    toast.success('Flare-up logged.');
+    toast.success(t('flareUp.loggedToast'));
     router.back();
   };
 
-  return <FlareUpForm submitLabel="Log Flare-up" onSubmit={handleSubmit} />;
+  return <FlareUpForm submitLabel={t('flareUp.logFlareUp')} onSubmit={handleSubmit} />;
 }

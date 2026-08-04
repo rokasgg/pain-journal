@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { subDays } from 'date-fns';
 
 import { useSession } from '@/hooks/useSession';
+import { t } from '@/lib/i18n/useTranslation';
 import { supabase } from '@/lib/supabase';
 import type { FlareUp, FlareUpInsert } from '@/types/database.types';
 
@@ -38,7 +39,7 @@ export function useUpdateFlareUp() {
       id,
       ...updates
     }: { id: string } & Partial<Omit<FlareUpInsert, 'user_id'>>): Promise<{ error: string | null }> => {
-      if (!user) return { error: 'Not signed in.' };
+      if (!user) return { error: t('common.notSignedIn') };
 
       const { error } = await supabase.from('flare_ups').update(updates).eq('id', id).eq('user_id', user.id);
 
@@ -60,7 +61,7 @@ export function useCreateFlareUp() {
     mutationFn: async (
       flareUp: Omit<FlareUpInsert, 'user_id' | 'occurred_at'>,
     ): Promise<{ error: string | null }> => {
-      if (!user) return { error: 'Not signed in.' };
+      if (!user) return { error: t('common.notSignedIn') };
 
       const { error } = await supabase
         .from('flare_ups')

@@ -7,10 +7,12 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useSession } from '@/hooks/useSession';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { queryClient } from '@/lib/queryClient';
 
 function RootLayoutNav() {
   const { session, isLoading } = useSession();
+  const { t } = useTranslation();
   const segments = useSegments();
   const router = useRouter();
 
@@ -42,39 +44,39 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen
           name="modal/edit-profile"
-          options={{ presentation: 'modal', headerShown: true, title: 'Edit Profile' }}
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editProfile') }}
         />
         <Stack.Screen
           name="checkin/[type]"
-          options={{ presentation: 'modal', headerShown: true, title: 'Check-in' }}
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.checkin') }}
         />
         <Stack.Screen
           name="checkin/backfill"
-          options={{ presentation: 'modal', headerShown: true, title: 'Backfill Check-in' }}
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.backfillCheckin') }}
         />
         <Stack.Screen
           name="checkin/edit/[id]"
-          options={{ presentation: 'modal', headerShown: true, title: 'Edit Check-in' }}
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editCheckin') }}
         />
         <Stack.Screen
           name="flare-up/new"
-          options={{ presentation: 'modal', headerShown: true, title: 'Log Flare-up' }}
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.logFlareUp') }}
         />
         <Stack.Screen
           name="flare-up/edit/[id]"
-          options={{ presentation: 'modal', headerShown: true, title: 'Edit Flare-up' }}
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editFlareUp') }}
         />
         <Stack.Screen
           name="history/[kind]/[id]"
-          options={{ presentation: 'modal', headerShown: true, title: 'Entry Details' }}
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.entryDetails') }}
         />
         <Stack.Screen
           name="history/day/[date]"
-          options={{ presentation: 'modal', headerShown: true, title: 'Day Details' }}
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.dayDetails') }}
         />
         <Stack.Screen
           name="history/patterns"
-          options={{ presentation: 'modal', headerShown: true, title: 'Pattern Analysis' }}
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.patternAnalysis') }}
         />
       </Stack>
     </ErrorBoundary>

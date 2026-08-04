@@ -3,6 +3,8 @@ import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
+
 export interface DatePickerFieldProps {
   label?: string;
   value: string | null;
@@ -17,11 +19,13 @@ export function DatePickerField({
   label,
   value,
   onChange,
-  placeholder = 'Select a date',
+  placeholder,
   maximumDate,
   className,
   labelClassName,
 }: DatePickerFieldProps) {
+  const { t } = useTranslation();
+  const resolvedPlaceholder = placeholder ?? t('datePicker.selectDate');
   const [showPicker, setShowPicker] = useState(false);
   const [pendingDate, setPendingDate] = useState<Date>(() => (value ? parseISO(value) : new Date()));
 
@@ -44,7 +48,7 @@ export function DatePickerField({
         className="rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700"
       >
         <Text className={value ? 'text-black dark:text-white' : 'text-gray-500'}>
-          {value ? format(parseISO(value), 'EEE, MMM d yyyy') : placeholder}
+          {value ? format(parseISO(value), 'EEE, MMM d yyyy') : resolvedPlaceholder}
         </Text>
       </Pressable>
 
@@ -63,7 +67,7 @@ export function DatePickerField({
               accessibilityRole="button"
               className="flex-1 items-center border-r border-gray-300 py-2.5 dark:border-gray-700"
             >
-              <Text className="text-black dark:text-white">Cancel</Text>
+              <Text className="text-black dark:text-white">{t('common.cancel')}</Text>
             </Pressable>
             <Pressable
               onPress={() => {
@@ -73,7 +77,7 @@ export function DatePickerField({
               accessibilityRole="button"
               className="flex-1 items-center py-2.5"
             >
-              <Text className="font-semibold text-black dark:text-white">Done</Text>
+              <Text className="font-semibold text-black dark:text-white">{t('common.done')}</Text>
             </Pressable>
           </View>
         </View>

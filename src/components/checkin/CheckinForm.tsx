@@ -8,6 +8,7 @@ import { MorningFields } from '@/components/checkin/MorningFields';
 import { PainSlider } from '@/components/checkin/PainSlider';
 import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import {
   eveningCheckinSchema,
@@ -56,6 +57,7 @@ export interface CheckinFormProps {
 }
 
 export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header }: CheckinFormProps) {
+  const { t } = useTranslation();
   const isMorning = type === 'morning';
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -84,10 +86,10 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
         name="pain_level"
         render={({ field: { value, onChange } }) => (
           <PainSlider
-            label="Pain level"
+            label={t('checkin.painLevel')}
             value={value}
             onChange={onChange}
-            info="How much pain you're feeling right now, from 0 (none) to 10 (worst pain imaginable)."
+            info={t('checkin.painLevelInfo')}
           />
         )}
       />
@@ -97,12 +99,12 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
         name="stiffness_level"
         render={({ field: { value, onChange } }) => (
           <PainSlider
-            label="Stiffness"
+            label={t('checkin.stiffness')}
             value={value}
             onChange={onChange}
-            minLabel="Flexible"
-            maxLabel="Rigid"
-            info="How stiff or restricted your neck/back feels, from 0 (flexible) to 10 (very rigid)."
+            minLabel={t('checkin.flexible')}
+            maxLabel={t('checkin.rigid')}
+            info={t('checkin.stiffnessInfo')}
           />
         )}
       />
@@ -112,12 +114,12 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
         name="range_of_motion"
         render={({ field: { value, onChange } }) => (
           <PainSlider
-            label="Range of motion"
+            label={t('checkin.rangeOfMotion')}
             value={value}
             onChange={onChange}
-            minLabel="Limited"
-            maxLabel="Full"
-            info="How freely you can move, from 0 (very limited) to 10 (full, normal range)."
+            minLabel={t('checkin.limited')}
+            maxLabel={t('checkin.full')}
+            info={t('checkin.rangeOfMotionInfo')}
           />
         )}
       />

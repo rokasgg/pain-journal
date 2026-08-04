@@ -4,9 +4,11 @@ import { Pressable, Text, View } from 'react-native';
 
 import { useProfile } from '@/hooks/useProfile';
 import { daysSince } from '@/lib/dates';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
 export function DaysSinceInjury() {
+  const { t } = useTranslation();
   const { profile } = useProfile();
 
   if (!profile?.injury_started_on) {
@@ -14,7 +16,7 @@ export function DaysSinceInjury() {
       <Link href="/(tabs)/settings" asChild>
         <Pressable className="flex-row items-center gap-1.5 rounded-full bg-primaryMuted px-3 py-2 dark:bg-primaryMutedDark">
           <Ionicons name="time-outline" size={14} color={colors.primary} />
-          <Text className="text-xs font-medium text-black dark:text-white">Set injury date</Text>
+          <Text className="text-xs font-medium text-black dark:text-white">{t('home.setInjuryDate')}</Text>
         </Pressable>
       </Link>
     );
@@ -25,7 +27,9 @@ export function DaysSinceInjury() {
   return (
     <View className="flex-row items-center gap-1.5 rounded-full bg-primaryMuted px-3 py-2 dark:bg-primaryMutedDark">
       <Ionicons name="time-outline" size={14} color={colors.primary} />
-      <Text className="text-xs font-medium text-black dark:text-white">{days} days since injury</Text>
+      <Text className="text-xs font-medium text-black dark:text-white">
+        {t('home.daysSinceInjury', { days })}
+      </Text>
     </View>
   );
 }

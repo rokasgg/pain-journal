@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 
 import { formatCheckinDate } from '@/lib/dates';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { Checkin } from '@/types/database.types';
 
 function DetailRow({ label, value }: { label: string; value: string | number | null | undefined }) {
@@ -20,17 +21,19 @@ export interface CheckinDetailViewProps {
 }
 
 export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailViewProps) {
+  const { t } = useTranslation();
+
   const symptomLabels = [
-    checkin.symptoms.tingling && 'Tingling',
-    checkin.symptoms.numbness && 'Numbness',
-    checkin.symptoms.headache && 'Headache',
+    checkin.symptoms.tingling && t('symptoms.tingling'),
+    checkin.symptoms.numbness && t('symptoms.numbness'),
+    checkin.symptoms.headache && t('symptoms.headache'),
   ].filter(Boolean) as string[];
 
   return (
     <View className="gap-4">
       <View className="flex-row items-center justify-between">
-        <Text className="text-xl font-bold capitalize text-black dark:text-white">
-          {checkin.type} check-in
+        <Text className="text-xl font-bold text-black dark:text-white">
+          {t(checkin.type === 'morning' ? 'detail.morningCheckin' : 'detail.eveningCheckin')}
         </Text>
         {showDate && (
           <Text className="text-sm text-gray-500 dark:text-gray-400">
@@ -40,26 +43,35 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
       </View>
 
       <View>
-        <DetailRow label="Pain level" value={checkin.pain_level} />
-        <DetailRow label="Stiffness" value={checkin.stiffness_level} />
-        <DetailRow label="Range of motion" value={checkin.range_of_motion} />
+        <DetailRow label={t('detail.painLevel')} value={checkin.pain_level} />
+        <DetailRow label={t('detail.stiffness')} value={checkin.stiffness_level} />
+        <DetailRow label={t('detail.rangeOfMotion')} value={checkin.range_of_motion} />
 
         {checkin.type === 'morning' && (
           <>
-            <DetailRow label="Sleep quality" value={checkin.sleep_quality} />
-            <DetailRow label="Sleep hours" value={checkin.sleep_hours} />
-            <DetailRow label="Woke up with pain" value={checkin.woke_up_with_pain ? 'Yes' : 'No'} />
-            <DetailRow label="Sleep position" value={checkin.sleep_position} />
+            <DetailRow label={t('detail.sleepQuality')} value={checkin.sleep_quality} />
+            <DetailRow label={t('detail.sleepHours')} value={checkin.sleep_hours} />
+            <DetailRow
+              label={t('detail.wokeUpWithPain')}
+              value={checkin.woke_up_with_pain ? t('common.yes') : t('common.no')}
+            />
+            <DetailRow
+              label={t('detail.sleepPosition')}
+              value={checkin.sleep_position ? t(`sleepPosition.${checkin.sleep_position}`) : null}
+            />
           </>
         )}
 
         {checkin.type === 'evening' && (
           <>
-            <DetailRow label="Activity level" value={checkin.activity_level} />
-            <DetailRow label="Screen time (hours)" value={checkin.screen_time_hours} />
-            <DetailRow label="Did exercises" value={checkin.did_exercises ? 'Yes' : 'No'} />
-            <DetailRow label="Exercise hours" value={checkin.exercise_hours} />
-            <DetailRow label="Exercise intensity" value={checkin.exercise_intensity} />
+            <DetailRow label={t('detail.activityLevel')} value={checkin.activity_level} />
+            <DetailRow label={t('detail.screenTimeHours')} value={checkin.screen_time_hours} />
+            <DetailRow
+              label={t('detail.didExercises')}
+              value={checkin.did_exercises ? t('common.yes') : t('common.no')}
+            />
+            <DetailRow label={t('detail.exerciseHours')} value={checkin.exercise_hours} />
+            <DetailRow label={t('detail.exerciseIntensity')} value={checkin.exercise_intensity} />
           </>
         )}
       </View>
@@ -67,12 +79,12 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
       {symptomLabels.length > 0 && (
         <View className="gap-1">
           <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-            Symptoms
+            {t('detail.symptoms')}
           </Text>
           <Text className="text-base text-black dark:text-white">{symptomLabels.join(', ')}</Text>
           {checkin.symptoms.radiating_to && (
             <Text className="text-sm text-gray-500 dark:text-gray-400">
-              Radiating to: {checkin.symptoms.radiating_to}
+              {t('detail.radiatingTo', { location: checkin.symptoms.radiating_to })}
             </Text>
           )}
         </View>
@@ -81,7 +93,7 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
       {checkin.triggers.length > 0 && (
         <View className="gap-1">
           <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-            Triggers
+            {t('detail.triggers')}
           </Text>
           <Text className="text-base text-black dark:text-white">{checkin.triggers.join(', ')}</Text>
         </View>
@@ -90,7 +102,7 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
       {checkin.exercise_notes && (
         <View className="gap-1">
           <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-            Exercise notes
+            {t('detail.exerciseNotes')}
           </Text>
           <Text className="text-base text-black dark:text-white">{checkin.exercise_notes}</Text>
         </View>
@@ -98,7 +110,7 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
 
       {checkin.notes && (
         <View className="gap-1">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">Notes</Text>
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">{t('detail.notes')}</Text>
           <Text className="text-base text-black dark:text-white">{checkin.notes}</Text>
         </View>
       )}

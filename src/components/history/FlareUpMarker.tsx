@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
+
 export interface FlareUpMarkerProps {
   painLevel: number;
   compact?: boolean;
@@ -8,6 +10,8 @@ export interface FlareUpMarkerProps {
 }
 
 export function FlareUpMarker({ painLevel, compact, className }: FlareUpMarkerProps) {
+  const { t } = useTranslation();
+
   if (compact) {
     return (
       <View className={`h-2.5 w-2.5 rounded-full bg-red-600 dark:bg-red-500 ${className ?? ''}`} />
@@ -19,7 +23,9 @@ export function FlareUpMarker({ painLevel, compact, className }: FlareUpMarkerPr
       className={`flex-row items-center gap-1 self-start rounded-full bg-red-100 px-2 py-1 dark:bg-red-950 ${className ?? ''}`}
     >
       <Ionicons name="flame" size={12} color="#dc2626" />
-      <Text className="text-xs font-semibold text-red-700 dark:text-red-400">Flare-up · {painLevel}</Text>
+      <Text className="text-xs font-semibold text-red-700 dark:text-red-400">
+        {t('flareUp.flareUp')} · {painLevel}
+      </Text>
     </View>
   );
 }

@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
 import { formatCheckinDate } from '@/lib/dates';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import type { Checkin, FlareUp } from '@/types/database.types';
 
@@ -19,6 +20,7 @@ export interface EntryListItemProps {
 }
 
 export function EntryListItem({ entry, onPress }: EntryListItemProps) {
+  const { t } = useTranslation();
   const isFlareUp = entry.kind === 'flareUp';
   const painLevel = entry.data.pain_level;
   const severity = severityColor(painLevel);
@@ -28,8 +30,8 @@ export function EntryListItem({ entry, onPress }: EntryListItemProps) {
     : formatCheckinDate((entry.data as Checkin).checkin_date);
 
   const description = isFlareUp
-    ? ((entry.data as FlareUp).likely_cause ?? 'Flare-up')
-    : `${(entry.data as Checkin).type === 'morning' ? 'Morning' : 'Evening'} check-in`;
+    ? ((entry.data as FlareUp).likely_cause ?? t('flareUp.flareUp'))
+    : t((entry.data as Checkin).type === 'morning' ? 'detail.morningCheckin' : 'detail.eveningCheckin');
 
   return (
     <Pressable
@@ -45,7 +47,7 @@ export function EntryListItem({ entry, onPress }: EntryListItemProps) {
           <Text className="text-base font-medium text-black dark:text-white">{dateStr}</Text>
           {isFlareUp && (
             <View className="rounded-full bg-red-600 px-2 py-0.5">
-              <Text className="text-[10px] font-bold uppercase text-white">Flare</Text>
+              <Text className="text-[10px] font-bold uppercase text-white">{t('flareUp.flareUp')}</Text>
             </View>
           )}
         </View>

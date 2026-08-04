@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Platform, Text, useColorScheme, View } from 'react-native';
 import { CartesianChart, Line } from 'victory-native';
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import type { Checkin } from '@/types/database.types';
 
@@ -24,6 +25,7 @@ const font = matchFont({
 });
 
 export function PainTrendChart({ checkins }: PainTrendChartProps) {
+  const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
   const lineColor = isDark ? colors.white : colors.black;
   const gridColor = isDark ? colors.borderDark : colors.borderLight;
@@ -44,8 +46,8 @@ export function PainTrendChart({ checkins }: PainTrendChartProps) {
   return (
     <View className="gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
       <View>
-        <Text className="text-base font-semibold text-black dark:text-white">Pain Intensity</Text>
-        <Text className="text-sm text-gray-500 dark:text-gray-400">Reported pain level, 0–10</Text>
+        <Text className="text-base font-semibold text-black dark:text-white">{t('detail.painIntensityChartTitle')}</Text>
+        <Text className="text-sm text-gray-500 dark:text-gray-400">{t('detail.painIntensityChartSubtitle')}</Text>
       </View>
 
       <View className="h-52 w-full">

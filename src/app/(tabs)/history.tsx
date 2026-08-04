@@ -9,16 +9,18 @@ import { PainTrendChart } from '@/components/history/PainTrendChart';
 import { StatTile } from '@/components/history/StatTile';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useFlareUps } from '@/hooks/useFlareUps';
-
-const RANGE_OPTIONS = [
-  { label: 'Week', days: 7 },
-  { label: 'Month', days: 30 },
-  { label: 'All', days: 365 },
-] as const;
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function HistoryScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [rangeDays, setRangeDays] = useState<number>(7);
+
+  const RANGE_OPTIONS = [
+    { label: t('history.week'), days: 7 },
+    { label: t('history.month'), days: 30 },
+    { label: t('history.all'), days: 365 },
+  ] as const;
 
   const activeRange = RANGE_OPTIONS.find((option) => option.days === rangeDays) ?? RANGE_OPTIONS[0];
 
@@ -98,20 +100,20 @@ export default function HistoryScreen() {
     <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top']}>
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-8">
         <View className="flex-row items-center justify-between">
-          <Text className="text-2xl font-bold text-black dark:text-white">History</Text>
+          <Text className="text-2xl font-bold text-black dark:text-white">{t('history.title')}</Text>
 
           <View className="flex-row gap-2">
             <Link href="/flare-up/new" asChild>
               <Pressable className="rounded-full border border-red-600 px-3 py-1.5 dark:border-red-500">
                 <Text className="text-sm font-semibold text-red-600 dark:text-red-500">
-                  Log flare-up
+                  {t('history.logFlareUpChip')}
                 </Text>
               </Pressable>
             </Link>
 
             <Link href="/checkin/backfill" asChild>
               <Pressable className="rounded-full bg-primary px-3 py-1.5 dark:bg-primaryDark">
-                <Text className="text-sm font-semibold text-white">Add past entry</Text>
+                <Text className="text-sm font-semibold text-white">{t('history.addPastEntry')}</Text>
               </Pressable>
             </Link>
           </View>
@@ -142,18 +144,18 @@ export default function HistoryScreen() {
 
         <View className="flex-row gap-3">
           <StatTile
-            label={`Avg Daily Pain (${activeRange.label})`}
+            label={t('history.avgDailyPain', { range: activeRange.label })}
             value={avgPain !== null ? avgPain.toFixed(1) : '—'}
             trend={avgPainTrend}
           />
-          <StatTile label={`Flares (${activeRange.label})`} value={String(flareUps.length)} />
+          <StatTile label={t('history.flares', { range: activeRange.label })} value={String(flareUps.length)} />
         </View>
 
         <PainTrendChart checkins={checkins} />
 
         <Link href={'/history/patterns' as Href} asChild>
           <Pressable className="items-center rounded-lg border border-gray-300 py-3 dark:border-gray-700">
-            <Text className="font-semibold text-black dark:text-white">Find patterns with AI</Text>
+            <Text className="font-semibold text-black dark:text-white">{t('history.findPatterns')}</Text>
           </Pressable>
         </Link>
 
@@ -165,7 +167,7 @@ export default function HistoryScreen() {
         {entries.length > 0 && (
           <View className="gap-3">
             <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
-              Recent Entries
+              {t('history.recentEntries')}
             </Text>
             {entries.map((entry) => (
               <EntryListItem

@@ -6,12 +6,14 @@ import { FlareUpDetailView } from '@/components/history/FlareUpDetailView';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useFlareUps } from '@/hooks/useFlareUps';
 import { formatCheckinDate } from '@/lib/dates';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 function EditLink({ href }: { href: Href }) {
+  const { t } = useTranslation();
   return (
     <Link href={href} asChild>
       <Pressable className="items-center self-end rounded-full bg-primary px-3 py-1.5 dark:bg-primaryDark">
-        <Text className="text-sm font-semibold text-white">Edit</Text>
+        <Text className="text-sm font-semibold text-white">{t('common.edit')}</Text>
       </Pressable>
     </Link>
   );
@@ -19,6 +21,7 @@ function EditLink({ href }: { href: Href }) {
 
 export default function HistoryDayModal() {
   const { date } = useLocalSearchParams<{ date: string }>();
+  const { t } = useTranslation();
   const { checkins } = useCheckinHistory(90);
   const { flareUps } = useFlareUps(90);
 
@@ -37,7 +40,7 @@ export default function HistoryDayModal() {
 
       {!hasAnyEntry && (
         <Text className="text-sm text-gray-500 dark:text-gray-400">
-          No check-ins or flare-ups logged for this day.
+          {t('history.dayNoEntries')}
         </Text>
       )}
 

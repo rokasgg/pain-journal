@@ -4,6 +4,7 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { InfoButton } from '@/components/ui/InfoButton';
 import { TRIGGER_OPTIONS } from '@/constants/symptoms';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
 export interface TriggerChipsProps {
@@ -14,7 +15,21 @@ export interface TriggerChipsProps {
 
 const KNOWN_TRIGGERS = new Set(TRIGGER_OPTIONS.map((option) => option.value));
 
+// TRIGGER_OPTIONS values are stored verbatim in the DB (triggers text[]), so
+// they stay stable English identifiers — this maps each one to its i18n key
+// for display, independent of any custom trigger text the user types in.
+const TRIGGER_LABEL_KEYS: Record<string, string> = {
+  'Long drive': 'triggers.longDrive',
+  'Desk work': 'triggers.deskWork',
+  'Poor posture': 'triggers.poorPosture',
+  'Poor sleep': 'triggers.poorSleep',
+  'Cold weather': 'triggers.coldWeather',
+  'Heavy lifting': 'triggers.heavyLifting',
+  Stress: 'triggers.stress',
+};
+
 export function TriggerChips({ value, onChange, className }: TriggerChipsProps) {
+  const { t } = useTranslation();
   const [isAdding, setIsAdding] = useState(false);
   const [customText, setCustomText] = useState('');
 
@@ -36,10 +51,10 @@ export function TriggerChips({ value, onChange, className }: TriggerChipsProps) 
   return (
     <View className={`gap-2 ${className ?? ''}`}>
       <View className="flex-row items-center gap-1.5">
-        <Text className="text-sm font-medium text-black dark:text-white">Triggers</Text>
+        <Text className="text-sm font-medium text-black dark:text-white">{t('checkin.triggers')}</Text>
         <InfoButton
-          title="Triggers"
-          message="Anything you think may have contributed to today's pain — a long drive, poor posture, stress, and so on."
+          title={t('checkin.triggers')}
+          message={t('checkin.triggersInfo')}
         />
       </View>
       <View className="flex-row flex-wrap gap-2">
@@ -60,7 +75,7 @@ export function TriggerChips({ value, onChange, className }: TriggerChipsProps) 
                   isActive ? 'text-white' : 'text-black dark:text-white'
                 }`}
               >
-                {option.label}
+                {t(TRIGGER_LABEL_KEYS[option.value] ?? option.label)}
               </Text>
             </Pressable>
           );
@@ -86,7 +101,7 @@ export function TriggerChips({ value, onChange, className }: TriggerChipsProps) 
             className="flex-row items-center gap-1 rounded-full border border-dashed border-gray-400 px-3 py-2 dark:border-gray-600"
           >
             <Ionicons name="add" size={14} color={colors.gray} />
-            <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">Other</Text>
+            <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('common.other')}</Text>
           </Pressable>
         )}
       </View>
@@ -98,7 +113,7 @@ export function TriggerChips({ value, onChange, className }: TriggerChipsProps) 
             value={customText}
             onChangeText={setCustomText}
             onSubmitEditing={handleAddCustom}
-            placeholder="What do you think triggered it?"
+            placeholder={t('checkin.addCustomPlaceholder')}
             placeholderTextColor={colors.gray}
             returnKeyType="done"
             className="flex-1 rounded-lg border border-gray-300 bg-surface px-3 py-2 text-black dark:border-gray-700 dark:bg-surfaceDark dark:text-white"
@@ -108,7 +123,7 @@ export function TriggerChips({ value, onChange, className }: TriggerChipsProps) 
             accessibilityRole="button"
             className="rounded-lg bg-primary px-3 py-2 dark:bg-primaryDark"
           >
-            <Text className="text-sm font-semibold text-white">Add</Text>
+            <Text className="text-sm font-semibold text-white">{t('common.add')}</Text>
           </Pressable>
           <Pressable
             onPress={() => {

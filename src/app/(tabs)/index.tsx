@@ -7,8 +7,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
 import { DaysSinceInjury } from '@/components/home/DaysSinceInjury';
 import { TopTriggers } from '@/components/home/TopTriggers';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -29,9 +31,9 @@ export default function HomeScreen() {
       >
         <View className="flex-row items-start justify-between">
           <View>
-            <Text className="text-2xl font-bold text-black dark:text-white">Today&apos;s Status</Text>
+            <Text className="text-2xl font-bold text-black dark:text-white">{t('home.title')}</Text>
             <Text className="text-sm text-gray-500 dark:text-gray-400">
-              Your wellness check-ins for today
+              {t('home.subtitle')}
             </Text>
           </View>
           <DaysSinceInjury />
@@ -41,14 +43,14 @@ export default function HomeScreen() {
 
         <Link href="/flare-up/new" asChild>
           <Pressable className="items-center rounded-lg bg-primary py-3 dark:bg-primaryDark">
-            <Text className="font-semibold text-white">+ Log a flare-up</Text>
+            <Text className="font-semibold text-white">{t('home.logFlareUp')}</Text>
           </Pressable>
         </Link>
 
         <Link href="/checkin/backfill" asChild>
           <Pressable className="items-center py-1">
             <Text className="text-sm font-medium text-primary dark:text-primaryDark">
-              Backfill a day
+              {t('home.backfillDay')}
             </Text>
           </Pressable>
         </Link>

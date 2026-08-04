@@ -4,6 +4,7 @@ import { Pressable, Text, useColorScheme, View } from 'react-native';
 import { InfoButton } from '@/components/ui/InfoButton';
 import { Input } from '@/components/ui/Input';
 import { SYMPTOM_OPTIONS } from '@/constants/symptoms';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import type { CheckinSymptoms } from '@/types/database.types';
 
@@ -14,6 +15,7 @@ export interface SymptomCheckboxesProps {
 }
 
 export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckboxesProps) {
+  const { t } = useTranslation();
   const isDark = useColorScheme() === 'dark';
   const checkedColor = isDark ? colors.primaryDark : colors.primary;
   const anySymptomChecked = SYMPTOM_OPTIONS.some((option) => value[option.value]);
@@ -25,10 +27,10 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
   return (
     <View className={`gap-2 ${className ?? ''}`}>
       <View className="flex-row items-center gap-1.5">
-        <Text className="text-sm font-medium text-black dark:text-white">Symptoms</Text>
+        <Text className="text-sm font-medium text-black dark:text-white">{t('checkin.symptoms')}</Text>
         <InfoButton
-          title="Symptoms"
-          message="Specific sensations you're experiencing beyond general pain, like tingling, numbness, or headache."
+          title={t('checkin.symptoms')}
+          message={t('checkin.symptomsInfo')}
         />
       </View>
 
@@ -48,7 +50,7 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
                 size={22}
                 color={checked ? checkedColor : colors.gray}
               />
-              <Text className="text-base text-black dark:text-white">{option.label}</Text>
+              <Text className="text-base text-black dark:text-white">{t(`symptoms.${option.value}`)}</Text>
             </Pressable>
           );
         })}
@@ -56,8 +58,8 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
 
       {anySymptomChecked && (
         <Input
-          label="Radiating to"
-          placeholder="e.g. left shoulder"
+          label={t('checkin.radiatingTo')}
+          placeholder={t('checkin.radiatingToPlaceholder')}
           value={value.radiating_to ?? ''}
           onChangeText={(text) => onChange({ ...value, radiating_to: text })}
         />

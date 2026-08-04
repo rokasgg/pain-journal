@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-const level = z.number().min(0, 'Must be between 0 and 10').max(10, 'Must be between 0 and 10');
+const level = z.number().min(0, 'validation.mustBeBetween0And10').max(10, 'validation.mustBeBetween0And10');
 
 const symptomsSchema = z.object({
   tingling: z.boolean().optional(),

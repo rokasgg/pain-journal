@@ -5,12 +5,14 @@ import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
 
 import { Input } from '@/components/ui/Input';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { registerSchema, type RegisterFormData } from '@/lib/validations/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { toast } from '@/utils/toast';
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const signUp = useAuthStore((state) => state.signUp);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,7 +35,7 @@ export default function RegisterScreen() {
       return;
     }
 
-    toast.success('Check your email to confirm your account.');
+    toast.success(t('auth.checkEmailConfirm'));
   };
 
   return (
@@ -44,7 +46,7 @@ export default function RegisterScreen() {
       automaticallyAdjustKeyboardInsets
     >
       <Text className="mb-4 text-center text-2xl font-bold text-primary dark:text-primaryDark">
-        Register
+        {t('auth.registerTitle')}
       </Text>
 
       <Controller
@@ -52,12 +54,12 @@ export default function RegisterScreen() {
         name="name"
         render={({ field: { onChange, onBlur, value } }) => (
           <Input
-            label="Name"
-            placeholder="Jane Doe"
+            label={t('auth.nameLabel')}
+            placeholder={t('auth.namePlaceholder')}
             onChangeText={onChange}
             onBlur={onBlur}
             value={value}
-            error={errors.name?.message}
+            error={errors.name?.message && t(errors.name.message)}
           />
         )}
       />
@@ -67,14 +69,14 @@ export default function RegisterScreen() {
         name="email"
         render={({ field: { onChange, onBlur, value } }) => (
           <Input
-            label="Email"
-            placeholder="you@example.com"
+            label={t('auth.emailLabel')}
+            placeholder={t('auth.emailPlaceholder')}
             autoCapitalize="none"
             keyboardType="email-address"
             onChangeText={onChange}
             onBlur={onBlur}
             value={value}
-            error={errors.email?.message}
+            error={errors.email?.message && t(errors.email.message)}
           />
         )}
       />
@@ -84,13 +86,13 @@ export default function RegisterScreen() {
         name="password"
         render={({ field: { onChange, onBlur, value } }) => (
           <Input
-            label="Password"
-            placeholder="••••••••"
+            label={t('auth.passwordLabel')}
+            placeholder={t('auth.passwordPlaceholder')}
             isPassword
             onChangeText={onChange}
             onBlur={onBlur}
             value={value}
-            error={errors.password?.message}
+            error={errors.password?.message && t(errors.password.message)}
           />
         )}
       />
@@ -100,13 +102,13 @@ export default function RegisterScreen() {
         name="confirmPassword"
         render={({ field: { onChange, onBlur, value } }) => (
           <Input
-            label="Confirm Password"
-            placeholder="••••••••"
+            label={t('auth.confirmPasswordLabel')}
+            placeholder={t('auth.passwordPlaceholder')}
             isPassword
             onChangeText={onChange}
             onBlur={onBlur}
             value={value}
-            error={errors.confirmPassword?.message}
+            error={errors.confirmPassword?.message && t(errors.confirmPassword.message)}
           />
         )}
       />
@@ -119,14 +121,14 @@ export default function RegisterScreen() {
         {isSubmitting ? (
           <ActivityIndicator color={colors.white} />
         ) : (
-          <Text className="font-semibold text-white">Create Account</Text>
+          <Text className="font-semibold text-white">{t('auth.createAccount')}</Text>
         )}
       </Pressable>
 
       <Link href="/(auth)/login" asChild>
         <Pressable className="items-center py-3">
           <Text className="text-black dark:text-white">
-            Already have an account? Log In
+            {t('auth.haveAccountLogin')}
           </Text>
         </Pressable>
       </Link>

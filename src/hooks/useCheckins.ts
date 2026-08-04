@@ -3,6 +3,7 @@ import { subDays } from 'date-fns';
 
 import { useSession } from '@/hooks/useSession';
 import { todayLocalDate } from '@/lib/dates';
+import { t } from '@/lib/i18n/useTranslation';
 import { supabase } from '@/lib/supabase';
 import type { Checkin, CheckinInsert } from '@/types/database.types';
 
@@ -60,7 +61,7 @@ export function useUpsertCheckin() {
     mutationFn: async (
       checkin: Omit<CheckinInsert, 'user_id'>,
     ): Promise<{ error: string | null }> => {
-      if (!user) return { error: 'Not signed in.' };
+      if (!user) return { error: t('common.notSignedIn') };
 
       const { error } = await supabase
         .from('checkins')

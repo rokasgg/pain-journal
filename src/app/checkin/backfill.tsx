@@ -6,11 +6,13 @@ import { CheckinForm, type CheckinFormData } from '@/components/checkin/CheckinF
 import { DatePickerField } from '@/components/ui/DatePickerField';
 import { useUpsertCheckin } from '@/hooks/useCheckins';
 import { todayLocalDate } from '@/lib/dates';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { CheckinType } from '@/types/database.types';
 import { toast } from '@/utils/toast';
 
 export default function BackfillModal() {
   const router = useRouter();
+  const { t } = useTranslation();
   const upsertCheckin = useUpsertCheckin();
   const [checkinDate, setCheckinDate] = useState<string>(todayLocalDate());
   const [checkinType, setCheckinType] = useState<CheckinType>('morning');
@@ -27,7 +29,7 @@ export default function BackfillModal() {
       return;
     }
 
-    toast.success('Check-in saved!');
+    toast.success(t('checkin.checkinUpdatedToast'));
     router.back();
   };
 
@@ -35,14 +37,19 @@ export default function BackfillModal() {
     <CheckinForm
       key={checkinType}
       type={checkinType}
-      submitLabel="Save Check-in"
+      submitLabel={t('checkin.saveCheckin')}
       onSubmit={handleSubmit}
       header={
         <View className="gap-6">
-          <DatePickerField label="Date" value={checkinDate} onChange={setCheckinDate} maximumDate={new Date()} />
+          <DatePickerField
+            label={t('checkin.dateLabel')}
+            value={checkinDate}
+            onChange={setCheckinDate}
+            maximumDate={new Date()}
+          />
 
           <View className="gap-2">
-            <Text className="text-sm font-medium text-black dark:text-white">Type</Text>
+            <Text className="text-sm font-medium text-black dark:text-white">{t('checkin.typeLabel')}</Text>
             <View className="flex-row gap-2">
               {(['morning', 'evening'] as const).map((option) => {
                 const isActive = checkinType === option;
@@ -59,7 +66,7 @@ export default function BackfillModal() {
                         isActive ? 'text-white' : 'text-black dark:text-white'
                       }`}
                     >
-                      {option}
+                      {t(option === 'morning' ? 'home.morning' : 'home.evening')}
                     </Text>
                   </Pressable>
                 );

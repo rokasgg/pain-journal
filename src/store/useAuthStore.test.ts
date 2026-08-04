@@ -2,6 +2,14 @@ import { supabase } from '@/lib/supabase';
 
 import { useAuthStore } from './useAuthStore';
 
+// useAuthStore now pulls in the i18n `t()` helper (for the upload-avatar
+// failure message), which reads useLocaleStore, which persists via
+// AsyncStorage — mock it the same way jest-expo docs recommend, since the
+// native module isn't available in the test environment.
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+);
+
 jest.mock('@/lib/supabase', () => ({
   supabase: {
     auth: {

@@ -1,12 +1,13 @@
 import * as ImagePicker from 'expo-image-picker';
 
+import { t } from '@/lib/i18n/useTranslation';
 import { toast } from '@/utils/toast';
 
 export async function pickAvatarImage(): Promise<string | null> {
   const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
   if (!permission.granted) {
-    toast.error('Photo library permission is required.');
+    toast.error(t('image.permissionRequired'));
     return null;
   }
 

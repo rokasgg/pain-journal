@@ -14,6 +14,7 @@ import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
 export interface DayMarker {
@@ -31,6 +32,7 @@ export interface MonthCalendarProps {
 const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export function MonthCalendar({ markers, onSelectDate, className }: MonthCalendarProps) {
+  const { t } = useTranslation();
   const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(new Date()));
 
   const gridStart = startOfWeek(startOfMonth(visibleMonth), { weekStartsOn: 1 });
@@ -43,7 +45,7 @@ export function MonthCalendar({ markers, onSelectDate, className }: MonthCalenda
         <Pressable
           onPress={() => setVisibleMonth((prev) => subMonths(prev, 1))}
           accessibilityRole="button"
-          accessibilityLabel="Previous month"
+          accessibilityLabel={t('history.previousMonth')}
           className="p-1"
         >
           <Ionicons name="chevron-back" size={20} color={colors.gray} />
@@ -56,7 +58,7 @@ export function MonthCalendar({ markers, onSelectDate, className }: MonthCalenda
         <Pressable
           onPress={() => setVisibleMonth((prev) => addMonths(prev, 1))}
           accessibilityRole="button"
-          accessibilityLabel="Next month"
+          accessibilityLabel={t('history.nextMonth')}
           className="p-1"
         >
           <Ionicons name="chevron-forward" size={20} color={colors.gray} />

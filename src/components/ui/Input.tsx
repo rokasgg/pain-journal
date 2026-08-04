@@ -3,6 +3,7 @@ import { forwardRef, useState } from 'react';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { InfoButton } from '@/components/ui/InfoButton';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
 export interface InputProps extends TextInputProps {
@@ -18,6 +19,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   { label, error, isPassword, className, labelClassName, info, secureTextEntry, ...props },
   ref,
 ) {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const hideText = isPassword ? !isVisible : secureTextEntry;
 
@@ -47,7 +49,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           <Pressable
             onPress={() => setIsVisible((prev) => !prev)}
             accessibilityRole="button"
-            accessibilityLabel={isVisible ? 'Hide password' : 'Show password'}
+            accessibilityLabel={isVisible ? t('input.hidePassword') : t('input.showPassword')}
             className="absolute right-3"
           >
             <Ionicons

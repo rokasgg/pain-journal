@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { t } from '@/lib/i18n/useTranslation';
 import { supabase } from '@/lib/supabase';
 
 // session/user live in the React Query cache via useSession() — this store
@@ -68,7 +69,7 @@ export const useAuthStore = create<AuthActions>(() => ({
       const { data } = supabase.storage.from('avatars').getPublicUrl(path);
       return { url: `${data.publicUrl}?updated=${Date.now()}`, error: null };
     } catch {
-      return { url: null, error: 'Failed to upload avatar.' };
+      return { url: null, error: t('settings.failedUploadAvatar') };
     }
   },
 }));

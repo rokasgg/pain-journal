@@ -2,6 +2,7 @@ import Slider from '@react-native-community/slider';
 import { Text, View, useColorScheme } from 'react-native';
 
 import { InfoButton } from '@/components/ui/InfoButton';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
 export interface PainSliderProps {
@@ -19,10 +20,13 @@ export function PainSlider({
   value,
   onChange,
   className,
-  minLabel = 'None',
-  maxLabel = 'Severe',
+  minLabel,
+  maxLabel,
   info,
 }: PainSliderProps) {
+  const { t } = useTranslation();
+  const resolvedMinLabel = minLabel ?? t('checkin.none');
+  const resolvedMaxLabel = maxLabel ?? t('checkin.severe');
   const isDark = useColorScheme() === 'dark';
   const trackColor = isDark ? colors.primaryDark : colors.primary;
 
@@ -49,8 +53,8 @@ export function PainSlider({
       />
 
       <View className="flex-row justify-between">
-        <Text className="text-xs text-gray-500 dark:text-gray-400">{minLabel}</Text>
-        <Text className="text-xs text-gray-500 dark:text-gray-400">{maxLabel}</Text>
+        <Text className="text-xs text-gray-500 dark:text-gray-400">{resolvedMinLabel}</Text>
+        <Text className="text-xs text-gray-500 dark:text-gray-400">{resolvedMaxLabel}</Text>
       </View>
     </View>
   );

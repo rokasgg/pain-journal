@@ -6,6 +6,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
 import { PainSlider } from '@/components/checkin/PainSlider';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
 import { Input } from '@/components/ui/Input';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { flareUpSchema, type FlareUpFormData } from '@/lib/validations/flareUp';
 
@@ -18,6 +19,7 @@ export interface FlareUpFormProps {
 const emptyDefaults: FlareUpFormData = { pain_level: 5, likely_cause: null, description: null };
 
 export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubmit }: FlareUpFormProps) {
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { control, handleSubmit } = useForm<FlareUpFormData>({
@@ -43,10 +45,10 @@ export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubm
         name="pain_level"
         render={({ field: { value, onChange } }) => (
           <PainSlider
-            label="Pain level"
+            label={t('checkin.painLevel')}
             value={value}
             onChange={onChange}
-            info="How severe this flare-up feels, from 0 (mild) to 10 (worst pain imaginable)."
+            info={t('checkin.flareUpPainLevelInfo')}
           />
         )}
       />
@@ -64,13 +66,13 @@ export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubm
         name="description"
         render={({ field: { value, onChange, onBlur } }) => (
           <Input
-            label="Description"
+            label={t('flareUp.description')}
             multiline
             numberOfLines={3}
             value={value ?? ''}
             onChangeText={onChange}
             onBlur={onBlur}
-            info="Briefly describe how it feels or what happened — helpful context for future you."
+            info={t('flareUp.descriptionInfo')}
           />
         )}
       />

@@ -3,10 +3,12 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { useAnalyzePatterns } from '@/hooks/useAnalyzePatterns';
 import { useProfile } from '@/hooks/useProfile';
 import { formatCheckinDate } from '@/lib/dates';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { toast } from '@/utils/toast';
 
 export default function PatternsModal() {
+  const { t } = useTranslation();
   const { profile, isLoading: isProfileLoading } = useProfile();
   const { mutateAsync, isPending } = useAnalyzePatterns();
 
@@ -21,8 +23,7 @@ export default function PatternsModal() {
   return (
     <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
       <Text className="text-sm text-gray-500 dark:text-gray-400">
-        Claude looks at your last 90 days of check-ins and flare-ups to surface correlations you
-        might not notice from the chart alone.
+        {t('patterns.description')}
       </Text>
 
       {isProfileLoading ? (
@@ -31,14 +32,14 @@ export default function PatternsModal() {
         <View className="gap-2">
           {analyzedAt && (
             <Text className="text-xs uppercase text-gray-500 dark:text-gray-400">
-              Last run {formatCheckinDate(analyzedAt.slice(0, 10))}
+              {t('patterns.lastRun', { date: formatCheckinDate(analyzedAt.slice(0, 10)) })}
             </Text>
           )}
           <Text className="text-base leading-6 text-black dark:text-white">{analysis}</Text>
         </View>
       ) : (
         <Text className="text-base text-gray-500 dark:text-gray-400">
-          No analysis yet — run it to see your patterns.
+          {t('patterns.noAnalysisYet')}
         </Text>
       )}
 
@@ -51,7 +52,7 @@ export default function PatternsModal() {
           <ActivityIndicator color={colors.white} />
         ) : (
           <Text className="font-semibold text-white">
-            {analysis ? 'Re-run analysis' : 'Run analysis'}
+            {analysis ? t('patterns.reRunAnalysis') : t('patterns.runAnalysis')}
           </Text>
         )}
       </Pressable>

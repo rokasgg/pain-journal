@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useFlareUps } from '@/hooks/useFlareUps';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 
 interface TriggerCount {
   label: string;
@@ -11,6 +12,7 @@ interface TriggerCount {
 }
 
 export function TopTriggers() {
+  const { t } = useTranslation();
   const { checkins } = useCheckinHistory(7);
   const { flareUps } = useFlareUps(7);
 
@@ -44,11 +46,11 @@ export function TopTriggers() {
 
   return (
     <View className="gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
-      <Text className="text-base font-semibold text-black dark:text-white">Top Triggers This Week</Text>
+      <Text className="text-base font-semibold text-black dark:text-white">{t('home.topTriggersTitle')}</Text>
 
       {topTriggers.length === 0 ? (
         <Text className="text-sm text-gray-500 dark:text-gray-400">
-          No triggers logged yet this week.
+          {t('home.noTriggersThisWeek')}
         </Text>
       ) : (
         <View className="gap-2">

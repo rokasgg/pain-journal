@@ -3,6 +3,7 @@ import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { useTodayStatus } from '@/hooks/useTodayStatus';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
 interface StatusCardProps {
@@ -14,6 +15,8 @@ interface StatusCardProps {
 }
 
 function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
+  const { t } = useTranslation();
+
   return (
     <View
       className={`flex-row items-center justify-between rounded-2xl border p-4 ${done
@@ -30,7 +33,7 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
         <View>
           <Text className="text-base font-semibold text-black dark:text-white">{label}</Text>
           <Text className="text-sm text-gray-500 dark:text-gray-400">
-            {done ? 'Completed' : locked ? 'Unlocks at 16:00' : 'Ready for check-in'}
+            {done ? t('home.completed') : locked ? t('home.unlocksAt') : t('home.readyForCheckin')}
           </Text>
         </View>
       </View>
@@ -42,7 +45,7 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
       ) : (
         <Link href={href} asChild>
           <Pressable className="rounded-full bg-primary px-4 py-2 dark:bg-primaryDark">
-            <Text className="text-sm font-semibold text-white">Start</Text>
+            <Text className="text-sm font-semibold text-white">{t('home.start')}</Text>
           </Pressable>
         </Link>
       )}
@@ -51,13 +54,14 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
 }
 
 export function CheckinStatusCard() {
+  const { t } = useTranslation();
   const { morningDone, eveningDone, eveningUnlocked } = useTodayStatus();
 
   return (
     <View className="gap-3">
-      <StatusCard label="Morning" icon="sunny" done={morningDone} href="/checkin/morning" />
+      <StatusCard label={t('home.morning')} icon="sunny" done={morningDone} href="/checkin/morning" />
       <StatusCard
-        label="Evening"
+        label={t('home.evening')}
         icon="moon"
         done={eveningDone}
         href="/checkin/evening"
