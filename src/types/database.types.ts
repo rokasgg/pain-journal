@@ -28,6 +28,8 @@ export interface Checkin {
   screen_time_hours: number | null;
   did_exercises: boolean | null;
   exercise_notes: string | null;
+  exercise_hours: number | null;
+  exercise_intensity: number | null;
 
   symptoms: CheckinSymptoms;
   triggers: string[];
@@ -54,6 +56,8 @@ export type CheckinInsert = Omit<
   | 'screen_time_hours'
   | 'did_exercises'
   | 'exercise_notes'
+  | 'exercise_hours'
+  | 'exercise_intensity'
 > & {
   id?: string;
   checkin_date?: string;
@@ -67,6 +71,8 @@ export type CheckinInsert = Omit<
   screen_time_hours?: number | null;
   did_exercises?: boolean | null;
   exercise_notes?: string | null;
+  exercise_hours?: number | null;
+  exercise_intensity?: number | null;
 };
 
 export interface FlareUp {

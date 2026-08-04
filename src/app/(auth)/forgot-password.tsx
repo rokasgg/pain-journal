@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Link } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
 
 import { Input } from '@/components/ui/Input';
 import { colors } from '@/lib/theme';
@@ -37,7 +37,12 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <View className="flex-1 justify-center gap-4 bg-background px-6 dark:bg-backgroundDark">
+    <ScrollView
+      className="flex-1 bg-background dark:bg-backgroundDark"
+      contentContainerClassName="flex-grow justify-center gap-4 px-6 py-8"
+      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets
+    >
       <Text className="mb-4 text-center text-2xl font-bold text-primary dark:text-primaryDark">
         Reset Password
       </Text>
@@ -76,6 +81,6 @@ export default function ForgotPasswordScreen() {
           <Text className="text-black dark:text-white">Back to Log In</Text>
         </Pressable>
       </Link>
-    </View>
+    </ScrollView>
   );
 }

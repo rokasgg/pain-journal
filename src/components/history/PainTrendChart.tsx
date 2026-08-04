@@ -1,4 +1,5 @@
 import { matchFont } from '@shopify/react-native-skia';
+import { format, parseISO } from 'date-fns';
 import { useMemo } from 'react';
 import { Platform, Text, useColorScheme, View } from 'react-native';
 import { CartesianChart, Line } from 'victory-native';
@@ -14,6 +15,7 @@ export interface PainTrendChartProps {
 interface ChartPoint extends Record<string, unknown> {
   index: number;
   pain: number;
+  date: string;
 }
 
 const font = matchFont({
@@ -31,7 +33,7 @@ export function PainTrendChart({ checkins }: PainTrendChartProps) {
     () =>
       [...checkins]
         .sort((a, b) => a.checkin_date.localeCompare(b.checkin_date))
-        .map((checkin, index) => ({ index, pain: checkin.pain_level })),
+        .map((checkin, index) => ({ index, pain: checkin.pain_level, date: checkin.checkin_date })),
     [checkins],
   );
 
@@ -54,10 +56,14 @@ export function PainTrendChart({ checkins }: PainTrendChartProps) {
           domain={{ y: [0, 10] }}
           axisOptions={{
             font,
-            tickCount: { x: 0, y: 6 },
+            tickCount: { x: Math.min(5, data.length), y: 6 },
             lineColor: gridColor,
             labelColor,
             formatYLabel: (label) => String(Math.round(label)),
+            formatXLabel: (label) => {
+              const point = data[Math.round(label)];
+              return point ? format(parseISO(point.date), 'MMM d') : '';
+            },
           }}
         >
           {({ points }) => (

@@ -33,6 +33,8 @@ function toFormData(checkin: Checkin): CheckinFormData {
     screen_time_hours: checkin.screen_time_hours,
     did_exercises: checkin.did_exercises,
     exercise_notes: checkin.exercise_notes,
+    exercise_hours: checkin.exercise_hours,
+    exercise_intensity: checkin.exercise_intensity,
   };
 }
 

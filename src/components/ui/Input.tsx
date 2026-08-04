@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { forwardRef, useState } from 'react';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
+import { InfoButton } from '@/components/ui/InfoButton';
 import { colors } from '@/lib/theme';
 
 export interface InputProps extends TextInputProps {
@@ -10,10 +11,11 @@ export interface InputProps extends TextInputProps {
   isPassword?: boolean;
   className?: string;
   labelClassName?: string;
+  info?: string;
 }
 
 export const Input = forwardRef<TextInput, InputProps>(function Input(
-  { label, error, isPassword, className, labelClassName, secureTextEntry, ...props },
+  { label, error, isPassword, className, labelClassName, info, secureTextEntry, ...props },
   ref,
 ) {
   const [isVisible, setIsVisible] = useState(false);
@@ -22,9 +24,12 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
   return (
     <View className="gap-1.5">
       {label && (
-        <Text className={`text-sm font-medium text-black dark:text-white ${labelClassName ?? ''}`}>
-          {label}
-        </Text>
+        <View className="flex-row items-center gap-1.5">
+          <Text className={`text-sm font-medium text-black dark:text-white ${labelClassName ?? ''}`}>
+            {label}
+          </Text>
+          {info && <InfoButton title={label} message={info} />}
+        </View>
       )}
 
       <View className="relative justify-center">

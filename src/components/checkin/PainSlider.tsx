@@ -1,6 +1,7 @@
 import Slider from '@react-native-community/slider';
 import { Text, View, useColorScheme } from 'react-native';
 
+import { InfoButton } from '@/components/ui/InfoButton';
 import { colors } from '@/lib/theme';
 
 export interface PainSliderProps {
@@ -10,6 +11,7 @@ export interface PainSliderProps {
   className?: string;
   minLabel?: string;
   maxLabel?: string;
+  info?: string;
 }
 
 export function PainSlider({
@@ -19,6 +21,7 @@ export function PainSlider({
   className,
   minLabel = 'None',
   maxLabel = 'Severe',
+  info,
 }: PainSliderProps) {
   const isDark = useColorScheme() === 'dark';
   const trackColor = isDark ? colors.primaryDark : colors.primary;
@@ -26,7 +29,10 @@ export function PainSlider({
   return (
     <View className={`gap-2 ${className ?? ''}`}>
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm font-medium text-black dark:text-white">{label}</Text>
+        <View className="flex-row items-center gap-1.5">
+          <Text className="text-sm font-medium text-black dark:text-white">{label}</Text>
+          {info && <InfoButton title={label} message={info} />}
+        </View>
         <Text className="text-base font-bold text-black dark:text-white">{value ?? 0}</Text>
       </View>
 

@@ -9,7 +9,7 @@ const corsHeaders = {
 const SYSTEM_PROMPT = `You are analyzing a personal neck/back pain journal for patterns the user may not notice by eyeballing a chart.
 
 You will receive JSON with two arrays:
-- "checkins": twice-daily entries (morning/evening) with pain_level, stiffness_level, range_of_motion, sleep fields (morning only), activity fields (evening only), symptoms, triggers, notes.
+- "checkins": twice-daily entries (morning/evening) with pain_level, stiffness_level, range_of_motion, sleep fields (morning only), activity/exercise fields including exercise_hours and exercise_intensity (evening only), symptoms, triggers, notes.
 - "flareUps": ad-hoc pain-spike events with pain_level, likely_cause, description, occurred_at.
 
 Find concrete, evidence-based correlations — e.g. "pain is consistently higher the morning after >6hrs of screen time," "flare-ups cluster on days logged with poor sleep or a specific trigger," "sleeping on the stomach precedes higher morning stiffness." Only report patterns actually supported by the data provided — do not invent correlations from too few data points, and say so if the data is too sparse or noisy to conclude anything.
@@ -54,7 +54,7 @@ Deno.serve(async (req: Request) => {
       supabase
         .from("checkins")
         .select(
-          "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, activity_level, screen_time_hours, did_exercises, symptoms, triggers, notes",
+          "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, activity_level, screen_time_hours, did_exercises, exercise_hours, exercise_intensity, symptoms, triggers, notes",
         )
         .gte("checkin_date", sinceDate)
         .order("checkin_date"),

@@ -1,8 +1,9 @@
 import { Controller, type Control } from 'react-hook-form';
 import { Pressable, Text, View } from 'react-native';
 
-import { Input } from '@/components/ui/Input';
 import { PainSlider } from '@/components/checkin/PainSlider';
+import { InfoButton } from '@/components/ui/InfoButton';
+import { Input } from '@/components/ui/Input';
 import { SLEEP_POSITION_OPTIONS } from '@/constants/symptoms';
 import type { MorningCheckinFormData } from '@/lib/validations/checkin';
 
@@ -17,7 +18,12 @@ export function MorningFields({ control }: MorningFieldsProps) {
         control={control}
         name="sleep_quality"
         render={({ field: { value, onChange } }) => (
-          <PainSlider label="Sleep quality" value={value} onChange={onChange} />
+          <PainSlider
+            label="Sleep quality"
+            value={value}
+            onChange={onChange}
+            info="How well you slept overall last night, from 0 (very poor) to 10 (excellent)."
+          />
         )}
       />
 
@@ -31,6 +37,7 @@ export function MorningFields({ control }: MorningFieldsProps) {
             value={value?.toString() ?? ''}
             onChangeText={(text) => onChange(text ? Number(text) : null)}
             onBlur={onBlur}
+            info="Roughly how many hours you slept last night."
           />
         )}
       />
@@ -45,7 +52,13 @@ export function MorningFields({ control }: MorningFieldsProps) {
             accessibilityState={{ checked: !!value }}
             className="flex-row items-center justify-between rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700"
           >
-            <Text className="text-base text-black dark:text-white">Woke up with pain</Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="text-base text-black dark:text-white">Woke up with pain</Text>
+              <InfoButton
+                title="Woke up with pain"
+                message="Whether you felt pain immediately upon waking, before getting up or moving around."
+              />
+            </View>
             <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">
               {value ? 'Yes' : 'No'}
             </Text>
@@ -58,7 +71,13 @@ export function MorningFields({ control }: MorningFieldsProps) {
         name="sleep_position"
         render={({ field: { value, onChange } }) => (
           <View className="gap-2">
-            <Text className="text-sm font-medium text-black dark:text-white">Sleep position</Text>
+            <View className="flex-row items-center gap-1.5">
+              <Text className="text-sm font-medium text-black dark:text-white">Sleep position</Text>
+              <InfoButton
+                title="Sleep position"
+                message="The position you mostly slept in — this can affect neck/back strain overnight."
+              />
+            </View>
             <View className="flex-row gap-2">
               {SLEEP_POSITION_OPTIONS.map((option) => {
                 const isActive = value === option.value;

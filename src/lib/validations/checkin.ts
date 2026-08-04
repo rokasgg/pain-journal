@@ -32,6 +32,8 @@ export const eveningCheckinSchema = sharedCheckinFields.extend({
   screen_time_hours: z.number().min(0).max(24).nullable(),
   did_exercises: z.boolean().nullable(),
   exercise_notes: z.string().nullable(),
+  exercise_hours: z.number().min(0).max(24).nullable(),
+  exercise_intensity: level.nullable(),
 });
 
 export type EveningCheckinFormData = z.infer<typeof eveningCheckinSchema>;

@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
 import { DaysSinceInjury } from '@/components/home/DaysSinceInjury';
-import { TrendSparkline } from '@/components/home/TrendSparkline';
+import { TopTriggers } from '@/components/home/TopTriggers';
 
 export default function HomeScreen() {
   const queryClient = useQueryClient();
@@ -15,7 +15,7 @@ export default function HomeScreen() {
   const handleRefresh = async () => {
     setRefreshing(true);
     await queryClient.refetchQueries({
-      predicate: (query) => ['profile', 'checkins'].includes(query.queryKey[0] as string),
+      predicate: (query) => ['profile', 'checkins', 'flareUps'].includes(query.queryKey[0] as string),
     });
     setRefreshing(false);
   };
@@ -53,7 +53,7 @@ export default function HomeScreen() {
           </Pressable>
         </Link>
 
-        <TrendSparkline />
+        <TopTriggers />
       </ScrollView>
     </SafeAreaView>
   );

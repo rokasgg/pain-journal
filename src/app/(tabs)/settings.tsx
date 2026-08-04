@@ -216,7 +216,12 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top']}>
-      <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-8">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-6 px-6 py-8"
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+      >
         <View className="items-center gap-3">
           <View className="relative">
             {avatarUrl ? (

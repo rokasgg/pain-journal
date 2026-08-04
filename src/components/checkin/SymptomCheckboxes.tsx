@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 
+import { InfoButton } from '@/components/ui/InfoButton';
 import { Input } from '@/components/ui/Input';
 import { SYMPTOM_OPTIONS } from '@/constants/symptoms';
 import { colors } from '@/lib/theme';
@@ -23,7 +24,13 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
 
   return (
     <View className={`gap-2 ${className ?? ''}`}>
-      <Text className="text-sm font-medium text-black dark:text-white">Symptoms</Text>
+      <View className="flex-row items-center gap-1.5">
+        <Text className="text-sm font-medium text-black dark:text-white">Symptoms</Text>
+        <InfoButton
+          title="Symptoms"
+          message="Specific sensations you're experiencing beyond general pain, like tingling, numbness, or headache."
+        />
+      </View>
 
       <View className="gap-2">
         {SYMPTOM_OPTIONS.map((option) => {

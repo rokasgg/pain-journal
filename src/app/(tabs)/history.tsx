@@ -1,3 +1,4 @@
+import { startOfWeek } from 'date-fns';
 import { Link, useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -22,13 +23,32 @@ export default function HistoryScreen() {
 
   const { checkins } = useCheckinHistory(rangeDays);
   const { flareUps } = useFlareUps(rangeDays);
-  const { flareUps: flareUpsThisWeek } = useFlareUps(7);
+  const { flareUps: recentFlareUps } = useFlareUps(7);
   const { checkins: allCheckins } = useCheckinHistory(90);
   const { flareUps: allFlareUps } = useFlareUps(90);
 
+  // "This week" means the current calendar week (Monday-start, matching
+  // MonthCalendar), not a rolling 7-day window — useFlareUps(7) fetches a
+  // superset wide enough to cover it, filtered down here.
+  const flaresThisWeek = useMemo(() => {
+    const weekStart = startOfWeek(new Date(), { weekStartsOn: 1 }).toISOString();
+    return recentFlareUps.filter((f) => f.occurred_at >= weekStart);
+  }, [recentFlareUps]);
+
   const avgPain = useMemo(() => {
     if (checkins.length === 0) return null;
-    return checkins.reduce((sum, c) => sum + c.pain_level, 0) / checkins.length;
+    // Average per day first, then average those — otherwise a day with both
+    // a morning and evening entry counts twice and skews the result.
+    const byDate = new Map<string, number[]>();
+    for (const checkin of checkins) {
+      const levels = byDate.get(checkin.checkin_date) ?? [];
+      levels.push(checkin.pain_level);
+      byDate.set(checkin.checkin_date, levels);
+    }
+    const dailyAverages = [...byDate.values()].map(
+      (levels) => levels.reduce((sum, level) => sum + level, 0) / levels.length,
+    );
+    return dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
   }, [checkins]);
 
   const avgPainTrend = useMemo(() => {
@@ -134,7 +154,7 @@ export default function HistoryScreen() {
             value={avgPain !== null ? avgPain.toFixed(1) : '—'}
             trend={avgPainTrend}
           />
-          <StatTile label="Flares This Week" value={String(flareUpsThisWeek.length)} />
+          <StatTile label="Flares This Week" value={String(flaresThisWeek.length)} />
         </View>
 
         <PainTrendChart checkins={checkins} />

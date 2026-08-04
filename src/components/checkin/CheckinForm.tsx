@@ -43,6 +43,8 @@ export const eveningDefaults: EveningCheckinFormData = {
   screen_time_hours: null,
   did_exercises: null,
   exercise_notes: null,
+  exercise_hours: null,
+  exercise_intensity: null,
 };
 
 export interface CheckinFormProps {
@@ -69,14 +71,24 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
   };
 
   return (
-    <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
+    <ScrollView
+      className="flex-1 bg-background dark:bg-backgroundDark"
+      contentContainerClassName="gap-6 px-6 py-6"
+      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets
+    >
       {header}
 
       <Controller
         control={control}
         name="pain_level"
         render={({ field: { value, onChange } }) => (
-          <PainSlider label="Pain level" value={value} onChange={onChange} />
+          <PainSlider
+            label="Pain level"
+            value={value}
+            onChange={onChange}
+            info="How much pain you're feeling right now, from 0 (none) to 10 (worst pain imaginable)."
+          />
         )}
       />
 
@@ -84,7 +96,14 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
         control={control}
         name="stiffness_level"
         render={({ field: { value, onChange } }) => (
-          <PainSlider label="Stiffness" value={value} onChange={onChange} minLabel="Flexible" maxLabel="Rigid" />
+          <PainSlider
+            label="Stiffness"
+            value={value}
+            onChange={onChange}
+            minLabel="Flexible"
+            maxLabel="Rigid"
+            info="How stiff or restricted your neck/back feels, from 0 (flexible) to 10 (very rigid)."
+          />
         )}
       />
 
@@ -92,7 +111,14 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
         control={control}
         name="range_of_motion"
         render={({ field: { value, onChange } }) => (
-          <PainSlider label="Range of motion" value={value} onChange={onChange} minLabel="Limited" maxLabel="Full" />
+          <PainSlider
+            label="Range of motion"
+            value={value}
+            onChange={onChange}
+            minLabel="Limited"
+            maxLabel="Full"
+            info="How freely you can move, from 0 (very limited) to 10 (full, normal range)."
+          />
         )}
       />
 

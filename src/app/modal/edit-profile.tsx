@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { Input } from '@/components/ui/Input';
 import { useSession } from '@/hooks/useSession';
@@ -75,7 +75,12 @@ export default function EditProfileModal() {
   };
 
   return (
-    <View className="flex-1 gap-6 bg-background px-6 py-6 dark:bg-backgroundDark">
+    <ScrollView
+      className="flex-1 bg-background dark:bg-backgroundDark"
+      contentContainerClassName="gap-6 px-6 py-6"
+      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets
+    >
       <View className="items-center gap-3">
         <Pressable onPress={handlePickAvatar} accessibilityRole="button" accessibilityLabel="Change avatar">
           {displayedAvatar ? (
@@ -131,6 +136,6 @@ export default function EditProfileModal() {
           )}
         </Pressable>
       </View>
-    </View>
+    </ScrollView>
   );
 }

@@ -32,12 +32,22 @@ export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubm
   };
 
   return (
-    <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
+    <ScrollView
+      className="flex-1 bg-background dark:bg-backgroundDark"
+      contentContainerClassName="gap-6 px-6 py-6"
+      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets
+    >
       <Controller
         control={control}
         name="pain_level"
         render={({ field: { value, onChange } }) => (
-          <PainSlider label="Pain level" value={value} onChange={onChange} />
+          <PainSlider
+            label="Pain level"
+            value={value}
+            onChange={onChange}
+            info="How severe this flare-up feels, from 0 (mild) to 10 (worst pain imaginable)."
+          />
         )}
       />
 
@@ -60,6 +70,7 @@ export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubm
             value={value ?? ''}
             onChangeText={onChange}
             onBlur={onBlur}
+            info="Briefly describe how it feels or what happened — helpful context for future you."
           />
         )}
       />

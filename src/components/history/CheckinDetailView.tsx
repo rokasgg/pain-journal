@@ -58,6 +58,8 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
             <DetailRow label="Activity level" value={checkin.activity_level} />
             <DetailRow label="Screen time (hours)" value={checkin.screen_time_hours} />
             <DetailRow label="Did exercises" value={checkin.did_exercises ? 'Yes' : 'No'} />
+            <DetailRow label="Exercise hours" value={checkin.exercise_hours} />
+            <DetailRow label="Exercise intensity" value={checkin.exercise_intensity} />
           </>
         )}
       </View>
