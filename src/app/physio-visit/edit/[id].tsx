@@ -38,8 +38,8 @@ export default function EditPhysioVisitModal() {
       return;
     }
 
-    toast.success(t('physioVisit.updatedToast'));
     router.back();
+    toast.success(t('physioVisit.updatedToast'));
   };
 
   return (

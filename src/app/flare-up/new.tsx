@@ -19,8 +19,8 @@ export default function NewFlareUpModal() {
       return;
     }
 
-    toast.success(t('flareUp.loggedToast'));
     router.back();
+    toast.success(t('flareUp.loggedToast'));
   };
 
   return <FlareUpForm submitLabel={t('flareUp.logFlareUp')} onSubmit={handleSubmit} />;

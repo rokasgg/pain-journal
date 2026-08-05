@@ -30,8 +30,8 @@ export default function CheckinModal() {
       return;
     }
 
-    toast.success(t('checkin.savedToast', { type: t(isMorning ? 'home.morning' : 'home.evening') }));
     router.back();
+    toast.success(t('checkin.savedToast', { type: t(isMorning ? 'home.morning' : 'home.evening') }));
   };
 
   if (!isMorning && !eveningUnlocked) {

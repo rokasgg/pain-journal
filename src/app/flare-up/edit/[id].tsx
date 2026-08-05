@@ -32,8 +32,8 @@ export default function EditFlareUpModal() {
       return;
     }
 
-    toast.success(t('flareUp.updatedToast'));
     router.back();
+    toast.success(t('flareUp.updatedToast'));
   };
 
   return (

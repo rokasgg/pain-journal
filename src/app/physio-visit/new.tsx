@@ -24,8 +24,8 @@ export default function NewPhysioVisitModal() {
       return;
     }
 
-    toast.success(t('physioVisit.savedToast'));
     router.back();
+    toast.success(t('physioVisit.savedToast'));
   };
 
   return <PhysioAssessmentForm submitLabel={t('physioVisit.logVisit')} onSubmit={handleSubmit} />;
