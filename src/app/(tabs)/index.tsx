@@ -5,7 +5,7 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
-import { DaysSinceInjury } from '@/components/home/DaysSinceInjury';
+import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
 import { PhysioFocusCard } from '@/components/home/PhysioFocusCard';
 import { PhysioSummaryCard } from '@/components/home/PhysioSummaryCard';
 import { TopTriggers } from '@/components/home/TopTriggers';
@@ -39,7 +39,10 @@ export default function HomeScreen() {
               {t('home.subtitle')}
             </Text>
           </View>
-          <DaysSinceInjury />
+          <View className="items-end gap-2">
+            {/* <DaysSinceInjury /> */}
+            <DaysSinceHealing />
+          </View>
         </View>
 
         <CheckinStatusCard />

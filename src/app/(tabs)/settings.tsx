@@ -36,11 +36,15 @@ function InjuryInfoSection({ profile }: InjuryInfoSectionProps) {
     profile?.injury_started_on ?? null,
   );
   const [injuryDescription, setInjuryDescription] = useState(profile?.injury_description ?? '');
+  const [healingStartedOn, setHealingStartedOn] = useState<string | null>(
+    profile?.healing_started_on ?? null,
+  );
 
   const handleSave = async () => {
     const { error } = await updateProfileMutation.mutateAsync({
       injury_started_on: injuryStartedOn || null,
       injury_description: injuryDescription || null,
+      healing_started_on: healingStartedOn || null,
     });
 
     if (error) {
@@ -61,6 +65,12 @@ function InjuryInfoSection({ profile }: InjuryInfoSectionProps) {
         label={t('settings.injuryStartDate')}
         value={injuryStartedOn}
         onChange={setInjuryStartedOn}
+        maximumDate={new Date()}
+      />
+      <DatePickerField
+        label={t('settings.healingStartDate')}
+        value={healingStartedOn}
+        onChange={setHealingStartedOn}
         maximumDate={new Date()}
       />
       <Input

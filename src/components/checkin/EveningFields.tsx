@@ -118,6 +118,23 @@ export function EveningFields({ control }: EveningFieldsProps) {
           />
         </>
       )}
+
+      <Controller
+        control={control}
+        name="notes"
+        render={({ field: { value, onChange, onBlur } }) => (
+          <Input
+            label={t('checkin.daySummary')}
+            multiline
+            numberOfLines={3}
+            value={value ?? ''}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            placeholder={t('checkin.daySummaryPlaceholder')}
+            info={t('checkin.daySummaryInfo')}
+          />
+        )}
+      />
     </View>
   );
 }

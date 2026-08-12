@@ -63,6 +63,8 @@ export const lt: typeof en = {
     start: 'Pradėti',
     setInjuryDate: 'Nurodyti traumos datą',
     daysSinceInjury: '{{days}} d. nuo traumos',
+    setHealingDate: 'Nurodyti gijimo datą',
+    daysSinceHealing: '{{days}} dienos',
     topTriggersTitle: 'Dažniausi šios savaitės sukėlėjai',
     noTriggersThisWeek: 'Šią savaitę sukėlėjų dar nepažymėta.',
     physioSummaryTitle: 'Fizioterapeuto suvestinė',
@@ -114,6 +116,10 @@ export const lt: typeof en = {
     exerciseHoursInfo: 'Maždaug kiek truko tas pratimų/fizinės terapijos seansas, valandomis.',
     exerciseNotes: 'Pratimų pastabos',
     exerciseNotesInfo: 'Bet kokios detalės apie tai, ką darėte — pvz., kokius tempimus, pratimus ar veiklas.',
+    daySummary: 'Dienos apibendrinimas',
+    daySummaryPlaceholder: 'Kaip praėjo diena?',
+    daySummaryInfo:
+      'Laisvas tekstas, neprivalomas — vienas trumpas laukas "kaip praėjo diena" gali duoti Claude API santraukai daug konteksto, kurio slaideriai nepagauna (pvz. "buvo stresinga diena darbe, bet vakare pagerėjo pasivaikščiojus").',
     symptoms: 'Simptomai',
     symptomsInfo:
       'Konkretūs pojūčiai, kuriuos jaučiate be bendro skausmo, pvz., dilgčiojimas, tirpimas ar galvos skausmas.',
@@ -123,6 +129,7 @@ export const lt: typeof en = {
     triggersInfo:
       'Bet kas, kas, jūsų manymu, galėjo prisidėti prie šiandienos skausmo — ilga kelionė, bloga laikysena, stresas ir pan.',
     addCustomPlaceholder: 'Kas, jūsų manymu, tai sukėlė?',
+    addCustomSymptomPlaceholder: 'Aprašykite simptomą',
     saveCheckin: 'Išsaugoti patikrinimą',
     saveChanges: 'Išsaugoti pakeitimus',
     savedToast: '{{type}} patikrinimas išsaugotas!',
@@ -131,6 +138,10 @@ export const lt: typeof en = {
     eveningLockedMessage: 'Vakaro patikrinimas atsirakina 16:00.',
     dateLabel: 'Data',
     typeLabel: 'Tipas',
+    alreadyLoggedWarning: 'Šiai dienai šio tipo patikrinimas jau užregistruotas — redaguokite jį per Istoriją.',
+    alreadyLoggedTitle: 'Jau atlikta',
+    alreadyLoggedMessage:
+      'Šiai dienai šio tipo (ryto arba vakaro) patikrinimas jau užregistruotas. Redaguokite jį per Istoriją, o ne pridėkite čia iš naujo.',
   },
   flareUp: {
     likelyCause: 'Tikėtina priežastis',
@@ -232,6 +243,7 @@ export const lt: typeof en = {
   settings: {
     injuryInfo: 'Informacija apie traumą',
     injuryStartDate: 'Traumos pradžios data',
+    healingStartDate: 'Gijimo pradžios data',
     description: 'Aprašymas',
     whatHappenedPlaceholder: 'Kas atsitiko?',
     saveInjuryInfo: 'Išsaugoti informaciją apie traumą',
@@ -296,6 +308,7 @@ export const lt: typeof en = {
     coldWeather: 'Šaltas oras',
     heavyLifting: 'Sunkių daiktų kėlimas',
     stress: 'Stresas',
+    unknown: 'Nežinoma',
   },
   sleepPosition: {
     back: 'Ant nugaros',

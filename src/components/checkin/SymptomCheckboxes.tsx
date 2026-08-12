@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, Text, useColorScheme, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { InfoButton } from '@/components/ui/InfoButton';
 import { Input } from '@/components/ui/Input';
@@ -16,12 +17,27 @@ export interface SymptomCheckboxesProps {
 
 export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckboxesProps) {
   const { t } = useTranslation();
-  const isDark = useColorScheme() === 'dark';
-  const checkedColor = isDark ? colors.primaryDark : colors.primary;
-  const anySymptomChecked = SYMPTOM_OPTIONS.some((option) => value[option.value]);
+  const [isAdding, setIsAdding] = useState(false);
+  const [customText, setCustomText] = useState('');
+
+  const customSymptoms = value.custom ?? [];
+  const anySymptomChecked = SYMPTOM_OPTIONS.some((option) => value[option.value]) || customSymptoms.length > 0;
 
   const toggle = (key: (typeof SYMPTOM_OPTIONS)[number]['value']) => {
     onChange({ ...value, [key]: !value[key] });
+  };
+
+  const removeCustom = (symptom: string) => {
+    onChange({ ...value, custom: customSymptoms.filter((s) => s !== symptom) });
+  };
+
+  const handleAddCustom = () => {
+    const trimmed = customText.trim();
+    if (trimmed && !customSymptoms.includes(trimmed)) {
+      onChange({ ...value, custom: [...customSymptoms, trimmed] });
+    }
+    setCustomText('');
+    setIsAdding(false);
   };
 
   return (
@@ -34,27 +50,85 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
         />
       </View>
 
-      <View className="gap-2">
+      <View className="flex-row flex-wrap gap-2">
         {SYMPTOM_OPTIONS.map((option) => {
-          const checked = !!value[option.value];
+          const isActive = !!value[option.value];
           return (
             <Pressable
               key={option.value}
               onPress={() => toggle(option.value)}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked }}
-              className="flex-row items-center gap-3"
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              className={`rounded-full px-3 py-2 ${
+                isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+              }`}
             >
-              <Ionicons
-                name={checked ? 'checkbox' : 'square-outline'}
-                size={22}
-                color={checked ? checkedColor : colors.gray}
-              />
-              <Text className="text-base text-black dark:text-white">{t(`symptoms.${option.value}`)}</Text>
+              <Text
+                className={`text-sm font-medium ${
+                  isActive ? 'text-white' : 'text-black dark:text-white'
+                }`}
+              >
+                {t(`symptoms.${option.value}`)}
+              </Text>
             </Pressable>
           );
         })}
+
+        {customSymptoms.map((symptom) => (
+          <Pressable
+            key={symptom}
+            onPress={() => removeCustom(symptom)}
+            accessibilityRole="button"
+            accessibilityState={{ selected: true }}
+            className="flex-row items-center gap-1 rounded-full bg-primary px-3 py-2 dark:bg-primaryDark"
+          >
+            <Text className="text-sm font-medium text-white">{symptom}</Text>
+            <Ionicons name="close" size={14} color={colors.white} />
+          </Pressable>
+        ))}
+
+        {!isAdding && (
+          <Pressable
+            onPress={() => setIsAdding(true)}
+            accessibilityRole="button"
+            className="flex-row items-center gap-1 rounded-full border border-dashed border-gray-400 px-3 py-2 dark:border-gray-600"
+          >
+            <Ionicons name="add" size={14} color={colors.gray} />
+            <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('common.other')}</Text>
+          </Pressable>
+        )}
       </View>
+
+      {isAdding && (
+        <View className="flex-row items-center gap-2">
+          <TextInput
+            autoFocus
+            value={customText}
+            onChangeText={setCustomText}
+            onSubmitEditing={handleAddCustom}
+            placeholder={t('checkin.addCustomSymptomPlaceholder')}
+            placeholderTextColor={colors.gray}
+            returnKeyType="done"
+            className="flex-1 rounded-lg border border-gray-300 bg-surface px-3 py-2 text-black dark:border-gray-700 dark:bg-surfaceDark dark:text-white"
+          />
+          <Pressable
+            onPress={handleAddCustom}
+            accessibilityRole="button"
+            className="rounded-lg bg-primary px-3 py-2 dark:bg-primaryDark"
+          >
+            <Text className="text-sm font-semibold text-white">{t('common.add')}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => {
+              setCustomText('');
+              setIsAdding(false);
+            }}
+            accessibilityRole="button"
+          >
+            <Ionicons name="close" size={20} color={colors.gray} />
+          </Pressable>
+        </View>
+      )}
 
       {anySymptomChecked && (
         <Input

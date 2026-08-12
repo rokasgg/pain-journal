@@ -19,6 +19,7 @@ export const TRIGGER_OPTIONS: Option[] = [
   { value: 'Cold weather', label: 'Cold weather' },
   { value: 'Heavy lifting', label: 'Heavy lifting' },
   { value: 'Stress', label: 'Stress' },
+  { value: 'Unknown', label: 'Unknown' },
 ];
 
 export const SLEEP_POSITION_OPTIONS: Option<SleepPosition>[] = [

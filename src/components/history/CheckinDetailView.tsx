@@ -27,6 +27,7 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
     checkin.symptoms.tingling && t('symptoms.tingling'),
     checkin.symptoms.numbness && t('symptoms.numbness'),
     checkin.symptoms.headache && t('symptoms.headache'),
+    ...(checkin.symptoms.custom ?? []),
   ].filter(Boolean) as string[];
 
   return (

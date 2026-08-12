@@ -26,6 +26,7 @@ const TRIGGER_LABEL_KEYS: Record<string, string> = {
   'Cold weather': 'triggers.coldWeather',
   'Heavy lifting': 'triggers.heavyLifting',
   Stress: 'triggers.stress',
+  Unknown: 'triggers.unknown',
 };
 
 export function TriggerChips({ value, onChange, className }: TriggerChipsProps) {

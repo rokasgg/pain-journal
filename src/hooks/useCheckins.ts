@@ -29,6 +29,27 @@ export function useTodayCheckins() {
   return { checkins: checkins ?? [], isLoading };
 }
 
+export function useCheckinsForDate(date: string) {
+  const { user } = useSession();
+
+  const { data: checkins, isLoading } = useQuery({
+    queryKey: ['checkins', 'date', user?.id, date],
+    queryFn: async (): Promise<Checkin[]> => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('checkins')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('checkin_date', date);
+      if (error) throw error;
+      return (data ?? []) as Checkin[];
+    },
+    enabled: !!user && !!date,
+  });
+
+  return { checkins: checkins ?? [], isLoading };
+}
+
 export function useCheckinHistory(days = 30) {
   const { user } = useSession();
   const since = subDays(new Date(), days).toISOString().slice(0, 10);
@@ -73,6 +94,7 @@ export function useUpsertCheckin() {
       if (!result.error) {
         queryClient.invalidateQueries({ queryKey: ['checkins', 'today', user?.id] });
         queryClient.invalidateQueries({ queryKey: ['checkins', 'history', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['checkins', 'date', user?.id] });
       }
     },
   });

@@ -61,6 +61,8 @@ export const en = {
     start: 'Start',
     setInjuryDate: 'Set injury date',
     daysSinceInjury: '{{days}} days since injury',
+    setHealingDate: 'Set healing date',
+    daysSinceHealing: '{{days}} days since healing started',
     topTriggersTitle: 'Top Triggers This Week',
     noTriggersThisWeek: 'No triggers logged yet this week.',
     physioSummaryTitle: 'Physio Summary',
@@ -109,6 +111,10 @@ export const en = {
     exerciseHoursInfo: 'Roughly how long that exercise/PT session lasted, in hours.',
     exerciseNotes: 'Exercise notes',
     exerciseNotesInfo: 'Any details about what you did — e.g. which stretches, exercises, or activities.',
+    daySummary: 'Day summary',
+    daySummaryPlaceholder: 'How did the day go?',
+    daySummaryInfo:
+      'Optional free text — a short "how the day went" note can give the AI summary a lot of context the sliders don\'t capture (e.g. "stressful day at work, but felt better after an evening walk").',
     symptoms: 'Symptoms',
     symptomsInfo:
       "Specific sensations you're experiencing beyond general pain, like tingling, numbness, or headache.",
@@ -118,6 +124,7 @@ export const en = {
     triggersInfo:
       "Anything you think may have contributed to today's pain — a long drive, poor posture, stress, and so on.",
     addCustomPlaceholder: 'What do you think triggered it?',
+    addCustomSymptomPlaceholder: 'Describe the symptom',
     saveCheckin: 'Save Check-in',
     saveChanges: 'Save Changes',
     savedToast: '{{type}} check-in saved!',
@@ -126,6 +133,10 @@ export const en = {
     eveningLockedMessage: 'Evening check-in unlocks at 16:00.',
     dateLabel: 'Date',
     typeLabel: 'Type',
+    alreadyLoggedWarning: 'This day already has a check-in of this type — edit it from History instead.',
+    alreadyLoggedTitle: 'Already checked in',
+    alreadyLoggedMessage:
+      'This day already has a morning or evening check-in of this type. Edit it from History instead of adding it again here.',
   },
   flareUp: {
     likelyCause: 'Likely cause',
@@ -226,6 +237,7 @@ export const en = {
   settings: {
     injuryInfo: 'Injury Info',
     injuryStartDate: 'Injury start date',
+    healingStartDate: 'Healing start date',
     description: 'Description',
     whatHappenedPlaceholder: 'What happened?',
     saveInjuryInfo: 'Save Injury Info',
@@ -289,6 +301,7 @@ export const en = {
     coldWeather: 'Cold weather',
     heavyLifting: 'Heavy lifting',
     stress: 'Stress',
+    unknown: 'Unknown',
   },
   sleepPosition: {
     back: 'Back',

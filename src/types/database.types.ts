@@ -7,6 +7,7 @@ export interface CheckinSymptoms {
   numbness?: boolean;
   headache?: boolean;
   radiating_to?: string;
+  custom?: string[];
 }
 
 export interface Checkin {
@@ -134,6 +135,7 @@ export interface Profile {
   full_name: string | null;
   injury_started_on: string | null;
   injury_description: string | null;
+  healing_started_on: string | null;
   last_pattern_analysis: string | null;
   last_pattern_analysis_at: string | null;
   last_physio_summary: string | null;
@@ -144,4 +146,6 @@ export interface Profile {
   updated_at: string;
 }
 
-export type ProfileUpdate = Partial<Pick<Profile, 'full_name' | 'injury_started_on' | 'injury_description'>>;
+export type ProfileUpdate = Partial<
+  Pick<Profile, 'full_name' | 'injury_started_on' | 'injury_description' | 'healing_started_on'>
+>;
