@@ -12,6 +12,11 @@ You will receive JSON: an array of the patient's most recent physio assessments,
 
 Write one sentence naming the 1-3 muscles or actions most worth focusing on right now. Weigh the most recent assessment most heavily, but note if a muscle's status has changed across assessments (e.g. weak became improving, or a new area became tight). Plain text only, no markdown, no preamble, no quotation marks.`;
 
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English",
+  lt: "Lithuanian",
+};
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -30,6 +35,16 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_ANON_KEY")!,
     { global: { headers: { Authorization: authHeader } } },
   );
+
+  let locale = "en";
+  try {
+    const body = await req.json();
+    if (typeof body?.locale === "string" && LANGUAGE_NAMES[body.locale]) {
+      locale = body.locale;
+    }
+  } catch {
+    // No/invalid JSON body — fall back to English.
+  }
 
   const {
     data: { user },
@@ -68,7 +83,7 @@ Deno.serve(async (req: Request) => {
     model: "claude-opus-5",
     max_tokens: 256,
     output_config: { effort: "low" },
-    system: SYSTEM_PROMPT,
+    system: `${SYSTEM_PROMPT}\n\nRespond in ${LANGUAGE_NAMES[locale]}.`,
     messages: [{ role: "user", content: JSON.stringify({ assessments }) }],
   });
 

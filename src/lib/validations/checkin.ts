@@ -7,6 +7,8 @@ const symptomsSchema = z.object({
   numbness: z.boolean().optional(),
   headache: z.boolean().optional(),
   radiating_to: z.string().optional(),
+  custom: z.array(z.string()).optional(),
+  pain_areas: z.array(z.string()).optional(),
 });
 
 const sharedCheckinFields = z.object({

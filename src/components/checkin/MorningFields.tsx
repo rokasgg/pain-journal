@@ -2,8 +2,8 @@ import { Controller, type Control } from 'react-hook-form';
 import { Pressable, Text, View } from 'react-native';
 
 import { PainSlider } from '@/components/checkin/PainSlider';
+import { HoursMinutesPickerField } from '@/components/ui/HoursMinutesPickerField';
 import { InfoButton } from '@/components/ui/InfoButton';
-import { Input } from '@/components/ui/Input';
 import { SLEEP_POSITION_OPTIONS } from '@/constants/symptoms';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { MorningCheckinFormData } from '@/lib/validations/checkin';
@@ -25,6 +25,8 @@ export function MorningFields({ control }: MorningFieldsProps) {
             label={t('checkin.sleepQuality')}
             value={value}
             onChange={onChange}
+            minLabel={t('checkin.sleepBad')}
+            maxLabel={t('checkin.sleepGood')}
             info={t('checkin.sleepQualityInfo')}
           />
         )}
@@ -33,13 +35,12 @@ export function MorningFields({ control }: MorningFieldsProps) {
       <Controller
         control={control}
         name="sleep_hours"
-        render={({ field: { value, onChange, onBlur } }) => (
-          <Input
+        render={({ field: { value, onChange } }) => (
+          <HoursMinutesPickerField
             label={t('checkin.sleepHours')}
-            keyboardType="decimal-pad"
-            value={value?.toString() ?? ''}
-            onChangeText={(text) => onChange(text ? Number(text) : null)}
-            onBlur={onBlur}
+            value={value}
+            onChange={onChange}
+            maxHours={14}
             info={t('checkin.sleepHoursInfo')}
           />
         )}

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSession } from '@/hooks/useSession';
 import { t } from '@/lib/i18n/useTranslation';
 import { supabase } from '@/lib/supabase';
+import { useLocaleStore } from '@/store/useLocaleStore';
 import type { MuscleFindingInsert, PhysioAssessment, PhysioAssessmentInsert } from '@/types/database.types';
 
 export function usePhysioAssessments() {
@@ -33,7 +34,8 @@ export function usePhysioAssessments() {
 // user since the triggering action (save/delete) already succeeded.
 async function refreshPhysioFocus(queryClient: ReturnType<typeof useQueryClient>, userId: string | undefined) {
   try {
-    await supabase.functions.invoke('physio-focus');
+    const locale = useLocaleStore.getState().locale;
+    await supabase.functions.invoke('physio-focus', { body: { locale } });
     queryClient.invalidateQueries({ queryKey: ['profile', userId] });
   } catch {
     // Silently ignore — the widget just won't refresh until next time.

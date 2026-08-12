@@ -8,6 +8,7 @@ export interface CheckinSymptoms {
   headache?: boolean;
   radiating_to?: string;
   custom?: string[];
+  pain_areas?: string[];
 }
 
 export interface Checkin {

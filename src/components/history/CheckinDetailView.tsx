@@ -91,6 +91,17 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
         </View>
       )}
 
+      {(checkin.symptoms.pain_areas?.length ?? 0) > 0 && (
+        <View className="gap-1">
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+            {t('detail.painAreas')}
+          </Text>
+          <Text className="text-base text-black dark:text-white">
+            {checkin.symptoms.pain_areas?.join(', ')}
+          </Text>
+        </View>
+      )}
+
       {checkin.triggers.length > 0 && (
         <View className="gap-1">
           <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">

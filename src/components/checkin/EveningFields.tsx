@@ -2,6 +2,7 @@ import { Controller, useWatch, type Control } from 'react-hook-form';
 import { Pressable, Text, View } from 'react-native';
 
 import { PainSlider } from '@/components/checkin/PainSlider';
+import { HoursMinutesPickerField } from '@/components/ui/HoursMinutesPickerField';
 import { InfoButton } from '@/components/ui/InfoButton';
 import { Input } from '@/components/ui/Input';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -33,13 +34,12 @@ export function EveningFields({ control }: EveningFieldsProps) {
       <Controller
         control={control}
         name="screen_time_hours"
-        render={({ field: { value, onChange, onBlur } }) => (
-          <Input
+        render={({ field: { value, onChange } }) => (
+          <HoursMinutesPickerField
             label={t('checkin.screenTimeHours')}
-            keyboardType="decimal-pad"
-            value={value?.toString() ?? ''}
-            onChangeText={(text) => onChange(text ? Number(text) : null)}
-            onBlur={onBlur}
+            value={value}
+            onChange={onChange}
+            maxHours={16}
             info={t('checkin.screenTimeHoursInfo')}
           />
         )}
@@ -89,13 +89,12 @@ export function EveningFields({ control }: EveningFieldsProps) {
           <Controller
             control={control}
             name="exercise_hours"
-            render={({ field: { value, onChange, onBlur } }) => (
-              <Input
+            render={({ field: { value, onChange } }) => (
+              <HoursMinutesPickerField
                 label={t('checkin.exerciseHours')}
-                keyboardType="decimal-pad"
-                value={value?.toString() ?? ''}
-                onChangeText={(text) => onChange(text ? Number(text) : null)}
-                onBlur={onBlur}
+                value={value}
+                onChange={onChange}
+                maxHours={4}
                 info={t('checkin.exerciseHoursInfo')}
               />
             )}

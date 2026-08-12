@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Link, type Href } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -6,6 +7,7 @@ import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
 import { useProfile } from '@/hooks/useProfile';
 import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { colors } from '@/lib/theme';
 
 export function PhysioFocusCard() {
   const { t } = useTranslation();
@@ -31,19 +33,22 @@ export function PhysioFocusCard() {
 
   return (
     <Link href={'/history/physio-visits' as Href} asChild>
-      <Pressable className="gap-2 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
-        <Text className="text-base font-semibold text-black dark:text-white">{t('home.physioFocusTitle')}</Text>
+      <Pressable className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
+        <View className="flex-1 gap-2">
+          <Text className="text-base font-semibold text-black dark:text-white">{t('home.physioFocusTitle')}</Text>
 
-        {!latest ? (
-          <Text className="text-sm text-gray-500 dark:text-gray-400">{t('home.physioFocusEmpty')}</Text>
-        ) : (
-          <View className="gap-1">
-            {profile?.last_physio_focus_summary && (
-              <Text className="text-sm text-black dark:text-white">{profile.last_physio_focus_summary}</Text>
-            )}
-            {stats && <Text className="text-xs text-gray-500 dark:text-gray-400">{stats}</Text>}
-          </View>
-        )}
+          {!latest ? (
+            <Text className="text-sm text-gray-500 dark:text-gray-400">{t('home.physioFocusEmpty')}</Text>
+          ) : (
+            <View className="gap-1">
+              {profile?.last_physio_focus_summary && (
+                <Text className="text-sm text-black dark:text-white">{profile.last_physio_focus_summary}</Text>
+              )}
+              {stats && <Text className="text-xs text-gray-500 dark:text-gray-400">{stats}</Text>}
+            </View>
+          )}
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.gray} />
       </Pressable>
     </Link>
   );

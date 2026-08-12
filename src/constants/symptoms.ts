@@ -22,6 +22,19 @@ export const TRIGGER_OPTIONS: Option[] = [
   { value: 'Unknown', label: 'Unknown' },
 ];
 
+export const PAIN_AREA_OPTIONS: Option[] = [
+  { value: 'Neck', label: 'Neck' },
+  { value: 'Upper back', label: 'Upper back' },
+  { value: 'Mid back', label: 'Mid back' },
+  { value: 'Lower back', label: 'Lower back' },
+  { value: 'Shoulder (left)', label: 'Shoulder (left)' },
+  { value: 'Shoulder (right)', label: 'Shoulder (right)' },
+  { value: 'Head', label: 'Head' },
+  { value: 'Hip', label: 'Hip' },
+  { value: 'Arm', label: 'Arm' },
+  { value: 'Leg', label: 'Leg' },
+];
+
 export const SLEEP_POSITION_OPTIONS: Option<SleepPosition>[] = [
   { value: 'back', label: 'Back' },
   { value: 'side', label: 'Side' },

@@ -99,10 +99,10 @@ export default function HistoryScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top']}>
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-8">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-2xl font-bold text-black dark:text-white">{t('history.title')}</Text>
+        <View className="flex-column items-start justify-between">
+          <Text className="text-2xl font-bold text-black dark:text-white mb-2">{t('history.title')}</Text>
 
-          <View className="flex-row gap-2">
+          <View className="flex-row w-full justify-between">
             <Link href="/flare-up/new" asChild>
               <Pressable className="rounded-full border border-red-600 px-3 py-1.5 dark:border-red-500">
                 <Text className="text-sm font-semibold text-red-600 dark:text-red-500">
@@ -126,14 +126,12 @@ export default function HistoryScreen() {
               <Pressable
                 key={option.label}
                 onPress={() => setRangeDays(option.days)}
-                className={`flex-1 items-center rounded-full py-2 ${
-                  isActive ? 'bg-surface dark:bg-surfaceDark' : ''
-                }`}
+                className={`flex-1 items-center rounded-full py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
+                  }`}
               >
                 <Text
-                  className={`text-sm font-medium ${
-                    isActive ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray-400'
-                  }`}
+                  className={`text-sm font-medium ${isActive ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray-400'
+                    }`}
                 >
                   {option.label}
                 </Text>

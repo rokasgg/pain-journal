@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
 
 import { MuscleFindingRow } from '@/components/checkin/MuscleFindingRow';
 import { DatePickerField } from '@/components/ui/DatePickerField';
 import { Input } from '@/components/ui/Input';
+import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -39,6 +40,7 @@ export function PhysioAssessmentForm({
 }: PhysioAssessmentFormProps) {
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { assessments } = usePhysioAssessments();
 
   const { control, handleSubmit } = useForm<PhysioAssessmentFormData>({
     resolver: zodResolver(physioAssessmentSchema),
@@ -46,6 +48,24 @@ export function PhysioAssessmentForm({
   });
 
   const { fields, append, remove } = useFieldArray({ control, name: 'findings' });
+
+  // Assessments are already ordered by visit_date desc, so the first occurrence
+  // of each muscle name (case-insensitive) is this user's most recent use of it.
+  const recentMuscleNames = useMemo(() => {
+    const seen = new Set<string>();
+    const names: string[] = [];
+    for (const assessment of assessments) {
+      for (const finding of assessment.muscle_findings ?? []) {
+        const trimmed = finding.muscle_name.trim();
+        const key = trimmed.toLowerCase();
+        if (trimmed && !seen.has(key)) {
+          seen.add(key);
+          names.push(trimmed);
+        }
+      }
+    }
+    return names;
+  }, [assessments]);
 
   const handleSave = async (data: PhysioAssessmentFormData) => {
     setIsSubmitting(true);
@@ -105,6 +125,7 @@ export function PhysioAssessmentForm({
           index={index}
           onRemove={() => remove(index)}
           removable={fields.length > 1}
+          recentMuscleNames={recentMuscleNames}
         />
       ))}
 

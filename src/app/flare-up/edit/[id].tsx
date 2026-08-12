@@ -39,6 +39,7 @@ export default function EditFlareUpModal() {
   return (
     <FlareUpForm
       defaultValues={{
+        occurred_at: flareUp.occurred_at,
         pain_level: flareUp.pain_level,
         likely_cause: flareUp.likely_cause,
         description: flareUp.description,

@@ -2,8 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Controller, useWatch, type Control } from 'react-hook-form';
 import { Pressable, Text, View } from 'react-native';
 
+import { MuscleNameField } from '@/components/checkin/MuscleNameField';
 import { PainSlider } from '@/components/checkin/PainSlider';
-import { Input } from '@/components/ui/Input';
 import { MUSCLE_SIDE_OPTIONS, MUSCLE_STATUS_OPTIONS } from '@/constants/physio';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -14,9 +14,10 @@ export interface MuscleFindingRowProps {
   index: number;
   onRemove: () => void;
   removable: boolean;
+  recentMuscleNames: string[];
 }
 
-export function MuscleFindingRow({ control, index, onRemove, removable }: MuscleFindingRowProps) {
+export function MuscleFindingRow({ control, index, onRemove, removable, recentMuscleNames }: MuscleFindingRowProps) {
   const { t } = useTranslation();
   const status = useWatch({ control, name: `findings.${index}.status` });
 
@@ -27,13 +28,13 @@ export function MuscleFindingRow({ control, index, onRemove, removable }: Muscle
           control={control}
           name={`findings.${index}.muscle_name`}
           render={({ field: { value, onChange, onBlur } }) => (
-            <Input
+            <MuscleNameField
               className="flex-1"
               label={t('physioVisit.muscleName', { number: index + 1 })}
-              placeholder={t('physioVisit.muscleNamePlaceholder')}
               value={value}
-              onChangeText={onChange}
+              onChange={onChange}
               onBlur={onBlur}
+              recentNames={recentMuscleNames}
             />
           )}
         />

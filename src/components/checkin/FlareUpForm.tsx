@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
 
 import { PainSlider } from '@/components/checkin/PainSlider';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
+import { DateTimePickerField } from '@/components/ui/DateTimePickerField';
 import { Input } from '@/components/ui/Input';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -16,7 +17,12 @@ export interface FlareUpFormProps {
   onSubmit: (data: FlareUpFormData) => Promise<void>;
 }
 
-const emptyDefaults: FlareUpFormData = { pain_level: 5, likely_cause: null, description: null };
+const emptyDefaults: FlareUpFormData = {
+  occurred_at: new Date().toISOString(),
+  pain_level: 5,
+  likely_cause: null,
+  description: null,
+};
 
 export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubmit }: FlareUpFormProps) {
   const { t } = useTranslation();
@@ -40,6 +46,19 @@ export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubm
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
     >
+      <Controller
+        control={control}
+        name="occurred_at"
+        render={({ field: { value, onChange } }) => (
+          <DateTimePickerField
+            label={t('flareUp.occurredAt')}
+            value={value}
+            onChange={onChange}
+            maximumDate={new Date()}
+          />
+        )}
+      />
+
       <Controller
         control={control}
         name="pain_level"

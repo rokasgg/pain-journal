@@ -1,3 +1,4 @@
+import { format, parseISO } from 'date-fns';
 import { Text, View } from 'react-native';
 
 import { FlareUpMarker } from '@/components/history/FlareUpMarker';
@@ -21,6 +22,10 @@ export function FlareUpDetailView({ flareUp, showDate = true }: FlareUpDetailVie
         </Text>
         <FlareUpMarker painLevel={flareUp.pain_level} />
       </View>
+
+      <Text className="-mt-3 text-sm text-gray-500 dark:text-gray-400">
+        {format(parseISO(flareUp.occurred_at), 'HH:mm')}
+      </Text>
 
       <View>
         <View className="flex-row items-center justify-between border-b border-gray-200 py-3 dark:border-gray-800">

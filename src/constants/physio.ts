@@ -37,3 +37,30 @@ export const MUSCLE_SIDE_OPTIONS: { value: 'left' | 'right' | 'bilateral'; label
   { value: 'right', labelKey: 'physioVisit.sideRight' },
   { value: 'bilateral', labelKey: 'physioVisit.sideBilateral' },
 ];
+
+// Canonical values stored verbatim in `muscle_findings.muscle_name`, decoupled from
+// display via labelKey — same pattern as TRIGGER_OPTIONS/TRIGGER_LABEL_KEYS. Keeping
+// the stored value stable (English) regardless of UI locale is what lets the same
+// muscle be grouped/charted over time instead of fragmenting per free-text spelling.
+export const MUSCLE_NAME_OPTIONS: { value: string; labelKey: string }[] = [
+  { value: 'Sternocleidomastoid (SCM)', labelKey: 'physioVisit.muscle.scm' },
+  { value: 'Upper trapezius', labelKey: 'physioVisit.muscle.upperTrapezius' },
+  { value: 'Middle trapezius', labelKey: 'physioVisit.muscle.middleTrapezius' },
+  { value: 'Lower trapezius', labelKey: 'physioVisit.muscle.lowerTrapezius' },
+  { value: 'Levator scapulae', labelKey: 'physioVisit.muscle.levatorScapulae' },
+  { value: 'Rhomboids', labelKey: 'physioVisit.muscle.rhomboids' },
+  { value: 'Splenius capitis', labelKey: 'physioVisit.muscle.spleniusCapitis' },
+  { value: 'Splenius cervicis', labelKey: 'physioVisit.muscle.spleniusCervicis' },
+  { value: 'Suboccipitals', labelKey: 'physioVisit.muscle.suboccipitals' },
+  { value: 'Scalenes', labelKey: 'physioVisit.muscle.scalenes' },
+  { value: 'Erector spinae (cervical)', labelKey: 'physioVisit.muscle.erectorSpinaeCervical' },
+  { value: 'Erector spinae (thoracic)', labelKey: 'physioVisit.muscle.erectorSpinaeThoracic' },
+  { value: 'Erector spinae (lumbar)', labelKey: 'physioVisit.muscle.erectorSpinaeLumbar' },
+  { value: 'Quadratus lumborum', labelKey: 'physioVisit.muscle.quadratusLumborum' },
+  { value: 'Latissimus dorsi', labelKey: 'physioVisit.muscle.latissimusDorsi' },
+  { value: 'Deltoid', labelKey: 'physioVisit.muscle.deltoid' },
+  { value: 'Supraspinatus', labelKey: 'physioVisit.muscle.supraspinatus' },
+  { value: 'Infraspinatus', labelKey: 'physioVisit.muscle.infraspinatus' },
+  { value: 'Piriformis', labelKey: 'physioVisit.muscle.piriformis' },
+  { value: 'Gluteus medius', labelKey: 'physioVisit.muscle.gluteusMedius' },
+];

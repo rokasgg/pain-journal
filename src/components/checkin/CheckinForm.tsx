@@ -5,6 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
 
 import { EveningFields } from '@/components/checkin/EveningFields';
 import { MorningFields } from '@/components/checkin/MorningFields';
+import { PainAreaChips } from '@/components/checkin/PainAreaChips';
 import { PainSlider } from '@/components/checkin/PainSlider';
 import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
@@ -91,6 +92,14 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
             onChange={onChange}
             info={t('checkin.painLevelInfo')}
           />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="symptoms.pain_areas"
+        render={({ field: { value, onChange } }) => (
+          <PainAreaChips value={value ?? []} onChange={onChange} />
         )}
       />
 

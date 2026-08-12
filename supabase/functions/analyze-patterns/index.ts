@@ -8,13 +8,19 @@ const corsHeaders = {
 
 const SYSTEM_PROMPT = `You are analyzing a personal neck/back pain journal for patterns the user may not notice by eyeballing a chart.
 
-You will receive JSON with two arrays:
+You will receive JSON with:
+- "injury": the user's self-reported injury context, if any (injury_started_on, injury_description — may mention specific levels/areas, e.g. cervical disc levels). Use this as background to interpret the data, e.g. relate symptoms/triggers back to the described injury area when relevant. It may be null if the user hasn't filled it in.
 - "checkins": twice-daily entries (morning/evening) with pain_level, stiffness_level, range_of_motion, sleep fields (morning only), activity/exercise fields including exercise_hours and exercise_intensity (evening only), symptoms, triggers, notes.
 - "flareUps": ad-hoc pain-spike events with pain_level, likely_cause, description, occurred_at.
 
 Find concrete, evidence-based correlations — e.g. "pain is consistently higher the morning after >6hrs of screen time," "flare-ups cluster on days logged with poor sleep or a specific trigger," "sleeping on the stomach precedes higher morning stiffness." Only report patterns actually supported by the data provided — do not invent correlations from too few data points, and say so if the data is too sparse or noisy to conclude anything.
 
 Respond in plain text with a short bulleted list (max 6 bullets), each bullet one or two sentences. No preamble, no markdown headers.`;
+
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English",
+  lt: "Lithuanian",
+};
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -35,6 +41,16 @@ Deno.serve(async (req: Request) => {
     { global: { headers: { Authorization: authHeader } } },
   );
 
+  let locale = "en";
+  try {
+    const body = await req.json();
+    if (typeof body?.locale === "string" && LANGUAGE_NAMES[body.locale]) {
+      locale = body.locale;
+    }
+  } catch {
+    // No/invalid JSON body — fall back to English.
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -49,25 +65,35 @@ Deno.serve(async (req: Request) => {
   const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
   const sinceDate = since.toISOString().slice(0, 10);
 
-  const [{ data: checkins, error: checkinsError }, { data: flareUps, error: flareUpsError }] =
-    await Promise.all([
-      supabase
-        .from("checkins")
-        .select(
-          "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, activity_level, screen_time_hours, did_exercises, exercise_hours, exercise_intensity, symptoms, triggers, notes",
-        )
-        .gte("checkin_date", sinceDate)
-        .order("checkin_date"),
-      supabase
-        .from("flare_ups")
-        .select("occurred_at, pain_level, likely_cause, description")
-        .gte("occurred_at", since.toISOString())
-        .order("occurred_at"),
-    ]);
+  const [
+    { data: checkins, error: checkinsError },
+    { data: flareUps, error: flareUpsError },
+    { data: profile, error: profileError },
+  ] = await Promise.all([
+    supabase
+      .from("checkins")
+      .select(
+        "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, activity_level, screen_time_hours, did_exercises, exercise_hours, exercise_intensity, symptoms, triggers, notes",
+      )
+      .gte("checkin_date", sinceDate)
+      .order("checkin_date"),
+    supabase
+      .from("flare_ups")
+      .select("occurred_at, pain_level, likely_cause, description")
+      .gte("occurred_at", since.toISOString())
+      .order("occurred_at"),
+    supabase
+      .from("profiles")
+      .select("injury_started_on, injury_description")
+      .eq("id", user.id)
+      .single(),
+  ]);
 
-  if (checkinsError || flareUpsError) {
+  if (checkinsError || flareUpsError || profileError) {
     return new Response(
-      JSON.stringify({ error: (checkinsError ?? flareUpsError)?.message ?? "Failed to load data." }),
+      JSON.stringify({
+        error: (checkinsError ?? flareUpsError ?? profileError)?.message ?? "Failed to load data.",
+      }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
@@ -89,8 +115,8 @@ Deno.serve(async (req: Request) => {
     model: "claude-opus-5",
     max_tokens: 1024,
     output_config: { effort: "medium" },
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: JSON.stringify({ checkins, flareUps }) }],
+    system: `${SYSTEM_PROMPT}\n\nRespond in ${LANGUAGE_NAMES[locale]}.`,
+    messages: [{ role: "user", content: JSON.stringify({ injury: profile ?? null, checkins, flareUps }) }],
   });
 
   if (response.stop_reason === "refusal") {

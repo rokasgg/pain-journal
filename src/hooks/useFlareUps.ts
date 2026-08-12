@@ -59,13 +59,11 @@ export function useCreateFlareUp() {
 
   return useMutation({
     mutationFn: async (
-      flareUp: Omit<FlareUpInsert, 'user_id' | 'occurred_at'>,
+      flareUp: Omit<FlareUpInsert, 'user_id'>,
     ): Promise<{ error: string | null }> => {
       if (!user) return { error: t('common.notSignedIn') };
 
-      const { error } = await supabase
-        .from('flare_ups')
-        .insert({ ...flareUp, user_id: user.id, occurred_at: new Date().toISOString() });
+      const { error } = await supabase.from('flare_ups').insert({ ...flareUp, user_id: user.id });
 
       return { error: error?.message ?? null };
     },
