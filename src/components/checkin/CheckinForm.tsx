@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { type ReactNode, useState } from 'react';
-import { Controller, useForm, type Control } from 'react-hook-form';
+import { Controller, useForm, useWatch, type Control } from 'react-hook-form';
 import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
 
 import { EveningFields } from '@/components/checkin/EveningFields';
@@ -9,6 +9,7 @@ import { PainAreaChips } from '@/components/checkin/PainAreaChips';
 import { PainSlider } from '@/components/checkin/PainSlider';
 import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
+import { YesNoField } from '@/components/checkin/YesNoField';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import {
@@ -67,9 +68,23 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
     defaultValues: defaultValues ?? (isMorning ? morningDefaults : eveningDefaults),
   });
 
+  // Morning has a real persisted gate (`woke_up_with_pain`); evening has no DB
+  // equivalent, so its gate is local UI state derived from whether pain_level
+  // was already > 0 (fully reconstructable — no schema/DB change needed).
+  const wokeUpWithPain = useWatch({
+    control: control as Control<MorningCheckinFormData>,
+    name: 'woke_up_with_pain',
+  });
+  const [eveningInPain, setEveningInPain] = useState(() => (defaultValues?.pain_level ?? 0) > 0);
+  const isInPain = isMorning ? !!wokeUpWithPain : eveningInPain;
+
   const handleSave = async (data: CheckinFormData) => {
+    const finalData: CheckinFormData = isInPain
+      ? data
+      : { ...data, pain_level: 0, symptoms: { ...data.symptoms, pain_areas: [] } };
+
     setIsSubmitting(true);
-    await onSubmit(data);
+    await onSubmit(finalData);
     setIsSubmitting(false);
   };
 
@@ -82,26 +97,52 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
     >
       {header}
 
-      <Controller
-        control={control}
-        name="pain_level"
-        render={({ field: { value, onChange } }) => (
-          <PainSlider
-            label={t('checkin.painLevel')}
-            value={value}
-            onChange={onChange}
-            info={t('checkin.painLevelInfo')}
-          />
-        )}
-      />
+      {isMorning ? (
+        <Controller
+          control={control as Control<MorningCheckinFormData>}
+          name="woke_up_with_pain"
+          render={({ field: { value, onChange } }) => (
+            <YesNoField
+              label={t('checkin.wokeUpWithPain')}
+              value={value}
+              onChange={onChange}
+              info={t('checkin.wokeUpWithPainInfo')}
+            />
+          )}
+        />
+      ) : (
+        <YesNoField
+          label={t('checkin.inPainNow')}
+          value={eveningInPain}
+          onChange={setEveningInPain}
+          info={t('checkin.inPainNowInfo')}
+        />
+      )}
 
-      <Controller
-        control={control}
-        name="symptoms.pain_areas"
-        render={({ field: { value, onChange } }) => (
-          <PainAreaChips value={value ?? []} onChange={onChange} />
-        )}
-      />
+      {isInPain && (
+        <>
+          <Controller
+            control={control}
+            name="pain_level"
+            render={({ field: { value, onChange } }) => (
+              <PainSlider
+                label={t('checkin.painLevel')}
+                value={value}
+                onChange={onChange}
+                info={t('checkin.painLevelInfo')}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="symptoms.pain_areas"
+            render={({ field: { value, onChange } }) => (
+              <PainAreaChips value={value ?? []} onChange={onChange} />
+            )}
+          />
+        </>
+      )}
 
       <Controller
         control={control}

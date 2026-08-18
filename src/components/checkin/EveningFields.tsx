@@ -1,9 +1,9 @@
 import { Controller, useWatch, type Control } from 'react-hook-form';
-import { Pressable, Text, View } from 'react-native';
+import { View } from 'react-native';
 
 import { PainSlider } from '@/components/checkin/PainSlider';
+import { YesNoField } from '@/components/checkin/YesNoField';
 import { HoursMinutesPickerField } from '@/components/ui/HoursMinutesPickerField';
-import { InfoButton } from '@/components/ui/InfoButton';
 import { Input } from '@/components/ui/Input';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { EveningCheckinFormData } from '@/lib/validations/checkin';
@@ -49,23 +49,12 @@ export function EveningFields({ control }: EveningFieldsProps) {
         control={control}
         name="did_exercises"
         render={({ field: { value, onChange } }) => (
-          <Pressable
-            onPress={() => onChange(!value)}
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: !!value }}
-            className="flex-row items-center justify-between rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700"
-          >
-            <View className="flex-row items-center gap-1.5">
-              <Text className="text-base text-black dark:text-white">{t('checkin.didExercises')}</Text>
-              <InfoButton
-                title={t('checkin.didExercises')}
-                message={t('checkin.didExercisesInfo')}
-              />
-            </View>
-            <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              {value ? t('common.yes') : t('common.no')}
-            </Text>
-          </Pressable>
+          <YesNoField
+            label={t('checkin.didExercises')}
+            value={value}
+            onChange={onChange}
+            info={t('checkin.didExercisesInfo')}
+          />
         )}
       />
 

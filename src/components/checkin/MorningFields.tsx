@@ -48,30 +48,6 @@ export function MorningFields({ control }: MorningFieldsProps) {
 
       <Controller
         control={control}
-        name="woke_up_with_pain"
-        render={({ field: { value, onChange } }) => (
-          <Pressable
-            onPress={() => onChange(!value)}
-            accessibilityRole="checkbox"
-            accessibilityState={{ checked: !!value }}
-            className="flex-row items-center justify-between rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700"
-          >
-            <View className="flex-row items-center gap-1.5">
-              <Text className="text-base text-black dark:text-white">{t('checkin.wokeUpWithPain')}</Text>
-              <InfoButton
-                title={t('checkin.wokeUpWithPain')}
-                message={t('checkin.wokeUpWithPainInfo')}
-              />
-            </View>
-            <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              {value ? t('common.yes') : t('common.no')}
-            </Text>
-          </Pressable>
-        )}
-      />
-
-      <Controller
-        control={control}
         name="sleep_position"
         render={({ field: { value, onChange } }) => (
           <View className="gap-2">
