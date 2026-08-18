@@ -2,23 +2,42 @@ import '../../global.css';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
-import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, useState } from 'react';
 
+import { AppSplashScreen } from '@/components/AppSplashScreen';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ToastModalHost } from '@/components/ui/ToastModalHost';
+import { useTodayCheckins } from '@/hooks/useCheckins';
+import { useProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
 import { useSyncReminderNotifications } from '@/hooks/useSyncReminderNotifications';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { queryClient } from '@/lib/queryClient';
 
+SplashScreen.preventAutoHideAsync().catch(() => { });
+
+const MIN_SPLASH_MS = 3000;
+
 function RootLayoutNav() {
   const { session, isLoading } = useSession();
+  const { isLoading: profileLoading } = useProfile();
+  const { isLoading: todayLoading } = useTodayCheckins();
   const { t } = useTranslation();
   const segments = useSegments();
   const router = useRouter();
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
   useSyncReminderNotifications();
+
+  useEffect(() => {
+    SplashScreen.hideAsync();
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
+    return () => clearTimeout(timeout);
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;
@@ -33,12 +52,10 @@ function RootLayoutNav() {
     }
   }, [session, isLoading, segments, router]);
 
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-background dark:bg-backgroundDark">
-        <ActivityIndicator />
-      </View>
-    );
+  const showSplash = isLoading || profileLoading || todayLoading || !minTimeElapsed;
+
+  if (showSplash) {
+    return <AppSplashScreen />;
   }
 
   return (

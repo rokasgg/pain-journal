@@ -1,0 +1,196 @@
+// Generated from assets/icons/flowerJump.svg — regenerate this constant if that file is replaced.
+// Kept as raw markup (not parsed) since it relies on embedded CSS @keyframes that
+// react-native-svg cannot execute; it is rendered inside a WebView instead (see
+// AppSplashScreen.tsx), which runs a real browser engine.
+export const FLOWER_JUMP_SVG = `<svg width="383" height="583" viewBox="0 0 383 583" fill="none" xmlns="http://www.w3.org/2000/svg">
+<style>
+@keyframes kf_Flower_transform_0 {
+  0% {
+    transform: translateX(71px) translateY(93.172px) translateX(0px) translateY(0px);
+  }
+  100% {
+    transform: translateX(71px) translateY(93.172px) translateX(0px) translateY(0px);
+  }
+}
+#Flower {
+  transform-origin: 0 0;
+  animation: kf_Flower_transform_0 2s linear infinite;
+}
+@keyframes kf_Flower_Kotas_transform_0 {
+  0% {
+    transform: translateX(44.282px) translateY(208.828px) translateX(0px) translateY(0px);
+  }
+  40.2% {
+    transform: translateX(44.282px) translateY(208.828px) translateX(0px) translateY(0px);
+  }
+  60.15% {
+    transform: translateX(44.282px) translateY(208.828px) translateX(0px) translateY(0px);
+  }
+  70.15% {
+    transform: translateX(44.282px) translateY(208.828px) translateX(0px) translateY(-44px);
+  }
+  75.85% {
+    transform: translateX(44.282px) translateY(208.828px) translateX(0px) translateY(-81px);
+  }
+  85.9% {
+    transform: translateX(44.282px) translateY(208.828px) translateX(0px) translateY(-81px);
+  }
+  100% {
+    transform: translateX(44.282px) translateY(208.828px) translateX(0px) translateY(-3px);
+  }
+}
+#Flower_Kotas {
+  transform-origin: 0 0;
+  animation: kf_Flower_Kotas_transform_0 2s linear infinite;
+}
+@keyframes kf_Leaf_Right_transform_0 {
+  0% {
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+    transform: translateX(99.575px) translateY(36.391px) translate(-8.019px, 25.096px) rotate(-0.423rad) translate(8.019px, -25.096px) rotate(0.341rad) scaleX(1) scaleY(1) skewX(0rad);
+  }
+  40.2% {
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+    transform: translateX(99.575px) translateY(36.391px) translate(-8.019px, 25.096px) rotate(0rad) translate(8.019px, -25.096px) rotate(0.341rad) scaleX(1) scaleY(1) skewX(0rad);
+  }
+  60.05% {
+    transform: translateX(99.575px) translateY(36.391px) translate(-8.019px, 25.096px) rotate(-0.533rad) translate(8.019px, -25.096px) rotate(0.341rad) scaleX(1) scaleY(1) skewX(0rad);
+  }
+  100% {
+    transform: translateX(99.575px) translateY(36.391px) translate(-8.019px, 25.096px) rotate(-0.533rad) translate(8.019px, -25.096px) rotate(0.341rad) scaleX(1) scaleY(1) skewX(0rad);
+  }
+}
+#Leaf_Right {
+  transform-origin: 0 0;
+  animation: kf_Leaf_Right_transform_0 2s linear infinite;
+}
+@keyframes kf_Leaf_Left_transform_0 {
+  0% {
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+    transform: translateX(75.992px) translateY(88.591px) translate(0.726px, -25.758px) rotate(0.385rad) translate(-0.726px, 25.758px) rotate(-3.127rad) scaleX(1) scaleY(1) skewX(0rad);
+  }
+  40.2% {
+    animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1);
+    transform: translateX(75.992px) translateY(88.591px) translate(0.726px, -25.758px) rotate(0rad) translate(-0.726px, 25.758px) rotate(-3.127rad) scaleX(1) scaleY(1) skewX(0rad);
+  }
+  60.05% {
+    transform: translateX(75.992px) translateY(88.591px) translate(0.726px, -25.758px) rotate(0.492rad) translate(-0.726px, 25.758px) rotate(-3.127rad) scaleX(1) scaleY(1) skewX(0rad);
+  }
+  100% {
+    transform: translateX(75.992px) translateY(88.591px) translate(0.726px, -25.758px) rotate(0.492rad) translate(-0.726px, 25.758px) rotate(-3.127rad) scaleX(1) scaleY(1) skewX(0rad);
+  }
+}
+#Leaf_Left {
+  transform-origin: 0 0;
+  animation: kf_Leaf_Left_transform_0 2s linear infinite;
+}
+@keyframes kf_Vase_transform_0 {
+  0% {
+    transform: translateX(58px) translateY(307.163px) translateX(0px) translateY(0px);
+  }
+  40.2% {
+    transform: translateX(58px) translateY(307.163px) translateX(0px) translateY(0px);
+  }
+  60.05% {
+    transform: translateX(58px) translateY(307.163px) translateX(0px) translateY(0px);
+  }
+  70.15% {
+    transform: translateX(58px) translateY(307.163px) translateX(0px) translateY(-40.336px);
+  }
+  75.85% {
+    transform: translateX(58px) translateY(307.163px) translateX(0px) translateY(-77.336px);
+  }
+  85.9% {
+    transform: translateX(58px) translateY(307.163px) translateX(0px) translateY(-77.336px);
+  }
+  100% {
+    transform: translateX(58px) translateY(307.163px) translateX(0px) translateY(0.664px);
+  }
+}
+#Vase {
+  transform-origin: 0 0;
+  animation: kf_Vase_transform_0 2s linear infinite;
+}
+@keyframes kf_Flowers_head_transform_0 {
+  0% {
+    transform: translateX(0px) translateY(-6.172px);
+  }
+  40.2% {
+    transform: translateX(0px) translateY(34.828px);
+  }
+  60.05% {
+    transform: translateX(0px) translateY(-25.485px);
+  }
+  70.15% {
+    transform: translateX(0px) translateY(-56.172px);
+  }
+  75.85% {
+    transform: translateX(0px) translateY(-93.172px);
+  }
+  85.9% {
+    transform: translateX(0px) translateY(-93.172px);
+  }
+  100% {
+    transform: translateX(0px) translateY(-15.172px);
+  }
+}
+#Flowers_head {
+  transform-origin: 0 0;
+  animation: kf_Flowers_head_transform_0 2s linear infinite;
+}
+</style>
+<g id="Frame_2" clip-path="url(#clip0_11_305)">
+<g id="Flower" transform="translate(71 93.1724)">
+<g id="Flower_Kotas" transform="translate(44.2822 208.828)">
+<g id="Leaf_Right" transform="translate(99.5747 36.3913) rotate(19.5431)">
+<path id="Leaf" d="M34 3.34541C19.7946 -3.94798 3.77831 -0.536488 0 25.8455C19.2199 40.6693 35.7194 43.196 45.5 33.3454C52 27.8454 62.0667 15.4777 76 5.8454C54.6309 10.215 47.7472 11.3811 34 3.34541Z" fill="#1DB371" stroke="#3C0372" stroke-width="6"/>
+<path id="Vector_8" transform="translate(2 15.8454)" d="M40.5 0L0 9L1.5 11.5L40.5 0Z" fill="#370473"/>
+</g>
+<g id="Leaf_Left" transform="translate(75.9917 88.591) rotate(-179.153)">
+<path id="Leaf_2" d="M34 3.34541C19.7946 -3.94798 3.77831 -0.536488 0 25.8455C19.2199 40.6693 35.7194 43.196 45.5 33.3454C52 27.8454 62.0667 15.4777 76 5.8454C54.6309 10.215 47.7472 11.3811 34 3.34541Z" fill="#1DB371" stroke="#3C0372" stroke-width="6"/>
+<path id="Vector_8_2" transform="translate(2 15.8454)" d="M40.5 0L0 9L1.5 11.5L40.5 0Z" fill="#370473"/>
+</g>
+<path id="Kotas" transform="translate(67.9678 3.8147e-06)" d="M20.6432 0H6.41079C-1.16727 19.9168 -3.05466 31.0832 6.41079 51C14.0936 70.9168 14.5917 82.0832 6.41079 102H20.6432C27.506 82.0834 26.7199 70.9167 20.6432 51C11.3861 31.0832 12.6047 19.9167 20.6432 0Z" fill="#15B867" stroke="#3C0372" stroke-width="6"/>
+</g>
+<g id="Vase" transform="translate(58 307.163)">
+<g id="Vector_1" transform="translate(7 58.6641)">
+<path d="M0 0L16.5 72H105.708L125 0H0Z" id="Vector_1_bg_0" fill="#D16B3D">
+</path>
+<path d="M0 0L16.5 72H105.708L125 0H0Z" stroke="black" stroke-width="6"/>
+<path d="M0 0L16.5 72H105.708L125 0H0Z" stroke="#3C0273" stroke-width="6"/>
+</g>
+<g id="Vector_2" transform="translate(0 23.6641)">
+<path d="M0 27.5L7 35.5H133.381L138 27.5V7.5L130.5 0H10L0 7.5V27.5Z" id="Vector_2_bg_0" fill="#D16B3D">
+</path>
+<path d="M0 27.5L7 35.5H133.381L138 27.5V7.5L130.5 0H10L0 7.5V27.5Z" stroke="black" stroke-width="6"/>
+<path d="M0 27.5L7 35.5H133.381L138 27.5V7.5L130.5 0H10L0 7.5V27.5Z" stroke="#3C0273" stroke-width="6"/>
+</g>
+<path id="Vector_3" transform="translate(3 26.6641)" d="M0 6V23.3499L4 28V9L8 6H123.5L132 13V6L126.262 0H8L0 6Z" fill="#EFB794"/>
+<path id="Vector_4" transform="translate(52.5 32.6641)" d="M74 20.5V0H43.5C43.5 0 39.5 2.5 34 8C28.5 13.5 21.2567 18.9151 0 20.5H74Z" fill="#A9534B"/>
+<path id="Vector_5" transform="translate(28 62.6641)" d="M67 0H98L81 63.5H1.5L0 55C39.5013 50.5812 54.2593 38.6496 67 0Z" fill="#A9534B"/>
+<path id="Vector_7" transform="translate(11 62.1641)" d="M0 0L15 65.5H17.5L3 0H0Z" fill="#EFB795"/>
+<path id="Dirt" transform="translate(11)" d="M119.5 24.1472H0C13.0974 8.08861 17.7385 1.94069 35.5 14.1641C44.7479 -6.24578 69.4938 -2.18872 77 11.1641C92.2472 -1.58829 102.387 7.26346 119.5 24.1472Z" fill="#905F42" stroke="#3C0372" stroke-width="6"/>
+</g>
+<g id="Flowers_head">
+<path id="Flower_ziedai" d="M79.8994 9.48145C90.8392 3.71006 99.4455 2.29839 106.151 3.29297C112.82 4.2822 117.979 7.70519 121.961 12.3262C125.975 16.9838 128.752 22.8229 130.524 28.4199C132.299 34.0252 133 39.1803 133 42.3271V50.9092L138.347 44.1963C143.036 38.3087 151.544 28.0798 162.53 22.3369C167.971 19.4931 173.912 17.8089 180.239 18.2285C186.543 18.6466 193.487 21.1694 200.933 27.1641C208.269 33.0713 211.465 39.3431 212.257 45.3525C213.059 51.4392 211.44 57.6255 208.476 63.3418C205.513 69.0543 201.292 74.1231 197.19 77.8623C196.905 78.1228 196.619 78.3751 196.337 78.6211C191.928 80.3854 187.914 82.5685 185.822 85.0723L180.575 91.3525L188.638 89.9512C190.489 89.6296 192.566 88.6541 194.6 87.3955C196.147 86.438 197.791 85.238 199.462 83.8408C203.54 82.2856 208.446 80.9157 213.462 79.9814C218.806 78.986 224.152 78.5087 228.662 78.7812C233.309 79.062 236.485 80.1053 238.103 81.5811L238.375 81.8301L238.7 82.0059C242.618 84.1189 244.982 88.801 246.278 94.8096C247.55 100.704 247.624 107.085 247.624 111.571C247.624 119.337 245.12 124.575 241.521 128.189C237.848 131.878 232.794 134.115 227.367 135.348C221.955 136.577 216.383 136.758 211.936 136.5C209.718 136.371 207.82 136.136 206.404 135.882C206.372 135.876 206.34 135.869 206.308 135.863C205.209 135.398 203.968 134.996 202.814 134.996H191.645L201.312 140.592C201.878 140.92 202.566 141.141 203.127 141.297C203.532 141.409 203.988 141.516 204.484 141.619C205.403 142.05 206.529 142.678 207.806 143.497C210.57 145.27 213.863 147.82 217.018 150.848C220.176 153.879 223.121 157.318 225.259 160.853C227.279 164.194 228.472 167.445 228.61 170.42C223.45 182.679 220.564 188.593 217.22 192.125C214.093 195.427 210.427 196.786 202.568 198.987C193.419 197.916 183.145 193.699 174.934 189.57C170.783 187.483 167.233 185.457 164.724 183.954C163.47 183.203 162.477 182.584 161.803 182.155C161.466 181.941 161.209 181.774 161.037 181.662C160.952 181.606 160.887 181.565 160.846 181.537C160.825 181.523 160.809 181.513 160.8 181.507C160.795 181.504 160.792 181.501 160.79 181.5L160.788 181.499L155.119 177.72L156.159 184.453L156.16 184.454C156.16 184.455 156.16 184.457 156.16 184.459C156.161 184.463 156.163 184.471 156.164 184.48C156.167 184.5 156.172 184.531 156.178 184.571C156.19 184.653 156.208 184.776 156.231 184.938C156.279 185.263 156.347 185.744 156.431 186.36C156.598 187.594 156.825 189.37 157.064 191.526C157.543 195.846 158.067 201.665 158.251 207.706C158.436 213.773 158.274 219.938 157.431 224.992C157.009 227.518 156.434 229.663 155.704 231.34C154.966 233.036 154.16 234.049 153.398 234.585C146.122 239.704 135.167 241.444 124.726 240.909C119.564 240.645 114.677 239.83 110.644 238.685C106.526 237.515 103.598 236.084 102.093 234.774C96.4486 229.866 93.9956 222.405 93.4971 214.044C92.9999 205.707 94.4801 196.905 96.248 189.93C96.5759 188.636 96.9114 187.411 97.2441 186.271C98.4496 183.365 99.2934 181.205 99.8418 179.695C100.231 178.623 100.503 177.798 100.645 177.249C100.681 177.107 100.722 176.935 100.752 176.755C100.761 176.702 100.858 176.203 100.758 175.623C100.731 175.467 100.536 174.218 99.2725 173.5C97.7594 172.64 96.4242 173.41 96.1406 173.593C95.7533 173.843 95.5129 174.125 95.4346 174.219C95.3249 174.35 95.2423 174.469 95.1904 174.548C94.8876 175.007 94.5673 175.73 94.2939 176.386C93.9788 177.142 93.5997 178.127 93.1846 179.299C92.692 180.69 92.1432 182.364 91.584 184.259C91.0797 185.471 90.5108 186.818 89.8691 188.309C81.4394 207.883 66.195 214.179 52.4004 212.852C38.2568 211.491 25.9211 202.229 23.0332 190.763C19.478 176.646 24.3537 164.716 33.4678 155.658C39.6483 149.516 47.7458 144.753 56.3281 141.691C60.5976 140.984 65.0255 139.88 69.5859 138.338L68.1748 132.529C63.7315 133.203 59.2241 134.324 54.8135 135.862C35.7451 138.881 20.8382 133.145 12.0742 123.874C1.44272 112.627 -0.621095 95.7859 10.0498 81.1309C18.9675 68.8839 30.0442 66.7467 40.3232 67.6709C45.5445 68.1404 50.5209 69.405 54.916 70.6045C57.0742 71.1935 59.1638 71.7874 60.9805 72.2227C62.7681 72.6509 64.5605 72.996 66.124 72.9961H72.2686L68.4902 68.1504C58.9827 55.9604 55.566 44.4691 57.4043 34.6855C59.2307 24.9658 66.3989 16.1289 79.8252 9.51953L79.8623 9.50098L79.8994 9.48145Z" fill="#FE67A1" stroke="#3C0273" stroke-width="6"/>
+<path id="Flower_face" transform="translate(72.6244 68.4956)" d="M52.5 3C79.9777 3 102 24.1789 102 50C102 75.8211 79.9777 97 52.5 97C25.0223 97 3 75.8211 3 50C3 24.1789 25.0223 3 52.5 3Z" fill="#F8C440" stroke="#3C0273" stroke-width="6"/>
+<path id="Lips" transform="translate(116.624 133.496)" d="M19.8451 0.925232C19.8451 5.38483 15.4031 9.00006 9.92357 9.00006C4.44404 9.00006 0.00200725 5.38483 0.00200725 0.925232C-0.0877948 -2.18489 2.83673 5.60019 9.92357 5.60019C17.0104 5.60019 20.837 -2.72408 19.8451 0.925232Z" fill="#380876"/>
+<g id="Eye_Left" transform="translate(107.624 102.496)">
+<ellipse id="Ellipse_1" cx="6.75556" cy="10.9778" rx="6.75556" ry="10.9778" fill="#380876"/>
+<ellipse id="Ellipse_2" transform="translate(6.75556 4.22223)" cx="1.68889" cy="3.37778" rx="1.68889" ry="3.37778" fill="white"/>
+<ellipse id="Ellipse_3" transform="translate(2.53333 12.6667)" cx="1.26667" cy="2.11111" rx="1.26667" ry="2.11111" fill="white"/>
+</g>
+<g id="Eye_Right" transform="matrix(-1 0 0 1 145.624 102.496)">
+<ellipse id="Ellipse_1_2" cx="6.75556" cy="10.9778" rx="6.75556" ry="10.9778" fill="#380876"/>
+<ellipse id="Ellipse_2_2" transform="translate(6.75556 4.22223)" cx="1.68889" cy="3.37778" rx="1.68889" ry="3.37778" fill="white"/>
+<ellipse id="Ellipse_3_2" transform="translate(2.53333 12.6667)" cx="1.26667" cy="2.11111" rx="1.26667" ry="2.11111" fill="white"/>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_11_305">
+<rect width="383" height="583" fill="white"/>
+</clipPath>
+</defs>
+</svg>
+`;
