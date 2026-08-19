@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
 import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
+import { FlowerHealthCard } from '@/components/home/FlowerHealthCard';
 import { PhysioFocusCard } from '@/components/home/PhysioFocusCard';
 import { PhysioSummaryCard } from '@/components/home/PhysioSummaryCard';
 import { TopTriggers } from '@/components/home/TopTriggers';
@@ -44,6 +45,8 @@ export default function HomeScreen() {
             <DaysSinceHealing />
           </View>
         </View>
+
+        <FlowerHealthCard />
 
         <CheckinStatusCard />
 

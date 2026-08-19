@@ -72,6 +72,14 @@ export const en = {
     physioFocusTitle: 'Physio Focus',
     physioFocusEmpty: 'Log your first physio visit to see your current focus here.',
     physioFocusStats: '{{count}} visits · Last {{date}} · {{weak}} weak, {{tight}} tight',
+    flowerHealthTitle: 'Check-in streak',
+    flowerStage: {
+      bare: 'Bare — check in to bring it back',
+      wilting: 'Wilting — a check-in would help',
+      okay: 'Holding steady',
+      thriving: 'Thriving',
+      blooming: 'In full bloom!',
+    },
   },
   checkin: {
     painLevel: 'Pain level',

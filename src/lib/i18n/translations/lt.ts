@@ -74,6 +74,14 @@ export const lt: typeof en = {
     physioFocusTitle: 'Fizioterapijos fokusas',
     physioFocusEmpty: 'Užregistruokite pirmą fizioterapijos vizitą, kad matytumėte savo dabartinį fokusą čia.',
     physioFocusStats: 'Vizitų: {{count}} · Paskutinis {{date}} · silpni: {{weak}}, įsitempę: {{tight}}',
+    flowerHealthTitle: 'Patikrinimų serija',
+    flowerStage: {
+      bare: 'Nuoga — patikrinimas padės atgaivinti',
+      wilting: 'Vysta — pravartu būtų patikrinimas',
+      okay: 'Laikosi stabiliai',
+      thriving: 'Klesti',
+      blooming: 'Pilnai žydi!',
+    },
   },
   checkin: {
     painLevel: 'Skausmo lygis',
