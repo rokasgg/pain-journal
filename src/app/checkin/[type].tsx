@@ -8,6 +8,7 @@ import { useTodayStatus } from '@/hooks/useTodayStatus';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { useCelebrationStore } from '@/store/useCelebrationStore';
 import { toast } from '@/utils/toast';
 
 export default function CheckinModal() {
@@ -32,6 +33,7 @@ export default function CheckinModal() {
 
     router.back();
     toast.success(t('checkin.savedToast', { type: t(isMorning ? 'home.morning' : 'home.evening') }));
+    useCelebrationStore.getState().show();
   };
 
   if (!isMorning && !eveningUnlocked) {

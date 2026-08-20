@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import { AppSplashScreen } from '@/components/AppSplashScreen';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { WateringCelebrationHost } from '@/components/WateringCelebrationHost';
 import { ToastModalHost } from '@/components/ui/ToastModalHost';
 import { useTodayCheckins } from '@/hooks/useCheckins';
 import { useProfile } from '@/hooks/useProfile';
@@ -121,6 +122,7 @@ function RootLayoutNav() {
         />
       </Stack>
       <ToastModalHost />
+      <WateringCelebrationHost />
     </ErrorBoundary>
   );
 }

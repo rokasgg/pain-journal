@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 import { useFlowerHealth } from '@/hooks/useFlowerHealth';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { useCelebrationStore } from '@/store/useCelebrationStore';
 
 const ICON_SIZE = 40;
 const SVG_WIDTH = 56;
@@ -14,7 +15,7 @@ function stageHtml(svg: string) {
   return `<!DOCTYPE html>
 <html>
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <meta name="viewport" content="width=${SVG_WIDTH}, initial-scale=1, maximum-scale=1, user-scalable=no" />
     <style>
       html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; }
       svg { display: block; width: 100%; height: 100%; }
@@ -29,8 +30,13 @@ export function FlowerHealthCard() {
   const { stage } = useFlowerHealth();
 
   return (
-    <View className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
-      <View style={{ width: SVG_WIDTH, height: SVG_HEIGHT }} className="items-center justify-center">
+    // Long-press is a hidden dev affordance to preview the watering
+    // celebration without completing a real check-in — no visible hint.
+    <Pressable
+      onLongPress={() => useCelebrationStore.getState().show()}
+      className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark"
+    >
+      <View style={{ width: SVG_WIDTH, height: SVG_HEIGHT }}>
         {stage.svg ? (
           <WebView
             originWhitelist={['*']}
@@ -48,6 +54,6 @@ export function FlowerHealthCard() {
         <Text className="text-base font-semibold text-black dark:text-white">{t('home.flowerHealthTitle')}</Text>
         <Text className="text-sm text-gray-500 dark:text-gray-400">{t(stage.labelKey)}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }

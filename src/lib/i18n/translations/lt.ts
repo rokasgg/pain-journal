@@ -82,6 +82,7 @@ export const lt: typeof en = {
       thriving: 'Klesti',
       blooming: 'Pilnai žydi!',
     },
+    wateringCelebrationText: 'Palaistėte savo gėlę!',
   },
   checkin: {
     painLevel: 'Skausmo lygis',

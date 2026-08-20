@@ -80,6 +80,7 @@ export const en = {
       thriving: 'Thriving',
       blooming: 'In full bloom!',
     },
+    wateringCelebrationText: 'You watered your flower!',
   },
   checkin: {
     painLevel: 'Pain level',

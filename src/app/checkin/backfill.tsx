@@ -8,6 +8,7 @@ import { DatePickerField } from '@/components/ui/DatePickerField';
 import { useCheckinsForDate, useUpsertCheckin } from '@/hooks/useCheckins';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { useCelebrationStore } from '@/store/useCelebrationStore';
 import type { CheckinType } from '@/types/database.types';
 import { toast } from '@/utils/toast';
 
@@ -40,6 +41,7 @@ export default function BackfillModal() {
     }
 
     toast.success(t('checkin.checkinUpdatedToast'));
+    useCelebrationStore.getState().show();
     router.back();
   };
 
