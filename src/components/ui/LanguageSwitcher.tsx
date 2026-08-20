@@ -14,7 +14,7 @@ export function LanguageSwitcher() {
   ];
 
   return (
-    <View className="flex-row rounded-lg bg-gray-100 p-1 dark:bg-surfaceDark bg-white border-gray dark:border-primaryDark border">
+    <View className="flex-row rounded-lg bg-gray-100 p-1 dark:bg-surfaceDark bg-surface border-gray dark:border-primaryDark border">
       {options.map((option) => {
         const isActive = option.value === locale;
 
@@ -28,7 +28,7 @@ export function LanguageSwitcher() {
             <Text
               className={`text-sm font-medium ${isActive
                 ? 'text-white dark:text-white '
-                : 'text-black dark:text-gray'
+                : 'text-strongGray dark:text-gray'
                 }`}
             >
               {option.label}

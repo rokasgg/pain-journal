@@ -301,6 +301,8 @@ export const lt: typeof en = {
     appearance: 'Išvaizda',
     language: 'Kalba',
     account: 'Paskyra',
+  healthInfo: 'Sveikatos informacija',
+  legal: 'Teisinė informacija',
     editProfile: 'Redaguoti profilį',
     resetPassword: 'Atkurti slaptažodį',
     privacyPolicy: 'Privatumo politika',
@@ -390,6 +392,8 @@ export const lt: typeof en = {
     logPhysioVisit: 'Registruoti fizioterapijos vizitą',
     physioVisits: 'Fizioterapijos vizitai',
     editPhysioVisit: 'Redaguoti fizioterapijos vizitą',
+    injuryInfo: 'Informacija apie traumą',
+    notifications: 'Pranešimai',
   },
   image: {
     permissionRequired: 'Būtinas leidimas naudotis nuotraukų biblioteka.',

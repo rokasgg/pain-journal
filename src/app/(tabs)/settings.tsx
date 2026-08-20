@@ -1,171 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
-import { DatePickerField } from '@/components/ui/DatePickerField';
-import { Input } from '@/components/ui/Input';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
-import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
-import { useReminderSettings, useUpdateReminderSettings } from '@/hooks/useReminderSettings';
 import { useSession } from '@/hooks/useSession';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useAuthStore } from '@/store/useAuthStore';
-import type { Profile, ReminderSettings } from '@/types/database.types';
 import { pickAvatarImage } from '@/utils/image';
-import { requestNotificationPermission } from '@/utils/notifications';
 import { toast } from '@/utils/toast';
-
-interface InjuryInfoSectionProps {
-  profile: Profile | null;
-}
-
-// Keyed by `profile?.id` from the parent so this remounts (with fresh
-// defaultValues) the moment the profile query resolves, instead of trying to
-// sync local state into an already-mounted form — that "sync on render"
-// approach proved unreliable here (see settings.tsx history).
-function InjuryInfoSection({ profile }: InjuryInfoSectionProps) {
-  const { t } = useTranslation();
-  const updateProfileMutation = useUpdateProfile();
-  const [injuryStartedOn, setInjuryStartedOn] = useState<string | null>(
-    profile?.injury_started_on ?? null,
-  );
-  const [injuryDescription, setInjuryDescription] = useState(profile?.injury_description ?? '');
-  const [healingStartedOn, setHealingStartedOn] = useState<string | null>(
-    profile?.healing_started_on ?? null,
-  );
-
-  const handleSave = async () => {
-    const { error } = await updateProfileMutation.mutateAsync({
-      injury_started_on: injuryStartedOn || null,
-      injury_description: injuryDescription || null,
-      healing_started_on: healingStartedOn || null,
-    });
-
-    if (error) {
-      toast.error(error);
-      return;
-    }
-
-    toast.success(t('settings.injuryInfoUpdated'));
-  };
-
-  return (
-    <View className="gap-3">
-      <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
-        {t('settings.injuryInfo')}
-      </Text>
-
-      <DatePickerField
-        label={t('settings.injuryStartDate')}
-        value={injuryStartedOn}
-        onChange={setInjuryStartedOn}
-        maximumDate={new Date()}
-      />
-      <DatePickerField
-        label={t('settings.healingStartDate')}
-        value={healingStartedOn}
-        onChange={setHealingStartedOn}
-        maximumDate={new Date()}
-      />
-      <Input
-        label={t('settings.description')}
-        placeholder={t('settings.whatHappenedPlaceholder')}
-        multiline
-        numberOfLines={3}
-        value={injuryDescription}
-        onChangeText={setInjuryDescription}
-      />
-
-      <Pressable
-        onPress={handleSave}
-        disabled={updateProfileMutation.isPending}
-        className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
-      >
-        {updateProfileMutation.isPending ? (
-          <ActivityIndicator color={colors.white} />
-        ) : (
-          <Text className="font-semibold text-white">{t('settings.saveInjuryInfo')}</Text>
-        )}
-      </Pressable>
-    </View>
-  );
-}
-
-interface ReminderSettingsSectionProps {
-  settings: ReminderSettings | null;
-}
-
-function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
-  const { t } = useTranslation();
-  const updateReminderSettingsMutation = useUpdateReminderSettings();
-  const [morningTime, setMorningTime] = useState(settings?.morning_time ?? '08:00');
-  const [eveningTime, setEveningTime] = useState(settings?.evening_time ?? '21:00');
-  const [pushEnabled, setPushEnabled] = useState(settings?.push_enabled ?? true);
-
-  const handleSave = async () => {
-    let nextPushEnabled = pushEnabled;
-
-    if (pushEnabled) {
-      const granted = await requestNotificationPermission();
-      if (!granted) {
-        toast.error(t('settings.notificationPermissionDenied'));
-        nextPushEnabled = false;
-        setPushEnabled(false);
-      }
-    }
-
-    const { error } = await updateReminderSettingsMutation.mutateAsync({
-      morning_time: morningTime,
-      evening_time: eveningTime,
-      push_enabled: nextPushEnabled,
-    });
-
-    if (error) {
-      toast.error(error);
-      return;
-    }
-
-    toast.success(t('settings.remindersUpdated'));
-  };
-
-  return (
-    <View className="gap-3">
-      <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
-        {t('settings.reminders')}
-      </Text>
-
-      <View className="flex-row items-center justify-between rounded-2xl bg-primaryMuted px-4 py-3 dark:bg-primaryMutedDark">
-        <Text className="text-base text-black dark:text-white">{t('settings.pushNotifications')}</Text>
-        <Switch
-          value={pushEnabled}
-          onValueChange={setPushEnabled}
-          trackColor={{ true: colors.primary }}
-        />
-      </View>
-
-      <Input label={t('settings.morningReminder')} placeholder="08:00" value={morningTime} onChangeText={setMorningTime} />
-      <Input label={t('settings.eveningReminder')} placeholder="21:00" value={eveningTime} onChangeText={setEveningTime} />
-
-      <Pressable
-        onPress={handleSave}
-        disabled={updateReminderSettingsMutation.isPending}
-        className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
-      >
-        {updateReminderSettingsMutation.isPending ? (
-          <ActivityIndicator color={colors.white} />
-        ) : (
-          <Text className="font-semibold text-white">{t('settings.saveReminders')}</Text>
-        )}
-      </Pressable>
-    </View>
-  );
-}
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -177,9 +25,6 @@ export default function SettingsScreen() {
   const signOut = useAuthStore((state) => state.signOut);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSignOutModalVisible, setIsSignOutModalVisible] = useState(false);
-
-  const { profile, isLoading: isProfileLoading } = useProfile();
-  const { settings, isLoading: isSettingsLoading } = useReminderSettings();
 
   const name = (user?.user_metadata?.name as string | undefined) ?? t('common.anonymous');
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
@@ -279,71 +124,97 @@ export default function SettingsScreen() {
         </View>
 
         <View className="gap-3">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
-            {t('settings.appearance')}
-          </Text>
-          <ThemeSwitcher />
-        </View>
-
-        <View className="gap-3">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
-            {t('settings.language')}
-          </Text>
-          <LanguageSwitcher />
-        </View>
-
-        <View className="gap-3">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
+          <Text className="text-sm font-semibold uppercase text-strongGray dark:text-white">
             {t('settings.account')}
           </Text>
 
-          <View className="overflow-hidden rounded-lg border border-gray dark:border-gray bg-white dark:bg-surfaceDark">
+          <View className="overflow-hidden rounded-lg border border-gray dark:border-gray bg-surface dark:bg-surfaceDark">
             <Pressable
               onPress={() => router.push('/modal/edit-profile')}
               className="flex-row items-center justify-between border-b border-gray px-4 py-3.5 dark:border-gray"
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="person-outline" size={20} color={colors.gray} />
-                <Text className="text-base text-black dark:text-white">{t('settings.editProfile')}</Text>
+                <Text className="text-base text-strongGray dark:text-white">{t('settings.editProfile')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.gray} />
             </Pressable>
 
             <Pressable
               onPress={handleResetPassword}
-              className="flex-row items-center justify-between border-b border-gray px-4 py-3.5 dark:border-gray"
-            >
-              <View className="flex-row items-center gap-3">
-                <Ionicons name="lock-closed-outline" size={20} color={colors.gray} />
-                <Text className="text-base text-black dark:text-white">{t('settings.resetPassword')}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.gray} />
-            </Pressable>
-
-            <Pressable
-              onPress={() => toast.info(t('settings.privacyPolicyComingSoon'))}
               className="flex-row items-center justify-between px-4 py-3.5"
             >
               <View className="flex-row items-center gap-3">
-                <Ionicons name="document-text-outline" size={20} color={colors.gray} />
-                <Text className="text-base text-black dark:text-white">{t('settings.privacyPolicy')}</Text>
+                <Ionicons name="lock-closed-outline" size={20} color={colors.gray} />
+                <Text className="text-base text-strongGray dark:text-white">{t('settings.resetPassword')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.gray} />
             </Pressable>
           </View>
         </View>
 
-        {isProfileLoading ? (
-          <ActivityIndicator />
-        ) : (
-          <InjuryInfoSection key={profile?.id ?? 'none'} profile={profile} />
-        )}
+        <View className="gap-3">
+          <Text className="text-sm font-semibold uppercase text-strongGray dark:text-white">
+            {t('settings.healthInfo')}
+          </Text>
 
-        {isSettingsLoading ? (
-          <ActivityIndicator />
-        ) : (
-          <ReminderSettingsSection key={settings ? 'loaded' : 'none'} settings={settings} />
-        )}
+          <View className="overflow-hidden rounded-lg border border-gray dark:border-gray bg-surface dark:bg-surfaceDark">
+            <Pressable
+              onPress={() => router.push('/modal/injury-info' as Href)}
+              className="flex-row items-center justify-between border-b border-gray px-4 py-3.5 dark:border-gray"
+            >
+              <View className="flex-row items-center gap-3">
+                <Ionicons name="bandage-outline" size={20} color={colors.gray} />
+                <Text className="text-base text-strongGray dark:text-white">{t('settings.injuryInfo')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.gray} />
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push('/modal/notifications' as Href)}
+              className="flex-row items-center justify-between px-4 py-3.5"
+            >
+              <View className="flex-row items-center gap-3">
+                <Ionicons name="notifications-outline" size={20} color={colors.gray} />
+                <Text className="text-base text-strongGray dark:text-white">{t('screenTitles.notifications')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.gray} />
+            </Pressable>
+          </View>
+        </View>
+
+        <View className="gap-3">
+          <Text className="text-sm font-semibold uppercase text-strongGray dark:text-white">
+            {t('settings.legal')}
+          </Text>
+
+          <View className="overflow-hidden rounded-lg border border-gray dark:border-gray bg-surface dark:bg-surfaceDark">
+            <Pressable
+              onPress={() => toast.info(t('settings.privacyPolicyComingSoon'))}
+              className="flex-row items-center justify-between px-4 py-3.5"
+            >
+              <View className="flex-row items-center gap-3">
+                <Ionicons name="document-text-outline" size={20} color={colors.gray} />
+                <Text className="text-base text-strongGray dark:text-white">{t('settings.privacyPolicy')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.gray} />
+            </Pressable>
+          </View>
+        </View>
+
+        <View className="gap-3">
+          <Text className="text-sm font-semibold uppercase text-strongGray dark:text-white">
+            {t('settings.appearance')}
+          </Text>
+          <ThemeSwitcher />
+        </View>
+
+        <View className="gap-3">
+          <Text className="text-sm font-semibold uppercase text-strongGray dark:text-white">
+            {t('settings.language')}
+          </Text>
+          <LanguageSwitcher />
+        </View>
 
         <Pressable
           onPress={() => setIsSignOutModalVisible(true)}

@@ -13,7 +13,7 @@ export function ThemeSwitcher() {
   const setMode = useThemeStore((state) => state.setMode);
 
   return (
-    <View className="flex-row rounded-lg bg-white p-1 dark:dark:bg-surfaceDark border-gray dark:border-primaryDark border">
+    <View className="flex-row rounded-lg bg-surface p-1 dark:dark:bg-surfaceDark border-gray dark:border-primaryDark border">
       {OPTIONS.map((option) => {
         const isActive = option.value === mode;
 
@@ -21,13 +21,13 @@ export function ThemeSwitcher() {
           <Pressable
             key={option.value}
             onPress={() => setMode(option.value)}
-            className={`flex-1 items-center rounded-md py-2 ${isActive ? 'bg-primary dark:bg-black' : ' bg-white dark:bg-surfaceDark'
+            className={`flex-1 items-center rounded-md py-2 ${isActive ? 'bg-primary dark:bg-black' : ' bg-surface dark:bg-surfaceDark'
               }`}
           >
             <Text
               className={`text-sm font-semibold ${isActive
                 ? 'text-white dark:text-white'
-                : 'text-black dark:text-gray'
+                : 'text-strongGray dark:text-gray'
                 }`}
             >
               {option.label}

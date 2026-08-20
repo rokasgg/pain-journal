@@ -1,12 +1,12 @@
 export const colors = {
-  white: '#ffffff',
+  white: '#F3FAFF',
   black: '#071E27',
   gray: '#8e8e93',
   borderLight: '#e5e7eb',
   borderDark: '#27272a',
-  background: '#EAF3FA',
+  background: '#F3FAFF',
   backgroundDark: '#0B1410',
-  surface: '#ffffff',
+  surface: '#E6F6FF',
   surfaceDark: '#111C16',
   primary: '#3B6247',
   primaryDark: '#4F7A5C',
@@ -14,5 +14,7 @@ export const colors = {
   primaryMutedDark: '#16232B',
   bgSettings: '#DBF1FE',
   pink: '#FFDAD6',
+  selectedTab: '#506873',
+  selectedTabColor: '#a8d6f0ff'
 
 } as const;

@@ -69,6 +69,14 @@ function RootLayoutNav() {
           options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editProfile') }}
         />
         <Stack.Screen
+          name="modal/injury-info"
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.injuryInfo') }}
+        />
+        <Stack.Screen
+          name="modal/notifications"
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.notifications') }}
+        />
+        <Stack.Screen
           name="checkin/[type]"
           options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.checkin') }}
         />
