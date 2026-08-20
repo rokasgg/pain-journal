@@ -15,6 +15,7 @@ export const colors = {
   bgSettings: '#DBF1FE',
   pink: '#FFDAD6',
   selectedTab: '#506873',
-  selectedTabColor: '#a8d6f0ff'
+  selectedTabColor: '#a8d6f0ff',
+  lightGrey: '#c4caceff',
 
 } as const;

@@ -26,7 +26,7 @@ function TabButton({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 6,
-        backgroundColor: focused ? (isDark ? colors.primaryMutedDark : colors.selectedTabColor) : 'transparent',
+        // backgroundColor: focused ? (isDark ? colors.primaryMutedDark : colors.selectedTabColor) : 'transparent',
 
         borderRadius: 999,
         paddingHorizontal: focused ? 14 : 0,
@@ -34,7 +34,7 @@ function TabButton({
         minWidth: 100,
       }}
     >
-      <Ionicons name={name} size={size} color={focused ? colors.selectedTab : colors.gray} />
+      <Ionicons name={name} size={size} color={focused ? colors.selectedTab : colors.lightGrey} />
 
       <Text
         numberOfLines={1}
@@ -60,7 +60,7 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.selectedTab,
         tabBarInactiveTintColor: colors.gray,
         tabBarStyle: {
-          backgroundColor: isDark ? colors.backgroundDark : colors.background,
+          // backgroundColor: isDark ? colors.backgroundDark : colors.background,
           borderTopColor: isDark ? colors.borderDark : colors.borderLight,
           height: 80,
 

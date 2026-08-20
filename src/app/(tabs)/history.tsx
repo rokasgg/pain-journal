@@ -1,5 +1,5 @@
 import { EntryListItem, type HistoryEntry } from '@/components/history/EntryListItem';
-import { MonthCalendar, type DayMarker } from '@/components/history/MonthCalendar';
+import { type DayMarker } from '@/components/history/WeekCalendar';
 import { Link, useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PainTrendChart } from '@/components/history/PainTrendChart';
 import { StatTile } from '@/components/history/StatTile';
+import { WeekCalendar } from '@/components/history/WeekCalendar';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useFlareUps } from '@/hooks/useFlareUps';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -64,20 +65,35 @@ export default function HistoryScreen() {
 
   const calendarMarkers = useMemo(() => {
     const markers: Record<string, DayMarker> = {};
+    const painByDate = new Map<string, number[]>();
 
     for (const checkin of allCheckins) {
       const marker = (markers[checkin.checkin_date] ??= {
         hasMorning: false,
         hasEvening: false,
         hasFlareUp: false,
+        avgPain: null,
       });
       if (checkin.type === 'morning') marker.hasMorning = true;
       else marker.hasEvening = true;
+
+      const levels = painByDate.get(checkin.checkin_date) ?? [];
+      levels.push(checkin.pain_level);
+      painByDate.set(checkin.checkin_date, levels);
+    }
+
+    for (const [date, levels] of painByDate) {
+      markers[date].avgPain = levels.reduce((sum, level) => sum + level, 0) / levels.length;
     }
 
     for (const flareUp of allFlareUps) {
       const dateStr = flareUp.occurred_at.slice(0, 10);
-      const marker = (markers[dateStr] ??= { hasMorning: false, hasEvening: false, hasFlareUp: false });
+      const marker = (markers[dateStr] ??= {
+        hasMorning: false,
+        hasEvening: false,
+        hasFlareUp: false,
+        avgPain: null,
+      });
       marker.hasFlareUp = true;
     }
 
@@ -163,17 +179,17 @@ export default function HistoryScreen() {
           </Pressable>
         </Link>
 
-
-        <MonthCalendar
+        <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
+          {t('history.recentEntries')}
+        </Text>
+        <WeekCalendar
           markers={calendarMarkers}
           onSelectDate={(date) => router.push(`/history/day/${date}`)}
         />
 
         {visibleEntries.length > 0 && (
           <View className="gap-3">
-            <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
-              {t('history.recentEntries')}
-            </Text>
+
             {visibleEntries.map((entry) => (
               <EntryListItem
                 key={`${entry.kind}-${entry.data.id}`}

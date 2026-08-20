@@ -178,7 +178,7 @@ export const en = {
     avgDailyPain: 'Avg Daily Pain ({{range}})',
     flares: 'Flares ({{range}})',
     findPatterns: 'Find patterns with AI',
-    recentEntries: 'Recent Entries',
+    recentEntries: 'History this week',
     loadMore: 'Load more +',
     dayNoEntries: 'No check-ins or flare-ups logged for this day.',
     previousMonth: 'Previous month',

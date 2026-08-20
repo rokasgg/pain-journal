@@ -11,16 +11,25 @@ import {
   startOfWeek,
   subMonths,
 } from 'date-fns';
+import { enUS, lt } from 'date-fns/locale';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, useColorScheme, View } from 'react-native';
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { getPainColor } from '@/lib/painColor';
 import { colors } from '@/lib/theme';
+
+const DATE_FNS_LOCALES = { en: enUS, lt } as const;
+
+function capitalize(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 export interface DayMarker {
   hasMorning: boolean;
   hasEvening: boolean;
   hasFlareUp: boolean;
+  avgPain: number | null;
 }
 
 export interface MonthCalendarProps {
@@ -32,7 +41,9 @@ export interface MonthCalendarProps {
 const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export function MonthCalendar({ markers, onSelectDate, className }: MonthCalendarProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
+  const dateFnsLocale = DATE_FNS_LOCALES[locale];
+  const isDark = useColorScheme() === 'dark';
   const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(new Date()));
 
   const gridStart = startOfWeek(startOfMonth(visibleMonth), { weekStartsOn: 1 });
@@ -52,7 +63,7 @@ export function MonthCalendar({ markers, onSelectDate, className }: MonthCalenda
         </Pressable>
 
         <Text className="text-base font-semibold text-black dark:text-white">
-          {format(visibleMonth, 'MMMM yyyy')}
+          {capitalize(format(visibleMonth, 'MMMM yyyy', { locale: dateFnsLocale }))}
         </Text>
 
         <Pressable
@@ -79,6 +90,7 @@ export function MonthCalendar({ markers, onSelectDate, className }: MonthCalenda
           const marker = markers[dateStr];
           const inMonth = isSameMonth(day, visibleMonth);
           const today = isToday(day);
+          const painColor = getPainColor(marker?.avgPain, isDark);
 
           return (
             <Pressable
@@ -90,6 +102,13 @@ export function MonthCalendar({ markers, onSelectDate, className }: MonthCalenda
               <View
                 className={`h-8 w-8 items-center justify-center rounded-full ${today ? 'bg-primary dark:bg-primaryDark' : ''
                   }`}
+                style={
+                  painColor
+                    ? today
+                      ? { borderWidth: 2, borderColor: painColor }
+                      : { backgroundColor: painColor }
+                    : undefined
+                }
               >
                 <Text
                   className={`text-sm ${today
