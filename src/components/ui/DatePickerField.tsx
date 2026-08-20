@@ -45,7 +45,7 @@ export function DatePickerField({
       <Pressable
         onPress={openPicker}
         accessibilityRole="button"
-        className="rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700"
+        className="rounded-lg bg-white border border-gray px-4 py-3 dark:border-gray"
       >
         <Text className={value ? 'text-black dark:text-white' : 'text-gray-500'}>
           {value ? format(parseISO(value), 'EEE, MMM d yyyy') : resolvedPlaceholder}
@@ -53,7 +53,7 @@ export function DatePickerField({
       </Pressable>
 
       {showPicker && Platform.OS === 'ios' && (
-        <View className="rounded-lg border border-gray-300 dark:border-gray-700">
+        <View className="rounded-lg border border-gray dark:border-gray">
           <DateTimePicker
             value={pendingDate}
             mode="date"

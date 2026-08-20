@@ -1,10 +1,10 @@
+import { EntryListItem, type HistoryEntry } from '@/components/history/EntryListItem';
+import { MonthCalendar, type DayMarker } from '@/components/history/MonthCalendar';
 import { Link, useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { EntryListItem, type HistoryEntry } from '@/components/history/EntryListItem';
-import { MonthCalendar, type DayMarker } from '@/components/history/MonthCalendar';
 import { PainTrendChart } from '@/components/history/PainTrendChart';
 import { StatTile } from '@/components/history/StatTile';
 import { useCheckinHistory } from '@/hooks/useCheckins';
@@ -15,6 +15,7 @@ export default function HistoryScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const [rangeDays, setRangeDays] = useState<number>(7);
+  const [visibleEntryCount, setVisibleEntryCount] = useState(4);
 
   const RANGE_OPTIONS = [
     { label: t('history.week'), days: 7 },
@@ -92,9 +93,11 @@ export default function HistoryScreen() {
         const aDate = a.kind === 'checkin' ? a.data.checkin_date : a.data.occurred_at;
         const bDate = b.kind === 'checkin' ? b.data.checkin_date : b.data.occurred_at;
         return bDate.localeCompare(aDate);
-      })
-      .slice(0, 10);
+      });
   }, [checkins, flareUps]);
+
+  const visibleEntries = entries.slice(0, visibleEntryCount);
+  const hasMoreEntries = visibleEntryCount < entries.length;
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top']}>
@@ -119,18 +122,21 @@ export default function HistoryScreen() {
           </View>
         </View>
 
-        <View className="flex-row rounded-full bg-primaryMuted p-1 dark:bg-primaryMutedDark">
+        <View className="flex-row rounded-full bg-primaryMuted p-1 dark:bg-primaryMutedDark ">
           {RANGE_OPTIONS.map((option) => {
             const isActive = rangeDays === option.days;
             return (
               <Pressable
                 key={option.label}
-                onPress={() => setRangeDays(option.days)}
+                onPress={() => {
+                  setRangeDays(option.days);
+                  setVisibleEntryCount(4);
+                }}
                 className={`flex-1 items-center rounded-full py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
                   }`}
               >
                 <Text
-                  className={`text-sm font-medium ${isActive ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray-400'
+                  className={`text-sm font-medium ${isActive ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray'
                     }`}
                 >
                   {option.label}
@@ -152,22 +158,23 @@ export default function HistoryScreen() {
         <PainTrendChart checkins={checkins} />
 
         <Link href={'/history/patterns' as Href} asChild>
-          <Pressable className="items-center rounded-lg border border-gray-300 py-3 dark:border-gray-700">
-            <Text className="font-semibold text-black dark:text-white">{t('history.findPatterns')}</Text>
+          <Pressable className="items-center rounded-xl justify-center bg-primary h-16 py-3 dark:bg-primaryDark">
+            <Text className="font-semibold text-white text-lg dark:text-white">{t('history.findPatterns')}</Text>
           </Pressable>
         </Link>
+
 
         <MonthCalendar
           markers={calendarMarkers}
           onSelectDate={(date) => router.push(`/history/day/${date}`)}
         />
 
-        {entries.length > 0 && (
+        {visibleEntries.length > 0 && (
           <View className="gap-3">
-            <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+            <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
               {t('history.recentEntries')}
             </Text>
-            {entries.map((entry) => (
+            {visibleEntries.map((entry) => (
               <EntryListItem
                 key={`${entry.kind}-${entry.data.id}`}
                 entry={entry}
@@ -175,6 +182,14 @@ export default function HistoryScreen() {
               />
             ))}
           </View>
+        )}
+        {hasMoreEntries && (
+          <Pressable
+            className="items-center rounded-xl justify-center h-16 py-3 dark:bg-primaryDark"
+            onPress={() => setVisibleEntryCount((count) => count + 4)}
+          >
+            <Text className="font-semibold text-primary text-lg dark:text-white">{t('history.loadMore')}</Text>
+          </Pressable>
         )}
       </ScrollView>
     </SafeAreaView>

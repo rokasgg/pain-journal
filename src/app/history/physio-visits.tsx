@@ -60,7 +60,7 @@ export default function PhysioVisitsModal() {
 
   return (
     <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
-      <Text className="text-sm text-gray-500 dark:text-gray-400">{t('physioVisits.description')}</Text>
+      <Text className="text-sm text-gray-500 dark:text-gray">{t('physioVisits.description')}</Text>
 
       <Link href={'/physio-visit/new' as Href} asChild>
         <Pressable className="items-center rounded-lg bg-primary py-3 dark:bg-primaryDark">
@@ -71,7 +71,7 @@ export default function PhysioVisitsModal() {
       {isLoading ? (
         <ActivityIndicator />
       ) : assessments.length === 0 ? (
-        <Text className="text-base text-gray-500 dark:text-gray-400">{t('physioVisits.noVisitsYet')}</Text>
+        <Text className="text-base text-gray-500 dark:text-gray">{t('physioVisits.noVisitsYet')}</Text>
       ) : (
         <View className="gap-3">
           {assessments.map((assessment) => (
@@ -85,7 +85,7 @@ export default function PhysioVisitsModal() {
                   {formatCheckinDate(assessment.visit_date)}
                 </Text>
                 {assessment.physio_name && (
-                  <Text className="text-sm text-gray-500 dark:text-gray-400">{assessment.physio_name}</Text>
+                  <Text className="text-sm text-gray-500 dark:text-gray">{assessment.physio_name}</Text>
                 )}
               </View>
 

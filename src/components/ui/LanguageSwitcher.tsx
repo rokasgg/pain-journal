@@ -14,7 +14,7 @@ export function LanguageSwitcher() {
   ];
 
   return (
-    <View className="flex-row rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
+    <View className="flex-row rounded-lg bg-gray-100 p-1 dark:bg-surfaceDark bg-white border-gray dark:border-primaryDark border">
       {options.map((option) => {
         const isActive = option.value === locale;
 
@@ -22,16 +22,14 @@ export function LanguageSwitcher() {
           <Pressable
             key={option.value}
             onPress={() => setLocale(option.value)}
-            className={`flex-1 items-center rounded-md py-2 ${
-              isActive ? 'bg-white dark:bg-black' : ''
-            }`}
+            className={`flex-1 items-center rounded-md py-2 ${isActive ? 'bg-primary dark:bg-black' : ''
+              }`}
           >
             <Text
-              className={`text-sm font-medium ${
-                isActive
-                  ? 'text-black dark:text-white'
-                  : 'text-gray-500 dark:text-gray-400'
-              }`}
+              className={`text-sm font-medium ${isActive
+                ? 'text-white dark:text-white '
+                : 'text-black dark:text-gray'
+                }`}
             >
               {option.label}
             </Text>

@@ -49,7 +49,7 @@ export default function LoginScreen() {
       <Text className="mb-1 text-center text-2xl font-bold text-primary dark:text-primaryDark">
         {t('auth.appTitle')}
       </Text>
-      <Text className="mb-4 text-center text-sm text-gray-500 dark:text-gray-400">
+      <Text className="mb-4 text-center text-sm text-gray-500 dark:text-gray">
         {t('auth.loginSubtitle')}
       </Text>
 
@@ -114,7 +114,7 @@ export default function LoginScreen() {
 
       {__DEV__ && (
         <Pressable onPress={skipAuthForDev} className="items-center py-1">
-          <Text className="text-xs text-gray-400 dark:text-gray-600">
+          <Text className="text-xs text-gray dark:text-gray-600">
             {t('auth.skipLoginDev')}
           </Text>
         </Pressable>

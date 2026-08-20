@@ -16,8 +16,8 @@ export function StatTile({ label, value, trend, className }: StatTileProps) {
     : '';
 
   return (
-    <View className={`flex-1 gap-1 rounded-2xl bg-surface p-4 dark:bg-surfaceDark ${className ?? ''}`}>
-      <Text className="text-xs text-gray-500 dark:text-gray-400">{label}</Text>
+    <View className={`flex-1 gap-1 rounded-2xl bg-surface p-4 border-primary dark:border-primaryDark border dark:bg-surfaceDark ${className ?? ''}`}>
+      <Text className="text-xs text-gray-500 dark:text-gray">{label}</Text>
       <View className="flex-row items-center gap-2">
         <Text className="text-3xl font-bold text-black dark:text-white">{value}</Text>
         {trend && (

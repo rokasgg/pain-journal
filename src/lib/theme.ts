@@ -1,6 +1,6 @@
 export const colors = {
   white: '#ffffff',
-  black: '#000000',
+  black: '#071E27',
   gray: '#8e8e93',
   borderLight: '#e5e7eb',
   borderDark: '#27272a',
@@ -12,4 +12,7 @@ export const colors = {
   primaryDark: '#4F7A5C',
   primaryMuted: '#DCEBF5',
   primaryMutedDark: '#16232B',
+  bgSettings: '#DBF1FE',
+  pink: '#FFDAD6',
+
 } as const;

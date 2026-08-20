@@ -15,6 +15,9 @@ const colors = {
   primaryDark: '#4F7A5C',
   primaryMuted: '#DCEBF5',
   primaryMutedDark: '#16232B',
+  bgSettings: '#d0e8f7ff',
+  bgSettingsSelected: '#9dc9e2ff',
+  pink: '#FFDAD6',
 };
 
 module.exports = {

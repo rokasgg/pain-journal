@@ -9,7 +9,7 @@ function DetailRow({ label, value }: { label: string; value: string | number | n
 
   return (
     <View className="flex-row items-center justify-between border-b border-gray-200 py-3 dark:border-gray-800">
-      <Text className="text-sm text-gray-500 dark:text-gray-400">{label}</Text>
+      <Text className="text-sm text-gray-500 dark:text-gray">{label}</Text>
       <Text className="text-base text-black dark:text-white">{value}</Text>
     </View>
   );
@@ -37,7 +37,7 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
           {t(checkin.type === 'morning' ? 'detail.morningCheckin' : 'detail.eveningCheckin')}
         </Text>
         {showDate && (
-          <Text className="text-sm text-gray-500 dark:text-gray-400">
+          <Text className="text-sm text-gray-500 dark:text-gray">
             {formatCheckinDate(checkin.checkin_date)}
           </Text>
         )}
@@ -79,12 +79,12 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
 
       {symptomLabels.length > 0 && (
         <View className="gap-1">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
             {t('detail.symptoms')}
           </Text>
           <Text className="text-base text-black dark:text-white">{symptomLabels.join(', ')}</Text>
           {checkin.symptoms.radiating_to && (
-            <Text className="text-sm text-gray-500 dark:text-gray-400">
+            <Text className="text-sm text-gray-500 dark:text-gray">
               {t('detail.radiatingTo', { location: checkin.symptoms.radiating_to })}
             </Text>
           )}
@@ -93,7 +93,7 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
 
       {(checkin.symptoms.pain_areas?.length ?? 0) > 0 && (
         <View className="gap-1">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
             {t('detail.painAreas')}
           </Text>
           <Text className="text-base text-black dark:text-white">
@@ -104,7 +104,7 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
 
       {checkin.triggers.length > 0 && (
         <View className="gap-1">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
             {t('detail.triggers')}
           </Text>
           <Text className="text-base text-black dark:text-white">{checkin.triggers.join(', ')}</Text>
@@ -113,7 +113,7 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
 
       {checkin.exercise_notes && (
         <View className="gap-1">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
             {t('detail.exerciseNotes')}
           </Text>
           <Text className="text-base text-black dark:text-white">{checkin.exercise_notes}</Text>
@@ -122,7 +122,7 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
 
       {checkin.notes && (
         <View className="gap-1">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">{t('detail.notes')}</Text>
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">{t('detail.notes')}</Text>
           <Text className="text-base text-black dark:text-white">{checkin.notes}</Text>
         </View>
       )}

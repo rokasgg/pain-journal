@@ -69,14 +69,12 @@ export function PainAreaChips({ value, onChange, className }: PainAreaChipsProps
               onPress={() => toggle(option.value)}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
-              className={`rounded-full px-3 py-2 ${
-                isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
-              }`}
+              className={`rounded-full px-3 py-2 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+                }`}
             >
               <Text
-                className={`text-sm font-medium ${
-                  isActive ? 'text-white' : 'text-black dark:text-white'
-                }`}
+                className={`text-sm font-medium ${isActive ? 'text-white' : 'text-black dark:text-white'
+                  }`}
               >
                 {t(PAIN_AREA_LABEL_KEYS[option.value] ?? option.label)}
               </Text>
@@ -104,7 +102,7 @@ export function PainAreaChips({ value, onChange, className }: PainAreaChipsProps
             className="flex-row items-center gap-1 rounded-full border border-dashed border-gray-400 px-3 py-2 dark:border-gray-600"
           >
             <Ionicons name="add" size={14} color={colors.gray} />
-            <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('common.other')}</Text>
+            <Text className="text-sm font-medium text-gray-500 dark:text-gray">{t('common.other')}</Text>
           </Pressable>
         )}
       </View>

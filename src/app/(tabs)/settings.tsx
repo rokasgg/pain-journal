@@ -57,7 +57,7 @@ function InjuryInfoSection({ profile }: InjuryInfoSectionProps) {
 
   return (
     <View className="gap-3">
-      <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+      <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
         {t('settings.injuryInfo')}
       </Text>
 
@@ -136,7 +136,7 @@ function ReminderSettingsSection({ settings }: ReminderSettingsSectionProps) {
 
   return (
     <View className="gap-3">
-      <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+      <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
         {t('settings.reminders')}
       </Text>
 
@@ -248,7 +248,7 @@ export default function SettingsScreen() {
             {avatarUrl ? (
               <Image
                 source={{ uri: avatarUrl }}
-                className="h-24 w-24 rounded-full bg-gray-200 dark:bg-gray-800"
+                className="h-24 w-24 rounded-full bg-gray dark:bg-gray"
                 contentFit="cover"
               />
             ) : (
@@ -274,33 +274,33 @@ export default function SettingsScreen() {
 
           <View className="items-center gap-0.5">
             <Text className="text-xl font-bold text-black dark:text-white">{name}</Text>
-            <Text className="text-sm text-gray-500 dark:text-gray-400">{email}</Text>
+            <Text className="text-sm text-gray-500 dark:text-gray">{email}</Text>
           </View>
         </View>
 
         <View className="gap-3">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
             {t('settings.appearance')}
           </Text>
           <ThemeSwitcher />
         </View>
 
         <View className="gap-3">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
             {t('settings.language')}
           </Text>
           <LanguageSwitcher />
         </View>
 
         <View className="gap-3">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
             {t('settings.account')}
           </Text>
 
-          <View className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800">
+          <View className="overflow-hidden rounded-lg border border-gray dark:border-gray bg-white dark:bg-surfaceDark">
             <Pressable
               onPress={() => router.push('/modal/edit-profile')}
-              className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3.5 dark:border-gray-800"
+              className="flex-row items-center justify-between border-b border-gray px-4 py-3.5 dark:border-gray"
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="person-outline" size={20} color={colors.gray} />
@@ -311,7 +311,7 @@ export default function SettingsScreen() {
 
             <Pressable
               onPress={handleResetPassword}
-              className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3.5 dark:border-gray-800"
+              className="flex-row items-center justify-between border-b border-gray px-4 py-3.5 dark:border-gray"
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="lock-closed-outline" size={20} color={colors.gray} />

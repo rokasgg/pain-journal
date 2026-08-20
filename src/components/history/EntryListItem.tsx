@@ -36,7 +36,7 @@ export function EntryListItem({ entry, onPress }: EntryListItemProps) {
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark"
+      className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark border"
     >
       <View className={`h-11 w-11 items-center justify-center rounded-full ${severity.bg}`}>
         <Text className={`text-base font-bold ${severity.text}`}>{painLevel}</Text>
@@ -51,7 +51,7 @@ export function EntryListItem({ entry, onPress }: EntryListItemProps) {
             </View>
           )}
         </View>
-        <Text className="text-sm text-gray-500 dark:text-gray-400" numberOfLines={1}>
+        <Text className="text-sm text-gray-500 dark:text-gray" numberOfLines={1}>
           {description}
         </Text>
       </View>

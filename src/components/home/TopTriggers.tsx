@@ -45,11 +45,11 @@ export function TopTriggers() {
   const maxCount = topTriggers[0]?.count ?? 1;
 
   return (
-    <View className="gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
+    <View className="gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark border">
       <Text className="text-base font-semibold text-black dark:text-white">{t('home.topTriggersTitle')}</Text>
 
       {topTriggers.length === 0 ? (
-        <Text className="text-sm text-gray-500 dark:text-gray-400">
+        <Text className="text-sm text-gray-500 dark:text-gray">
           {t('home.noTriggersThisWeek')}
         </Text>
       ) : (
@@ -58,7 +58,7 @@ export function TopTriggers() {
             <View key={trigger.label} className="gap-1">
               <View className="flex-row items-center justify-between">
                 <Text className="text-sm text-black dark:text-white">{trigger.label}</Text>
-                <Text className="text-xs text-gray-500 dark:text-gray-400">{trigger.count}</Text>
+                <Text className="text-xs text-gray-500 dark:text-gray">{trigger.count}</Text>
               </View>
               <View className="h-1.5 overflow-hidden rounded-full bg-primaryMuted dark:bg-primaryMutedDark">
                 <View

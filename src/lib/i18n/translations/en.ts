@@ -179,6 +179,7 @@ export const en = {
     flares: 'Flares ({{range}})',
     findPatterns: 'Find patterns with AI',
     recentEntries: 'Recent Entries',
+    loadMore: 'Load more +',
     dayNoEntries: 'No check-ins or flare-ups logged for this day.',
     previousMonth: 'Previous month',
     nextMonth: 'Next month',

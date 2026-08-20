@@ -5,8 +5,8 @@ import { CheckinForm, type CheckinFormData } from '@/components/checkin/CheckinF
 import { useCheckinHistory, useUpsertCheckin } from '@/hooks/useCheckins';
 import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { toast } from '@/utils/toast';
 import type { Checkin } from '@/types/database.types';
+import { toast } from '@/utils/toast';
 
 function toFormData(checkin: Checkin): CheckinFormData {
   const shared = {
@@ -51,7 +51,7 @@ export default function EditCheckinModal() {
   if (!checkin) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-6 dark:bg-backgroundDark">
-        <Text className="text-gray-500 dark:text-gray-400">{t('common.entryNotFound')}</Text>
+        <Text className="text-gray-500 dark:text-gray">{t('common.entryNotFound')}</Text>
       </View>
     );
   }
@@ -79,7 +79,7 @@ export default function EditCheckinModal() {
       submitLabel={t('checkin.saveChanges')}
       onSubmit={handleSubmit}
       header={
-        <Text className="text-sm text-gray-500 dark:text-gray-400">
+        <Text className="text-sm text-gray-500 dark:text-gray">
           {formatCheckinDate(checkin.checkin_date)} · {t(checkin.type === 'morning' ? 'home.morning' : 'home.evening')}
         </Text>
       }

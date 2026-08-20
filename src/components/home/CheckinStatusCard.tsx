@@ -20,10 +20,10 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
   return (
     <View
       className={`flex-row items-center justify-between rounded-2xl border p-4 ${done
-          ? 'border-gray-200 bg-surface dark:border-gray-800 dark:bg-surfaceDark'
-          : locked
-            ? 'border-gray-200 bg-surface opacity-60 dark:border-gray-800 dark:bg-surfaceDark'
-            : 'border-primary bg-primaryMuted dark:border-primaryDark dark:bg-primaryMutedDark'
+        ? 'border-gray-200 bg-surface dark:border-gray-800 dark:bg-surfaceDark'
+        : locked
+          ? 'border-gray-200 bg-surface opacity-60 dark:border-gray-800 dark:bg-surfaceDark'
+          : 'border-primary bg-primaryMuted dark:border-primaryDark dark:bg-primaryMutedDark'
         }`}
     >
       <View className="flex-row items-center gap-3">
@@ -32,7 +32,7 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
         </View>
         <View>
           <Text className="text-base font-semibold text-black dark:text-white">{label}</Text>
-          <Text className="text-sm text-gray-500 dark:text-gray-400">
+          <Text className="text-sm text-gray-500 dark:text-gray">
             {done ? t('home.completed') : locked ? t('home.unlocksAt') : t('home.readyForCheckin')}
           </Text>
         </View>

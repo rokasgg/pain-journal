@@ -53,8 +53,8 @@ export function PainSlider({
       />
 
       <View className="flex-row justify-between">
-        <Text className="text-xs text-gray-500 dark:text-gray-400">{resolvedMinLabel}</Text>
-        <Text className="text-xs text-gray-500 dark:text-gray-400">{resolvedMaxLabel}</Text>
+        <Text className="text-xs text-gray-500 dark:text-gray">{resolvedMinLabel}</Text>
+        <Text className="text-xs text-gray-500 dark:text-gray">{resolvedMaxLabel}</Text>
       </View>
     </View>
   );

@@ -22,21 +22,21 @@ export default function PhysioSummaryModal() {
 
   return (
     <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
-      <Text className="text-sm text-gray-500 dark:text-gray-400">{t('physioSummary.description')}</Text>
+      <Text className="text-sm text-gray-500 dark:text-gray">{t('physioSummary.description')}</Text>
 
       {isProfileLoading ? (
         <ActivityIndicator />
       ) : summary ? (
         <View className="gap-2 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
           {generatedAt && (
-            <Text className="text-xs uppercase text-gray-500 dark:text-gray-400">
+            <Text className="text-xs uppercase text-gray-500 dark:text-gray">
               {t('physioSummary.generatedOn', { date: formatCheckinDate(generatedAt.slice(0, 10)) })}
             </Text>
           )}
           <Text className="text-base leading-6 text-black dark:text-white">{summary}</Text>
         </View>
       ) : (
-        <Text className="text-base text-gray-500 dark:text-gray-400">{t('physioSummary.noSummaryYet')}</Text>
+        <Text className="text-base text-gray-500 dark:text-gray">{t('physioSummary.noSummaryYet')}</Text>
       )}
 
       <Pressable

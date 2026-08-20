@@ -43,7 +43,7 @@ export default function CheckinModal() {
         <Text className="text-center text-base font-semibold text-black dark:text-white">
           {t('checkin.eveningLockedTitle')}
         </Text>
-        <Text className="text-center text-sm text-gray-500 dark:text-gray-400">
+        <Text className="text-center text-sm text-gray-500 dark:text-gray">
           {t('checkin.eveningLockedMessage')}
         </Text>
       </View>

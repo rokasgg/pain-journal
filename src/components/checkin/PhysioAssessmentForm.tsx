@@ -134,7 +134,7 @@ export function PhysioAssessmentForm({
         accessibilityRole="button"
         className="items-center rounded-lg border border-dashed border-gray-400 py-3 dark:border-gray-600"
       >
-        <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">{t('physioVisit.addMuscle')}</Text>
+        <Text className="text-sm font-medium text-gray-500 dark:text-gray">{t('physioVisit.addMuscle')}</Text>
       </Pressable>
 
       <Pressable

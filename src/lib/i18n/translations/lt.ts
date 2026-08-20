@@ -184,6 +184,7 @@ export const lt: typeof en = {
     flares: 'Paūmėjimai ({{range}})',
     findPatterns: 'Rasti dėsningumus su DI',
     recentEntries: 'Naujausi įrašai',
+    loadMore: 'Rodyti daugiau +',
     dayNoEntries: 'Šiai dienai patikrinimų ar paūmėjimų neužregistruota.',
     previousMonth: 'Ankstesnis mėnuo',
     nextMonth: 'Kitas mėnuo',

@@ -23,18 +23,18 @@ export function FlareUpDetailView({ flareUp, showDate = true }: FlareUpDetailVie
         <FlareUpMarker painLevel={flareUp.pain_level} />
       </View>
 
-      <Text className="-mt-3 text-sm text-gray-500 dark:text-gray-400">
+      <Text className="-mt-3 text-sm text-gray-500 dark:text-gray">
         {format(parseISO(flareUp.occurred_at), 'HH:mm')}
       </Text>
 
       <View>
         <View className="flex-row items-center justify-between border-b border-gray-200 py-3 dark:border-gray-800">
-          <Text className="text-sm text-gray-500 dark:text-gray-400">{t('detail.painLevel')}</Text>
+          <Text className="text-sm text-gray-500 dark:text-gray">{t('detail.painLevel')}</Text>
           <Text className="text-base text-black dark:text-white">{flareUp.pain_level}</Text>
         </View>
         {flareUp.likely_cause && (
           <View className="flex-row items-center justify-between border-b border-gray-200 py-3 dark:border-gray-800">
-            <Text className="text-sm text-gray-500 dark:text-gray-400">{t('detail.likelyCause')}</Text>
+            <Text className="text-sm text-gray-500 dark:text-gray">{t('detail.likelyCause')}</Text>
             <Text className="text-base text-black dark:text-white">{flareUp.likely_cause}</Text>
           </View>
         )}
@@ -42,7 +42,7 @@ export function FlareUpDetailView({ flareUp, showDate = true }: FlareUpDetailVie
 
       {flareUp.description && (
         <View className="gap-1">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray-400">
+          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
             {t('flareUp.description')}
           </Text>
           <Text className="text-base text-black dark:text-white">{flareUp.description}</Text>

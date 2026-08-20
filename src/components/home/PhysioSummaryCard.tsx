@@ -15,12 +15,12 @@ export function PhysioSummaryCard() {
 
   return (
     <Link href="/history/physio-summary" asChild>
-      <Pressable className="flex-row items-center justify-between gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
+      <Pressable className="flex-row items-center justify-between gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark border">
         <View className="flex-1 gap-1">
           <Text className="text-base font-semibold text-black dark:text-white">
             {t('home.physioSummaryTitle')}
           </Text>
-          <Text className="text-sm text-gray-500 dark:text-gray-400">
+          <Text className="text-sm text-gray-500 dark:text-gray">
             {generatedAt
               ? t('home.physioSummaryGeneratedOn', { date: formatCheckinDate(generatedAt.slice(0, 10)) })
               : t('home.physioSummarySubtitle')}

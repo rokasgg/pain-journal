@@ -25,7 +25,7 @@ export function YesNoField({ label, value, onChange, info, className }: YesNoFie
         <Text className="text-base text-black dark:text-white">{label}</Text>
         {info && <InfoButton title={label} message={info} />}
       </View>
-      <Text className="text-sm font-medium text-gray-500 dark:text-gray-400">
+      <Text className="text-sm font-medium text-gray-500 dark:text-gray">
         {value ? t('common.yes') : t('common.no')}
       </Text>
     </Pressable>

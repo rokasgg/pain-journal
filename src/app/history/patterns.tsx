@@ -22,7 +22,7 @@ export default function PatternsModal() {
 
   return (
     <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
-      <Text className="text-sm text-gray-500 dark:text-gray-400">
+      <Text className="text-sm text-gray-500 dark:text-gray">
         {t('patterns.description')}
       </Text>
 
@@ -31,14 +31,14 @@ export default function PatternsModal() {
       ) : analysis ? (
         <View className="gap-2">
           {analyzedAt && (
-            <Text className="text-xs uppercase text-gray-500 dark:text-gray-400">
+            <Text className="text-xs uppercase text-gray-500 dark:text-gray">
               {t('patterns.lastRun', { date: formatCheckinDate(analyzedAt.slice(0, 10)) })}
             </Text>
           )}
           <Text className="text-base leading-6 text-black dark:text-white">{analysis}</Text>
         </View>
       ) : (
-        <Text className="text-base text-gray-500 dark:text-gray-400">
+        <Text className="text-base text-gray-500 dark:text-gray">
           {t('patterns.noAnalysisYet')}
         </Text>
       )}

@@ -34,9 +34,9 @@ export function FlowerHealthCard() {
     // celebration without completing a real check-in — no visible hint.
     <Pressable
       onLongPress={() => useCelebrationStore.getState().show()}
-      className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark"
+      className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark border"
     >
-      <View style={{ width: SVG_WIDTH, height: SVG_HEIGHT }}>
+      <View style={{ width: SVG_WIDTH, height: SVG_HEIGHT }} className='ml-2 mr-2'>
         {stage.svg ? (
           <WebView
             originWhitelist={['*']}
@@ -52,7 +52,7 @@ export function FlowerHealthCard() {
       </View>
       <View className="flex-1 gap-1">
         <Text className="text-base font-semibold text-black dark:text-white">{t('home.flowerHealthTitle')}</Text>
-        <Text className="text-sm text-gray-500 dark:text-gray-400">{t(stage.labelKey)}</Text>
+        <Text className="text-sm text-gray-500 dark:text-gray">{t(stage.labelKey)}</Text>
       </View>
     </Pressable>
   );

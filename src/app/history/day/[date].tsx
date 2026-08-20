@@ -39,7 +39,7 @@ export default function HistoryDayModal() {
       </Text>
 
       {!hasAnyEntry && (
-        <Text className="text-sm text-gray-500 dark:text-gray-400">
+        <Text className="text-sm text-gray-500 dark:text-gray">
           {t('history.dayNoEntries')}
         </Text>
       )}

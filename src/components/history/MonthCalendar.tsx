@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import {
   addMonths,
   eachDayOfInterval,
@@ -11,7 +12,6 @@ import {
   subMonths,
 } from 'date-fns';
 import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -40,7 +40,7 @@ export function MonthCalendar({ markers, onSelectDate, className }: MonthCalenda
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
   return (
-    <View className={`gap-3 ${className ?? ''}`}>
+    <View className={`gap-3 border-primary dark:border-primaryDark border rounded-2xl bg-white p-2 dark:bg-surfaceDark ${className ?? ''}`}>
       <View className="flex-row items-center justify-between">
         <Pressable
           onPress={() => setVisibleMonth((prev) => subMonths(prev, 1))}
@@ -68,7 +68,7 @@ export function MonthCalendar({ markers, onSelectDate, className }: MonthCalenda
       <View className="flex-row">
         {WEEKDAY_LABELS.map((label, index) => (
           <View key={index} className="flex-1 items-center">
-            <Text className="text-xs font-medium text-gray-500 dark:text-gray-400">{label}</Text>
+            <Text className="text-xs font-medium text-gray-500 dark:text-gray">{label}</Text>
           </View>
         ))}
       </View>
@@ -88,18 +88,16 @@ export function MonthCalendar({ markers, onSelectDate, className }: MonthCalenda
               style={{ width: `${100 / 7}%` }}
             >
               <View
-                className={`h-8 w-8 items-center justify-center rounded-full ${
-                  today ? 'bg-primary dark:bg-primaryDark' : ''
-                }`}
+                className={`h-8 w-8 items-center justify-center rounded-full ${today ? 'bg-primary dark:bg-primaryDark' : ''
+                  }`}
               >
                 <Text
-                  className={`text-sm ${
-                    today
-                      ? 'font-semibold text-white'
-                      : inMonth
-                        ? 'text-black dark:text-white'
-                        : 'text-gray-300 dark:text-gray-700'
-                  }`}
+                  className={`text-sm ${today
+                    ? 'font-semibold text-white'
+                    : inMonth
+                      ? 'text-black dark:text-white'
+                      : 'text-gray-300 dark:text-gray-700'
+                    }`}
                 >
                   {format(day, 'd')}
                 </Text>

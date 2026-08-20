@@ -36,7 +36,7 @@ export default function HomeScreen() {
         <View className="flex-row items-start justify-between">
           <View>
             <Text className="text-2xl font-bold text-black dark:text-white">{t('home.title')}</Text>
-            <Text className="text-sm text-gray-500 dark:text-gray-400">
+            <Text className="text-sm text-gray-500 dark:text-gray">
               {t('home.subtitle')}
             </Text>
           </View>
@@ -51,14 +51,14 @@ export default function HomeScreen() {
         <CheckinStatusCard />
 
         <Link href="/flare-up/new" asChild>
-          <Pressable className="items-center rounded-lg bg-primary py-3 dark:bg-primaryDark">
-            <Text className="font-semibold text-white">{t('home.logFlareUp')}</Text>
+          <Pressable className="items-center rounded-xl justify-center bg-primary h-16 py-3 dark:bg-primaryDark">
+            <Text className="font-medium text-white text-lg">{t('home.logFlareUp')}</Text>
           </Pressable>
         </Link>
 
         <Link href="/checkin/backfill" asChild>
-          <Pressable className="items-center py-1">
-            <Text className="text-sm font-medium text-primary dark:text-primaryDark">
+          <Pressable className="items-center py-1 rounded-xl justify-center h-16">
+            <Text className=" font-medium text-primary dark:text-primaryDark text-lg">
               {t('home.backfillDay')}
             </Text>
           </Pressable>

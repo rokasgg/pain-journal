@@ -40,7 +40,7 @@ export function ConfirmModal({
           <View className="gap-1">
             <Text className="text-center text-lg font-semibold text-black dark:text-white">{title}</Text>
             {message ? (
-              <Text className="text-center text-sm text-gray-500 dark:text-gray-400">{message}</Text>
+              <Text className="text-center text-sm text-gray-500 dark:text-gray">{message}</Text>
             ) : null}
           </View>
 
