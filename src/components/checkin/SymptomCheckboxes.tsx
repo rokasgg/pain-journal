@@ -43,7 +43,7 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
   return (
     <View className={`gap-2 ${className ?? ''}`}>
       <View className="flex-row items-center gap-1.5">
-        <Text className="text-sm font-medium text-black dark:text-white">{t('checkin.symptoms')}</Text>
+        <Text className="text-sm font-medium text-strongGray dark:text-white">{t('checkin.symptoms')}</Text>
         <InfoButton
           title={t('checkin.symptoms')}
           message={t('checkin.symptomsInfo')}
@@ -63,7 +63,7 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
                 }`}
             >
               <Text
-                className={`text-sm font-medium ${isActive ? 'text-white' : 'text-black dark:text-white'
+                className={`text-sm font-medium ${isActive ? 'text-white' : 'text-strongGray dark:text-white'
                   }`}
               >
                 {t(`symptoms.${option.value}`)}
@@ -89,10 +89,10 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
           <Pressable
             onPress={() => setIsAdding(true)}
             accessibilityRole="button"
-            className="flex-row items-center gap-1 rounded-full border border-dashed border-gray-400 px-3 py-2 dark:border-gray-600"
+            className="flex-row items-center gap-1 rounded-full border border-dashed border-gray px-3 py-2 dark:border-gray"
           >
             <Ionicons name="add" size={14} color={colors.gray} />
-            <Text className="text-sm font-medium text-gray-500 dark:text-gray">{t('common.other')}</Text>
+            <Text className="text-sm font-medium text-gray dark:text-gray">{t('common.other')}</Text>
           </Pressable>
         )}
       </View>
@@ -107,7 +107,7 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
             placeholder={t('checkin.addCustomSymptomPlaceholder')}
             placeholderTextColor={colors.gray}
             returnKeyType="done"
-            className="flex-1 rounded-lg border border-gray-300 bg-surface px-3 py-2 text-black dark:border-gray-700 dark:bg-surfaceDark dark:text-white"
+            className="flex-1 rounded-lg border border-gray bg-surface px-3 py-2 text-black dark:border-gray dark:bg-surfaceDark dark:text-white"
           />
           <Pressable
             onPress={handleAddCustom}

@@ -17,5 +17,6 @@ export const colors = {
   selectedTab: '#506873',
   selectedTabColor: '#a8d6f0ff',
   lightGrey: '#c4caceff',
+  strongGray: '#416352',
 
 } as const;

@@ -105,6 +105,14 @@ function RootLayoutNav() {
           options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.dayDetails') }}
         />
         <Stack.Screen
+          name="history/all-entries"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.calendarTitle'),
+            headerBackTitle: t('tabs.history'),
+          }}
+        />
+        <Stack.Screen
           name="history/patterns"
           options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.patternAnalysis') }}
         />

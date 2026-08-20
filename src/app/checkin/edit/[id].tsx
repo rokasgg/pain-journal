@@ -79,7 +79,7 @@ export default function EditCheckinModal() {
       submitLabel={t('checkin.saveChanges')}
       onSubmit={handleSubmit}
       header={
-        <Text className="text-sm text-gray-500 dark:text-gray">
+        <Text className="text-sm text-gray dark:text-gray">
           {formatCheckinDate(checkin.checkin_date)} · {t(checkin.type === 'morning' ? 'home.morning' : 'home.evening')}
         </Text>
       }

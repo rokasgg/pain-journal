@@ -19,13 +19,13 @@ export function YesNoField({ label, value, onChange, info, className }: YesNoFie
       onPress={() => onChange(!value)}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: !!value }}
-      className={`flex-row items-center justify-between rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700 ${className ?? ''}`}
+      className={`flex-row items-center justify-between rounded-lg border border-gray bg-white px-4 py-3 dark:border-gray ${className ?? ''}`}
     >
       <View className="flex-row items-center gap-1.5">
-        <Text className="text-base text-black dark:text-white">{label}</Text>
+        <Text className="text-base text-strongGray dark:text-white">{label}</Text>
         {info && <InfoButton title={label} message={info} />}
       </View>
-      <Text className="text-sm font-medium text-gray-500 dark:text-gray">
+      <Text className="text-sm font-medium text-strongGray dark:text-gray">
         {value ? t('common.yes') : t('common.no')}
       </Text>
     </Pressable>

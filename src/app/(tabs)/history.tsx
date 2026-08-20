@@ -1,5 +1,5 @@
-import { EntryListItem, type HistoryEntry } from '@/components/history/EntryListItem';
-import { type DayMarker } from '@/components/history/WeekCalendar';
+import { EntryListItem } from '@/components/history/EntryListItem';
+import { Ionicons } from '@expo/vector-icons';
 import { Link, useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
@@ -10,7 +10,9 @@ import { StatTile } from '@/components/history/StatTile';
 import { WeekCalendar } from '@/components/history/WeekCalendar';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useFlareUps } from '@/hooks/useFlareUps';
+import { buildCalendarMarkers, buildHistoryEntries } from '@/lib/historyEntries';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { colors } from '@/lib/theme';
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -63,54 +65,12 @@ export default function HistoryScreen() {
     };
   }, [checkins]);
 
-  const calendarMarkers = useMemo(() => {
-    const markers: Record<string, DayMarker> = {};
-    const painByDate = new Map<string, number[]>();
+  const calendarMarkers = useMemo(
+    () => buildCalendarMarkers(allCheckins, allFlareUps),
+    [allCheckins, allFlareUps],
+  );
 
-    for (const checkin of allCheckins) {
-      const marker = (markers[checkin.checkin_date] ??= {
-        hasMorning: false,
-        hasEvening: false,
-        hasFlareUp: false,
-        avgPain: null,
-      });
-      if (checkin.type === 'morning') marker.hasMorning = true;
-      else marker.hasEvening = true;
-
-      const levels = painByDate.get(checkin.checkin_date) ?? [];
-      levels.push(checkin.pain_level);
-      painByDate.set(checkin.checkin_date, levels);
-    }
-
-    for (const [date, levels] of painByDate) {
-      markers[date].avgPain = levels.reduce((sum, level) => sum + level, 0) / levels.length;
-    }
-
-    for (const flareUp of allFlareUps) {
-      const dateStr = flareUp.occurred_at.slice(0, 10);
-      const marker = (markers[dateStr] ??= {
-        hasMorning: false,
-        hasEvening: false,
-        hasFlareUp: false,
-        avgPain: null,
-      });
-      marker.hasFlareUp = true;
-    }
-
-    return markers;
-  }, [allCheckins, allFlareUps]);
-
-  const entries: HistoryEntry[] = useMemo(() => {
-    const checkinEntries: HistoryEntry[] = checkins.map((data) => ({ kind: 'checkin', data }));
-    const flareUpEntries: HistoryEntry[] = flareUps.map((data) => ({ kind: 'flareUp', data }));
-
-    return [...checkinEntries, ...flareUpEntries]
-      .sort((a, b) => {
-        const aDate = a.kind === 'checkin' ? a.data.checkin_date : a.data.occurred_at;
-        const bDate = b.kind === 'checkin' ? b.data.checkin_date : b.data.occurred_at;
-        return bDate.localeCompare(aDate);
-      });
-  }, [checkins, flareUps]);
+  const entries = useMemo(() => buildHistoryEntries(checkins, flareUps), [checkins, flareUps]);
 
   const visibleEntries = entries.slice(0, visibleEntryCount);
   const hasMoreEntries = visibleEntryCount < entries.length;
@@ -123,7 +83,7 @@ export default function HistoryScreen() {
 
           <View className="flex-row w-full justify-between">
             <Link href="/flare-up/new" asChild>
-              <Pressable className="rounded-full border border-red-600 px-3 py-1.5 dark:border-red-500">
+              <Pressable className="rounded-full border border-red-600 px-6 py-2 dark:border-red-500">
                 <Text className="text-sm font-semibold text-red-600 dark:text-red-500">
                   {t('history.logFlareUpChip')}
                 </Text>
@@ -131,7 +91,7 @@ export default function HistoryScreen() {
             </Link>
 
             <Link href="/checkin/backfill" asChild>
-              <Pressable className="rounded-full bg-primary px-3 py-1.5 dark:bg-primaryDark">
+              <Pressable className="rounded-full bg-primary px-6 py-2 dark:bg-primaryDark">
                 <Text className="text-sm font-semibold text-white">{t('history.addPastEntry')}</Text>
               </Pressable>
             </Link>
@@ -201,10 +161,11 @@ export default function HistoryScreen() {
         )}
         {hasMoreEntries && (
           <Pressable
-            className="items-center rounded-xl justify-center h-16 py-3 dark:bg-primaryDark"
-            onPress={() => setVisibleEntryCount((count) => count + 4)}
+            className="flex-row items-center justify-center gap-1 rounded-xl h-16 py-3 dark:bg-primaryDark"
+            onPress={() => router.push('/history/all-entries' as Href)}
           >
-            <Text className="font-semibold text-primary text-lg dark:text-white">{t('history.loadMore')}</Text>
+            <Text className="font-semibold text-primary text-lg dark:text-white">{t('history.viewAllEntries')}</Text>
+            <Ionicons name="chevron-forward" size={18} color={colors.primary} />
           </Pressable>
         )}
       </ScrollView>

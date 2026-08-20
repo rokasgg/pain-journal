@@ -34,10 +34,10 @@ export function PainSlider({
     <View className={`gap-2 ${className ?? ''}`}>
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-1.5">
-          <Text className="text-sm font-medium text-black dark:text-white">{label}</Text>
+          <Text className="text-sm font-medium text-strongGray dark:text-white">{label}</Text>
           {info && <InfoButton title={label} message={info} />}
         </View>
-        <Text className="text-base font-bold text-black dark:text-white">{value ?? 0}</Text>
+        <Text className="text-base font-bold text-strongGray dark:text-white">{value ?? 0}</Text>
       </View>
 
       <Slider
@@ -46,15 +46,15 @@ export function PainSlider({
         step={1}
         value={value ?? 0}
         onValueChange={onChange}
-        minimumTrackTintColor={trackColor}
-        maximumTrackTintColor={isDark ? colors.borderDark : colors.borderLight}
+        minimumTrackTintColor={colors.strongGray}
+        maximumTrackTintColor={isDark ? colors.primary : colors.borderLight}
         thumbTintColor={trackColor}
         accessibilityLabel={label}
       />
 
       <View className="flex-row justify-between">
-        <Text className="text-xs text-gray-500 dark:text-gray">{resolvedMinLabel}</Text>
-        <Text className="text-xs text-gray-500 dark:text-gray">{resolvedMaxLabel}</Text>
+        <Text className="text-xs text-gray dark:text-gray">{resolvedMinLabel}</Text>
+        <Text className="text-xs text-gray dark:text-gray">{resolvedMaxLabel}</Text>
       </View>
     </View>
   );

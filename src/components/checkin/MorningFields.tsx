@@ -52,7 +52,7 @@ export function MorningFields({ control }: MorningFieldsProps) {
         render={({ field: { value, onChange } }) => (
           <View className="gap-2">
             <View className="flex-row items-center gap-1.5">
-              <Text className="text-sm font-medium text-black dark:text-white">{t('checkin.sleepPosition')}</Text>
+              <Text className="text-sm font-medium text-strongGray dark:text-white">{t('checkin.sleepPosition')}</Text>
               <InfoButton
                 title={t('checkin.sleepPosition')}
                 message={t('checkin.sleepPositionInfo')}
@@ -67,14 +67,12 @@ export function MorningFields({ control }: MorningFieldsProps) {
                     onPress={() => onChange(option.value)}
                     accessibilityRole="button"
                     accessibilityState={{ selected: isActive }}
-                    className={`flex-1 items-center rounded-lg py-2.5 ${
-                      isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
-                    }`}
+                    className={`flex-1 items-center rounded-lg py-2.5 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+                      }`}
                   >
                     <Text
-                      className={`text-sm font-medium ${
-                        isActive ? 'text-white' : 'text-black dark:text-white'
-                      }`}
+                      className={`text-sm font-medium ${isActive ? 'text-white' : 'text-strongGray dark:text-white'
+                        }`}
                     >
                       {t(`sleepPosition.${option.value}`)}
                     </Text>

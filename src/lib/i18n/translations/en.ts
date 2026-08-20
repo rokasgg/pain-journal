@@ -183,6 +183,8 @@ export const en = {
     dayNoEntries: 'No check-ins or flare-ups logged for this day.',
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
+    allEntries: 'All entries',
+    viewAllEntries: 'View all entries',
   },
   detail: {
     painLevel: 'Pain level',
@@ -387,6 +389,7 @@ export const en = {
     editPhysioVisit: 'Edit Physio Visit',
     injuryInfo: 'Injury Info',
     notifications: 'Notifications',
+    calendarTitle: 'Calendar',
   },
   image: {
     permissionRequired: 'Photo library permission is required.',

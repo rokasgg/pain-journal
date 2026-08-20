@@ -52,7 +52,7 @@ export function TriggerChips({ value, onChange, className }: TriggerChipsProps) 
   return (
     <View className={`gap-2 ${className ?? ''}`}>
       <View className="flex-row items-center gap-1.5">
-        <Text className="text-sm font-medium text-black dark:text-white">{t('checkin.triggers')}</Text>
+        <Text className="text-sm font-medium text-strongGray dark:text-white">{t('checkin.triggers')}</Text>
         <InfoButton
           title={t('checkin.triggers')}
           message={t('checkin.triggersInfo')}
@@ -71,7 +71,7 @@ export function TriggerChips({ value, onChange, className }: TriggerChipsProps) 
                 }`}
             >
               <Text
-                className={`text-sm font-medium ${isActive ? 'text-white' : 'text-black dark:text-white'
+                className={`text-sm font-medium ${isActive ? 'text-white' : 'text-strongGray dark:text-white'
                   }`}
               >
                 {t(TRIGGER_LABEL_KEYS[option.value] ?? option.label)}
@@ -97,10 +97,10 @@ export function TriggerChips({ value, onChange, className }: TriggerChipsProps) 
           <Pressable
             onPress={() => setIsAdding(true)}
             accessibilityRole="button"
-            className="flex-row items-center gap-1 rounded-full border border-dashed border-gray-400 px-3 py-2 dark:border-gray-600"
+            className="flex-row items-center gap-1 rounded-full border border-dashed border-gray px-3 py-2 dark:border-gray-600"
           >
             <Ionicons name="add" size={14} color={colors.gray} />
-            <Text className="text-sm font-medium text-gray-500 dark:text-gray">{t('common.other')}</Text>
+            <Text className="text-sm font-medium text-gray dark:text-gray">{t('common.other')}</Text>
           </Pressable>
         )}
       </View>

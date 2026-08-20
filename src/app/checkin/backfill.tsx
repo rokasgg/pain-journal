@@ -70,14 +70,12 @@ export default function BackfillModal() {
                     <Pressable
                       key={option}
                       onPress={() => setCheckinType(option)}
-                      className={`flex-1 items-center rounded-lg py-2.5 ${
-                        isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
-                      }`}
+                      className={`flex-1 items-center rounded-lg py-2.5 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+                        }`}
                     >
                       <Text
-                        className={`text-sm font-medium capitalize ${
-                          isActive ? 'text-white' : 'text-black dark:text-white'
-                        }`}
+                        className={`text-sm font-medium capitalize ${isActive ? 'text-white' : 'text-strongGray dark:text-white'
+                          }`}
                       >
                         {t(option === 'morning' ? 'home.morning' : 'home.evening')}
                       </Text>
@@ -89,7 +87,7 @@ export default function BackfillModal() {
 
             {existingCheckin && (
               <View className="rounded-lg bg-primaryMuted px-4 py-3 dark:bg-primaryMutedDark">
-                <Text className="text-sm text-black dark:text-white">{t('checkin.alreadyLoggedWarning')}</Text>
+                <Text className="text-sm text-strongGray dark:text-white">{t('checkin.alreadyLoggedWarning')}</Text>
               </View>
             )}
           </View>

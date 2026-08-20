@@ -9,7 +9,7 @@ function DetailRow({ label, value }: { label: string; value: string | number | n
 
   return (
     <View className="flex-row items-center justify-between border-b border-gray-200 py-3 dark:border-gray-800">
-      <Text className="text-sm text-gray-500 dark:text-gray">{label}</Text>
+      <Text className="text-sm text-gray dark:text-gray">{label}</Text>
       <Text className="text-base text-black dark:text-white">{value}</Text>
     </View>
   );
@@ -33,11 +33,11 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
   return (
     <View className="gap-4">
       <View className="flex-row items-center justify-between">
-        <Text className="text-xl font-bold text-black dark:text-white">
+        <Text className="text-xl font-bold text-strongGray dark:text-white">
           {t(checkin.type === 'morning' ? 'detail.morningCheckin' : 'detail.eveningCheckin')}
         </Text>
         {showDate && (
-          <Text className="text-sm text-gray-500 dark:text-gray">
+          <Text className="text-sm text-strongGray dark:text-white">
             {formatCheckinDate(checkin.checkin_date)}
           </Text>
         )}
@@ -113,17 +113,17 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
 
       {checkin.exercise_notes && (
         <View className="gap-1">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
+          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">
             {t('detail.exerciseNotes')}
           </Text>
-          <Text className="text-base text-black dark:text-white">{checkin.exercise_notes}</Text>
+          <Text className="text-base text-strongGray dark:text-white">{checkin.exercise_notes}</Text>
         </View>
       )}
 
       {checkin.notes && (
         <View className="gap-1">
-          <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">{t('detail.notes')}</Text>
-          <Text className="text-base text-black dark:text-white">{checkin.notes}</Text>
+          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">{t('detail.notes')}</Text>
+          <Text className="text-base text-strongGray dark:text-white">{checkin.notes}</Text>
         </View>
       )}
     </View>

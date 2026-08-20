@@ -56,7 +56,7 @@ export function HoursMinutesPickerField({
     <View className={`gap-1.5 ${className ?? ''}`}>
       {label && (
         <View className="flex-row items-center gap-1.5">
-          <Text className={`text-sm font-medium text-black dark:text-white ${labelClassName ?? ''}`}>{label}</Text>
+          <Text className={`text-sm font-medium text-strongGray dark:text-white ${labelClassName ?? ''}`}>{label}</Text>
           {info && <InfoButton title={label} message={info} />}
         </View>
       )}
@@ -64,15 +64,15 @@ export function HoursMinutesPickerField({
       <Pressable
         onPress={openPicker}
         accessibilityRole="button"
-        className="rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700"
+        className="rounded-lg border border-gray px-4 py-3 dark:border-gray bg-white dark:bg-gray"
       >
-        <Text className={value !== null ? 'text-black dark:text-white' : 'text-gray-500'}>
+        <Text className={value !== null ? 'text-strongGrat dark:text-white' : 'text-gray'}>
           {value !== null ? displayText : (placeholder ?? t('common.select'))}
         </Text>
       </Pressable>
 
       {showPicker && (
-        <View className="overflow-hidden rounded-lg border border-gray-300 dark:border-gray-700">
+        <View className="overflow-hidden rounded-lg border border-gray dark:border-gray">
           <View className="flex-row" style={{ height: 200 }}>
             <Picker
               style={{ flex: 1 }}
@@ -95,13 +95,13 @@ export function HoursMinutesPickerField({
               ))}
             </Picker>
           </View>
-          <View className="flex-row border-t border-gray-300 dark:border-gray-700">
+          <View className="flex-row border-t border-gray dark:border-gray">
             <Pressable
               onPress={() => setShowPicker(false)}
               accessibilityRole="button"
-              className="flex-1 items-center border-r border-gray-300 py-2.5 dark:border-gray-700"
+              className="flex-1 items-center border-r border-gray py-2.5 dark:border-gray"
             >
-              <Text className="text-black dark:text-white">{t('common.cancel')}</Text>
+              <Text className="text-strongGray dark:text-white">{t('common.cancel')}</Text>
             </Pressable>
             <Pressable
               onPress={() => {
@@ -111,7 +111,7 @@ export function HoursMinutesPickerField({
               accessibilityRole="button"
               className="flex-1 items-center py-2.5"
             >
-              <Text className="font-semibold text-black dark:text-white">{t('common.done')}</Text>
+              <Text className="font-semibold text-strongGray dark:text-white">{t('common.done')}</Text>
             </Pressable>
           </View>
         </View>

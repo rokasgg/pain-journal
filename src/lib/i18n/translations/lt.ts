@@ -188,6 +188,8 @@ export const lt: typeof en = {
     dayNoEntries: 'Šiai dienai patikrinimų ar paūmėjimų neužregistruota.',
     previousMonth: 'Ankstesnis mėnuo',
     nextMonth: 'Kitas mėnuo',
+    allEntries: 'Visi įrašai',
+    viewAllEntries: 'Peržiūrėti visus įrašus',
   },
   detail: {
     painLevel: 'Skausmo lygis',
@@ -394,6 +396,7 @@ export const lt: typeof en = {
     editPhysioVisit: 'Redaguoti fizioterapijos vizitą',
     injuryInfo: 'Informacija apie traumą',
     notifications: 'Pranešimai',
+    calendarTitle: 'Kalendorius',
   },
   image: {
     permissionRequired: 'Būtinas leidimas naudotis nuotraukų biblioteka.',
