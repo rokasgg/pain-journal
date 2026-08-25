@@ -1,21 +1,30 @@
+import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
+import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
+import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
+import { FlowerHealthCard } from '@/components/home/FlowerHealthCard';
+import { PhysioSummaryCard } from '@/components/home/PhysioSummaryCard';
+import { useCheckinHistory } from '@/hooks/useCheckins';
+import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useQueryClient } from '@tanstack/react-query';
-import { Link } from 'expo-router';
-import { useState } from 'react';
+import { Link, useRouter } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
-import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
-import { FlowerHealthCard } from '@/components/home/FlowerHealthCard';
-import { PhysioFocusCard } from '@/components/home/PhysioFocusCard';
-import { PhysioSummaryCard } from '@/components/home/PhysioSummaryCard';
-import { TopTriggers } from '@/components/home/TopTriggers';
-import { useTranslation } from '@/lib/i18n/useTranslation';
-
 export default function HomeScreen() {
   const { t } = useTranslation();
+  const router = useRouter();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
+
+  const { checkins } = useCheckinHistory(7);
+  const exercisedDates = useMemo(
+    () =>
+      new Set(
+        checkins.filter((c) => c.type === 'evening' && c.did_exercises).map((c) => c.checkin_date),
+      ),
+    [checkins],
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -56,19 +65,31 @@ export default function HomeScreen() {
           </Pressable>
         </Link>
 
+        <View className="gap-3">
+
+          <ExerciseWeekCalendar
+            exercisedDates={exercisedDates}
+            onSelectDate={(date) => router.push(`/history/day/${date}`)}
+          />
+        </View>
+
+
+        {/* 
         <Link href="/checkin/backfill" asChild>
           <Pressable className="items-center py-1 rounded-xl justify-center h-16">
             <Text className=" font-medium text-primary dark:text-primaryDark text-lg">
               {t('home.backfillDay')}
             </Text>
           </Pressable>
-        </Link>
+        </Link> */}
+        <View className="gap-3">
 
-        <PhysioSummaryCard />
+          <PhysioSummaryCard />
 
-        <PhysioFocusCard />
+          {/* <PhysioFocusCard /> */}
 
-        <TopTriggers />
+          {/* <TopTriggers /> */}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,11 +1,12 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { CheckinForm, type CheckinFormData } from '@/components/checkin/CheckinForm';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { DatePickerField } from '@/components/ui/DatePickerField';
 import { useCheckinsForDate, useUpsertCheckin } from '@/hooks/useCheckins';
+import { useTodayStatus } from '@/hooks/useTodayStatus';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useCelebrationStore } from '@/store/useCelebrationStore';
@@ -16,14 +17,31 @@ export default function BackfillModal() {
   const router = useRouter();
   const { t } = useTranslation();
   const upsertCheckin = useUpsertCheckin();
+  const { eveningUnlocked } = useTodayStatus();
   const [checkinDate, setCheckinDate] = useState<string>(todayLocalDate());
   const [checkinType, setCheckinType] = useState<CheckinType>('morning');
   const [showAlreadyLoggedModal, setShowAlreadyLoggedModal] = useState(false);
+
+  // Evening check-in for *today* is time-gated the same as on Home — but
+  // backfilling a past day's evening is always fine, since the evening has
+  // clearly already happened by the time it's being backfilled.
+  const isEveningLockedForDate = checkinDate === todayLocalDate() && !eveningUnlocked;
+
+  useEffect(() => {
+    if (isEveningLockedForDate && checkinType === 'evening') {
+      setCheckinType('morning');
+    }
+  }, [isEveningLockedForDate, checkinType]);
 
   const { checkins: checkinsForDate } = useCheckinsForDate(checkinDate);
   const existingCheckin = checkinsForDate.find((checkin) => checkin.type === checkinType);
 
   const handleSubmit = async (data: CheckinFormData) => {
+    if (checkinType === 'evening' && isEveningLockedForDate) {
+      toast.error(t('checkin.eveningLockedMessage'));
+      return;
+    }
+
     if (existingCheckin) {
       setShowAlreadyLoggedModal(true);
       return;
@@ -66,15 +84,21 @@ export default function BackfillModal() {
               <View className="flex-row gap-2">
                 {(['morning', 'evening'] as const).map((option) => {
                   const isActive = checkinType === option;
+                  const isLocked = option === 'evening' && isEveningLockedForDate;
                   return (
                     <Pressable
                       key={option}
-                      onPress={() => setCheckinType(option)}
-                      className={`flex-1 items-center rounded-lg py-2.5 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+                      onPress={() => !isLocked && setCheckinType(option)}
+                      disabled={isLocked}
+                      className={`flex-1 items-center rounded-lg py-2.5 ${isLocked
+                        ? 'bg-primaryMuted opacity-50 dark:bg-primaryMutedDark'
+                        : isActive
+                          ? 'bg-primary dark:bg-primaryDark'
+                          : 'bg-primaryMuted dark:bg-primaryMutedDark'
                         }`}
                     >
                       <Text
-                        className={`text-sm font-medium capitalize ${isActive ? 'text-white' : 'text-strongGray dark:text-white'
+                        className={`text-sm font-medium capitalize ${isActive && !isLocked ? 'text-white' : 'text-strongGray dark:text-white'
                           }`}
                       >
                         {t(option === 'morning' ? 'home.morning' : 'home.evening')}
@@ -83,6 +107,11 @@ export default function BackfillModal() {
                   );
                 })}
               </View>
+              {isEveningLockedForDate && (
+                <Text className="text-sm text-gray-500 dark:text-gray">
+                  {t('checkin.eveningLockedMessage')}
+                </Text>
+              )}
             </View>
 
             {existingCheckin && (

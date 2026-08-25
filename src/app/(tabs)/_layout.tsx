@@ -60,12 +60,12 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.selectedTab,
         tabBarInactiveTintColor: colors.gray,
         tabBarStyle: {
-          // backgroundColor: isDark ? colors.backgroundDark : colors.background,
+          backgroundColor: isDark ? colors.backgroundDark : colors.background,
           borderTopColor: isDark ? colors.borderDark : colors.borderLight,
           height: 80,
 
           paddingBottom: 20,
-          paddingTop: 20,
+          paddingTop: 15,
         },
         tabBarItemStyle: {
           justifyContent: 'center',

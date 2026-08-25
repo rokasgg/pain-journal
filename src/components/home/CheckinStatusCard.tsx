@@ -28,7 +28,7 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
     >
       <View className="flex-row items-center gap-3">
         <View className="h-11 w-11 items-center justify-center rounded-full bg-white/60 dark:bg-black/20">
-          <Ionicons name={icon} size={20} color={icon === 'sunny' ? '#d97706' : colors.gray} />
+          <Ionicons name={icon} size={24} color={icon === 'sunny' ? '#d97706' : colors.gray} />
         </View>
         <View>
           <Text className="text-base font-semibold text-black dark:text-white">{label}</Text>
@@ -39,9 +39,9 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
       </View>
 
       {done ? (
-        <Ionicons name="checkmark-circle" size={28} color={colors.primary} />
+        <Ionicons name="checkmark-circle" size={25} color={colors.primary} />
       ) : locked ? (
-        <Ionicons name="lock-closed" size={20} color={colors.gray} />
+        <Ionicons name="lock-closed" size={25} color={colors.gray} />
       ) : (
         <Link href={href} asChild>
           <Pressable className="rounded-full bg-primary px-4 py-2 dark:bg-primaryDark">

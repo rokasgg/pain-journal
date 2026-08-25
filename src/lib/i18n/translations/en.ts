@@ -64,6 +64,7 @@ export const en = {
     daysSinceInjury: '{{days}} days since injury',
     setHealingDate: 'Set healing date',
     daysSinceHealing: '{{days}} days',
+    exerciseWeekTitle: 'Exercise this week',
     topTriggersTitle: 'Top Triggers This Week',
     noTriggersThisWeek: 'No triggers logged yet this week.',
     physioSummaryTitle: 'Physio Summary',
@@ -210,6 +211,9 @@ export const en = {
     radiatingTo: 'Radiating to: {{location}}',
     painIntensityChartTitle: 'Pain Intensity',
     painIntensityChartSubtitle: 'Reported pain level, 0–10',
+    painAndMovementSection: 'Pain & Movement',
+    lifestyleSection: 'Lifestyle',
+    exercisesSection: 'Exercises',
   },
   patterns: {
     description:

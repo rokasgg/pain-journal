@@ -40,3 +40,32 @@ export const SLEEP_POSITION_OPTIONS: Option<SleepPosition>[] = [
   { value: 'side', label: 'Side' },
   { value: 'stomach', label: 'Stomach' },
 ];
+
+// TRIGGER_OPTIONS/PAIN_AREA_OPTIONS values are stored verbatim in the DB
+// (triggers text[], symptoms.pain_areas), so they stay stable English
+// identifiers — these map each one to its i18n key for display, independent
+// of any custom text the user types in. Shared between the checkin chip
+// components and the read-only detail view so both localize consistently.
+export const TRIGGER_LABEL_KEYS: Record<string, string> = {
+  'Long drive': 'triggers.longDrive',
+  'Desk work': 'triggers.deskWork',
+  'Poor posture': 'triggers.poorPosture',
+  'Poor sleep': 'triggers.poorSleep',
+  'Cold weather': 'triggers.coldWeather',
+  'Heavy lifting': 'triggers.heavyLifting',
+  Stress: 'triggers.stress',
+  Unknown: 'triggers.unknown',
+};
+
+export const PAIN_AREA_LABEL_KEYS: Record<string, string> = {
+  Neck: 'painAreas.neck',
+  'Upper back': 'painAreas.upperBack',
+  'Mid back': 'painAreas.midBack',
+  'Lower back': 'painAreas.lowerBack',
+  'Shoulder (left)': 'painAreas.shoulderLeft',
+  'Shoulder (right)': 'painAreas.shoulderRight',
+  Head: 'painAreas.head',
+  Hip: 'painAreas.hip',
+  Arm: 'painAreas.arm',
+  Leg: 'painAreas.leg',
+};

@@ -78,19 +78,19 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="checkin/[type]"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.checkin') }}
+          options={{ headerShown: true, title: t('screenTitles.checkin'), headerBackTitle: t('tabs.home') }}
         />
         <Stack.Screen
           name="checkin/backfill"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.backfillCheckin') }}
+          options={{ headerShown: true, title: t('screenTitles.backfillCheckin'), headerBackTitle: t('tabs.home') }}
         />
         <Stack.Screen
           name="checkin/edit/[id]"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editCheckin') }}
+          options={{ headerShown: true, title: t('screenTitles.editCheckin') }}
         />
         <Stack.Screen
           name="flare-up/new"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.logFlareUp') }}
+          options={{ headerShown: true, title: t('screenTitles.logFlareUp'), headerBackTitle: t('tabs.home') }}
         />
         <Stack.Screen
           name="flare-up/edit/[id]"

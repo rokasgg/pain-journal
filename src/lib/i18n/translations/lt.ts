@@ -66,6 +66,7 @@ export const lt: typeof en = {
     daysSinceInjury: '{{days}} d. nuo traumos',
     setHealingDate: 'Nurodyti gijimo datą',
     daysSinceHealing: '{{days}} dienos',
+    exerciseWeekTitle: 'Pratimai šią savaitę',
     topTriggersTitle: 'Dažniausi šios savaitės sukėlėjai',
     noTriggersThisWeek: 'Šią savaitę sukėlėjų dar nepažymėta.',
     physioSummaryTitle: 'Fizioterapeuto suvestinė',
@@ -215,6 +216,9 @@ export const lt: typeof en = {
     radiatingTo: 'Skauda iki: {{location}}',
     painIntensityChartTitle: 'Skausmo intensyvumas',
     painIntensityChartSubtitle: 'Nurodytas skausmo lygis, 0–10',
+    painAndMovementSection: 'Skausmas ir judėjimas',
+    lifestyleSection: 'Gyvensena',
+    exercisesSection: 'Pratimai',
   },
   patterns: {
     description:

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { InfoButton } from '@/components/ui/InfoButton';
-import { PAIN_AREA_OPTIONS } from '@/constants/symptoms';
+import { PAIN_AREA_LABEL_KEYS, PAIN_AREA_OPTIONS } from '@/constants/symptoms';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
@@ -14,22 +14,6 @@ export interface PainAreaChipsProps {
 }
 
 const KNOWN_PAIN_AREAS = new Set(PAIN_AREA_OPTIONS.map((option) => option.value));
-
-// PAIN_AREA_OPTIONS values are stored verbatim in symptoms.pain_areas, so they
-// stay stable English identifiers — this maps each one to its i18n key for
-// display, same decoupling as TRIGGER_OPTIONS/TRIGGER_LABEL_KEYS.
-const PAIN_AREA_LABEL_KEYS: Record<string, string> = {
-  Neck: 'painAreas.neck',
-  'Upper back': 'painAreas.upperBack',
-  'Mid back': 'painAreas.midBack',
-  'Lower back': 'painAreas.lowerBack',
-  'Shoulder (left)': 'painAreas.shoulderLeft',
-  'Shoulder (right)': 'painAreas.shoulderRight',
-  Head: 'painAreas.head',
-  Hip: 'painAreas.hip',
-  Arm: 'painAreas.arm',
-  Leg: 'painAreas.leg',
-};
 
 export function PainAreaChips({ value, onChange, className }: PainAreaChipsProps) {
   const { t } = useTranslation();

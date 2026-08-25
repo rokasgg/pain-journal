@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 
 import { InfoButton } from '@/components/ui/InfoButton';
-import { TRIGGER_OPTIONS } from '@/constants/symptoms';
+import { TRIGGER_LABEL_KEYS, TRIGGER_OPTIONS } from '@/constants/symptoms';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
@@ -14,20 +14,6 @@ export interface TriggerChipsProps {
 }
 
 const KNOWN_TRIGGERS = new Set(TRIGGER_OPTIONS.map((option) => option.value));
-
-// TRIGGER_OPTIONS values are stored verbatim in the DB (triggers text[]), so
-// they stay stable English identifiers — this maps each one to its i18n key
-// for display, independent of any custom trigger text the user types in.
-const TRIGGER_LABEL_KEYS: Record<string, string> = {
-  'Long drive': 'triggers.longDrive',
-  'Desk work': 'triggers.deskWork',
-  'Poor posture': 'triggers.poorPosture',
-  'Poor sleep': 'triggers.poorSleep',
-  'Cold weather': 'triggers.coldWeather',
-  'Heavy lifting': 'triggers.heavyLifting',
-  Stress: 'triggers.stress',
-  Unknown: 'triggers.unknown',
-};
 
 export function TriggerChips({ value, onChange, className }: TriggerChipsProps) {
   const { t } = useTranslation();
