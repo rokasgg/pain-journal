@@ -30,6 +30,7 @@ const emptyDefaults: PhysioAssessmentFormData = {
   visit_date: todayLocalDate(),
   physio_name: null,
   overall_notes: null,
+  next_visit_date: null,
   findings: [emptyFinding],
 };
 
@@ -98,6 +99,14 @@ export function PhysioAssessmentForm({
             onChangeText={onChange}
             onBlur={onBlur}
           />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="next_visit_date"
+        render={({ field: { value, onChange } }) => (
+          <DatePickerField label={t('physioVisit.nextVisitDate')} value={value} onChange={onChange} />
         )}
       />
 

@@ -12,6 +12,7 @@ export const physioAssessmentSchema = z.object({
   visit_date: z.string(),
   physio_name: z.string().nullable(),
   overall_notes: z.string().nullable(),
+  next_visit_date: z.string().nullable(),
   findings: z.array(muscleFindingSchema).min(1, 'validation.atLeastOneMuscle'),
 });
 

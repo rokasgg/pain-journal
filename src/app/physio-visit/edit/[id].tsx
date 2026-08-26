@@ -25,11 +25,11 @@ export default function EditPhysioVisitModal() {
   }
 
   const handleSubmit = async (data: PhysioAssessmentFormData) => {
-    const { visit_date, physio_name, overall_notes, findings } = data;
+    const { visit_date, physio_name, overall_notes, next_visit_date, findings } = data;
 
     const { error } = await updatePhysioAssessment.mutateAsync({
       id: assessment.id,
-      assessment: { visit_date, physio_name, overall_notes },
+      assessment: { visit_date, physio_name, overall_notes, next_visit_date },
       findings,
     });
 
@@ -48,6 +48,7 @@ export default function EditPhysioVisitModal() {
         visit_date: assessment.visit_date,
         physio_name: assessment.physio_name,
         overall_notes: assessment.overall_notes,
+        next_visit_date: assessment.next_visit_date,
         findings: (assessment.muscle_findings ?? []).map((finding) => ({
           muscle_name: finding.muscle_name,
           status: finding.status,

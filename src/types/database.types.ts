@@ -100,6 +100,7 @@ export interface PhysioAssessment {
   visit_date: string;
   physio_name: string | null;
   overall_notes: string | null;
+  next_visit_date: string | null;
   created_at: string;
   muscle_findings?: MuscleFinding[];
 }

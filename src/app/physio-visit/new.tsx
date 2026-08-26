@@ -12,10 +12,10 @@ export default function NewPhysioVisitModal() {
   const createPhysioAssessment = useCreatePhysioAssessment();
 
   const handleSubmit = async (data: PhysioAssessmentFormData) => {
-    const { visit_date, physio_name, overall_notes, findings } = data;
+    const { visit_date, physio_name, overall_notes, next_visit_date, findings } = data;
 
     const { error } = await createPhysioAssessment.mutateAsync({
-      assessment: { visit_date, physio_name, overall_notes },
+      assessment: { visit_date, physio_name, overall_notes, next_visit_date },
       findings,
     });
 

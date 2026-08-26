@@ -1,9 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 
 import { Input } from '@/components/ui/Input';
-import { MUSCLE_NAME_OPTIONS } from '@/constants/physio';
+import { MUSCLE_CATEGORY_OPTIONS, MUSCLE_NAME_OPTIONS } from '@/constants/physio';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
@@ -17,74 +17,119 @@ export interface MuscleNameFieldProps {
   className?: string;
 }
 
-const MAX_RECENT_SUGGESTIONS = 5;
-const MAX_PRESET_SUGGESTIONS = 8;
+const OTHER_CATEGORY = 'other';
+
+function findCategoryForValue(value: string): string | null {
+  if (!value) return null;
+  const match = MUSCLE_NAME_OPTIONS.find((option) => option.value === value);
+  if (match) return match.category;
+  return OTHER_CATEGORY;
+}
 
 export function MuscleNameField({ label, value, onChange, onBlur, recentNames, className }: MuscleNameFieldProps) {
   const { t } = useTranslation();
-  const [isFocused, setIsFocused] = useState(false);
-  const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string | null>(() => findCategoryForValue(value));
 
-  const query = value.trim().toLowerCase();
-  const recentSet = new Set(recentNames.map((name) => name.toLowerCase()));
-
-  const matchingRecents = recentNames
-    .filter((name) => name.toLowerCase().includes(query))
-    .slice(0, MAX_RECENT_SUGGESTIONS);
-
-  const matchingPresets = MUSCLE_NAME_OPTIONS.filter((option) => !recentSet.has(option.value.toLowerCase()))
-    .map((option) => ({ value: option.value, label: t(option.labelKey) }))
-    .filter((option) => option.label.toLowerCase().includes(query) || option.value.toLowerCase().includes(query))
-    .slice(0, MAX_PRESET_SUGGESTIONS);
-
-  const showSuggestions = isFocused && (matchingRecents.length > 0 || matchingPresets.length > 0);
-
-  const select = (name: string) => {
-    if (hideTimeout.current) clearTimeout(hideTimeout.current);
-    onChange(name);
-    setIsFocused(false);
-  };
+  const muscleOptions = MUSCLE_NAME_OPTIONS.filter((option) => option.category === activeCategory);
 
   return (
     <View className={className}>
-      <Input
-        label={label}
-        placeholder={t('physioVisit.muscleNamePlaceholder')}
-        value={value}
-        onChangeText={onChange}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => {
-          onBlur?.();
-          hideTimeout.current = setTimeout(() => setIsFocused(false), 150);
-        }}
-      />
+      <Text className="mb-1.5 text-sm font-medium text-black dark:text-white">{label}</Text>
 
-      {showSuggestions && (
-        <View className="mt-1 max-h-48 overflow-hidden rounded-lg border border-gray-300 bg-surface dark:border-gray-700 dark:bg-surfaceDark">
-          <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled>
-            {matchingRecents.map((name) => (
+      {recentNames.length > 0 && (
+        <View className="mb-2 flex-row flex-wrap gap-2">
+          {recentNames.map((name) => {
+            const isActive = value === name;
+            return (
               <Pressable
                 key={`recent-${name}`}
-                onPress={() => select(name)}
+                onPress={() => {
+                  onChange(name);
+                  setActiveCategory(findCategoryForValue(name));
+                }}
                 accessibilityRole="button"
-                className="flex-row items-center gap-2 border-b border-gray-100 px-3 py-2.5 dark:border-gray-800"
+                accessibilityState={{ selected: isActive }}
+                className={`flex-row items-center gap-1 rounded-full px-3 py-1.5 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+                  }`}
               >
-                <Ionicons name="time-outline" size={14} color={colors.gray} />
-                <Text className="text-sm text-black dark:text-white">{name}</Text>
+                <Ionicons
+                  name="time-outline"
+                  size={12}
+                  color={isActive ? colors.white : colors.gray}
+                />
+                <Text className={`text-sm font-medium ${isActive ? 'text-white' : 'text-black dark:text-white'}`}>
+                  {name}
+                </Text>
               </Pressable>
-            ))}
-            {matchingPresets.map((option) => (
-              <Pressable
-                key={`preset-${option.value}`}
-                onPress={() => select(option.value)}
-                accessibilityRole="button"
-                className="border-b border-gray-100 px-3 py-2.5 dark:border-gray-800"
-              >
-                <Text className="text-sm text-black dark:text-white">{option.label}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
+            );
+          })}
         </View>
+      )}
+
+      <View className="flex-row flex-wrap gap-2">
+        {MUSCLE_CATEGORY_OPTIONS.map((option) => {
+          const isActive = activeCategory === option.value;
+          return (
+            <Pressable
+              key={option.value}
+              onPress={() => setActiveCategory(option.value)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              className={`rounded-full px-3 py-1.5 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+                }`}
+            >
+              <Text className={`text-sm font-medium ${isActive ? 'text-white' : 'text-black dark:text-white'}`}>
+                {t(option.labelKey)}
+              </Text>
+            </Pressable>
+          );
+        })}
+        <Pressable
+          onPress={() => setActiveCategory(OTHER_CATEGORY)}
+          accessibilityRole="button"
+          accessibilityState={{ selected: activeCategory === OTHER_CATEGORY }}
+          className={`rounded-full px-3 py-1.5 ${activeCategory === OTHER_CATEGORY ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+            }`}
+        >
+          <Text
+            className={`text-sm font-medium ${activeCategory === OTHER_CATEGORY ? 'text-white' : 'text-black dark:text-white'
+              }`}
+          >
+            {t('common.other')}
+          </Text>
+        </Pressable>
+      </View>
+
+      {activeCategory && activeCategory !== OTHER_CATEGORY && (
+        <View className="mt-2 flex-row flex-wrap gap-2">
+          {muscleOptions.map((option) => {
+            const isActive = value === option.value;
+            return (
+              <Pressable
+                key={option.value}
+                onPress={() => onChange(option.value)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: isActive }}
+                className={`rounded-full px-3 py-1.5 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+                  }`}
+              >
+                <Text className={`text-sm font-medium ${isActive ? 'text-white' : 'text-black dark:text-white'}`}>
+                  {t(option.labelKey)}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+
+      {activeCategory === OTHER_CATEGORY && (
+        <Input
+          className="mt-2"
+          placeholder={t('physioVisit.muscleNamePlaceholder')}
+          value={value}
+          onChangeText={onChange}
+          onBlur={onBlur}
+        />
       )}
     </View>
   );

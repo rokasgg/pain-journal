@@ -3,10 +3,10 @@ import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { MuscleFocusCard } from '@/components/insights/MuscleFocusCard';
-import { PatternAnalysisCard } from '@/components/insights/PatternAnalysisCard';
+import { AskAiCta } from '@/components/insights/AskAiCta';
 import { PhysioFocusCard } from '@/components/insights/PhysioFocusCard';
-import { PhysioSummaryCard } from '@/components/insights/PhysioSummaryCard';
+import { TodaysFocusCard } from '@/components/insights/TodaysFocusCard';
+import { TopTriggers } from '@/components/insights/TopTriggers';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function InsightsScreen() {
@@ -36,11 +36,10 @@ export default function InsightsScreen() {
         </View>
 
         <View className="gap-3">
-          <PatternAnalysisCard />
-          <PhysioSummaryCard />
+          <TodaysFocusCard />
+          <AskAiCta />
           <PhysioFocusCard />
-          <MuscleFocusCard />
-          {/* <TopTriggers /> */}
+          <TopTriggers />
         </View>
       </ScrollView>
     </SafeAreaView>

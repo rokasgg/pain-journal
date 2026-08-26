@@ -121,11 +121,31 @@ function RootLayoutNav() {
           options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editPhysioVisit') }}
         />
         <Stack.Screen
+          name="physio-visit/[id]"
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.physioVisitDetails') }}
+        />
+        <Stack.Screen
           name="history/physio-visits"
           options={{
             headerShown: true,
             title: t('screenTitles.physioVisits'),
             headerBackTitle: t('tabs.home'),
+          }}
+        />
+        <Stack.Screen
+          name="history/physio-focus"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.physioFocusDetail'),
+            headerBackTitle: t('tabs.insights'),
+          }}
+        />
+        <Stack.Screen
+          name="insights/chat"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.aiChat'),
+            headerBackTitle: t('tabs.insights'),
           }}
         />
       </Stack>

@@ -45,7 +45,7 @@ export function TopTriggers() {
   const maxCount = topTriggers[0]?.count ?? 1;
 
   return (
-    <View className="gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark border">
+    <View className="gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark">
       <Text className="text-base font-semibold text-black dark:text-white">{t('home.topTriggersTitle')}</Text>
 
       {topTriggers.length === 0 ? (
