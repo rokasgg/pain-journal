@@ -85,6 +85,17 @@ export const lt: typeof en = {
     },
     wateringCelebrationText: 'Palaistėte savo gėlę!',
   },
+  insights: {
+    title: 'Įžvalgos',
+    subtitle: 'Dėsningumai ir suvestinės, sudarytos iš jūsų sekamų duomenų.',
+    patternAnalysisTitle: 'Dėsningumų analizė',
+    patternAnalysisSubtitle: 'Leiskite Claude peržvelgti jūsų neseniai pildytus įrašus ir rasti tendencijas.',
+    patternAnalysisGeneratedOn: 'Paskutinį kartą sugeneruota {{date}} — spauskite peržiūrėti',
+    muscleFocusTitle: 'Raumenys stiprinimui / tempimui',
+    muscleFocusStrengthen: 'Stiprinti',
+    muscleFocusStretch: 'Tempti',
+    muscleFocusNone: 'Paskutiniame vizite nieko nepažymėta.',
+  },
   checkin: {
     painLevel: 'Skausmo lygis',
     painLevelInfo: 'Kiek skausmo jaučiate dabar, nuo 0 (jokio) iki 10 (stipriausias įsivaizduojamas skausmas).',
@@ -384,6 +395,7 @@ export const lt: typeof en = {
   tabs: {
     home: 'Pradžia',
     history: 'Istorija',
+    insights: 'Įžvalgos',
     settings: 'Nustatymai',
   },
   screenTitles: {

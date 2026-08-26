@@ -83,6 +83,17 @@ export const en = {
     },
     wateringCelebrationText: 'You watered your flower!',
   },
+  insights: {
+    title: 'Insights',
+    subtitle: 'Patterns and summaries drawn from your tracked data.',
+    patternAnalysisTitle: 'Pattern Analysis',
+    patternAnalysisSubtitle: 'Run Claude over your recent check-ins to surface trends.',
+    patternAnalysisGeneratedOn: 'Last generated {{date}} — tap to view',
+    muscleFocusTitle: 'Muscles to Strengthen / Stretch',
+    muscleFocusStrengthen: 'Strengthen',
+    muscleFocusStretch: 'Stretch',
+    muscleFocusNone: 'Nothing flagged in your latest visit.',
+  },
   checkin: {
     painLevel: 'Pain level',
     painLevelInfo: "How much pain you're feeling right now, from 0 (none) to 10 (worst pain imaginable).",
@@ -377,6 +388,7 @@ export const en = {
   tabs: {
     home: 'Home',
     history: 'History',
+    insights: 'Insights',
     settings: 'Settings',
   },
   screenTitles: {

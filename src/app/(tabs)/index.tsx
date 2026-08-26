@@ -73,7 +73,7 @@ export default function HomeScreen() {
         </View>
 
 
-        {/* 
+        {/*
         <Link href="/checkin/backfill" asChild>
           <Pressable className="items-center py-1 rounded-xl justify-center h-16">
             <Text className=" font-medium text-primary dark:text-primaryDark text-lg">
@@ -81,14 +81,6 @@ export default function HomeScreen() {
             </Text>
           </Pressable>
         </Link> */}
-        <View className="gap-3">
-
-          {/* <PhysioSummaryCard /> */}
-
-          {/* <PhysioFocusCard /> */}
-
-          {/* <TopTriggers /> */}
-        </View>
       </ScrollView>
     </SafeAreaView>
   );

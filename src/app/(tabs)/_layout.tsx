@@ -91,6 +91,15 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="insights"
+        options={{
+          title: t('tabs.insights'),
+          tabBarIcon: ({ focused, size }) => (
+            <TabButton name="bulb" label={t('tabs.insights')} focused={focused} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: t('tabs.settings'),
