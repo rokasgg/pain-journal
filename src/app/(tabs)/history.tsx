@@ -107,7 +107,7 @@ export default function HistoryScreen() {
         <Modal visible={isAddMenuOpen} transparent animationType="fade" onRequestClose={() => setIsAddMenuOpen(false)}>
           <Pressable className="flex-1" onPress={() => setIsAddMenuOpen(false)}>
             <View
-              className="absolute right-6 w-52 gap-0.5 rounded-xl border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-800 dark:bg-surfaceDark"
+              className="absolute right-6 w-52 gap-0.5 rounded-xl border border-gray bg-white p-1 shadow-lg dark:border-gray dark:bg-surfaceDark"
               style={{ top: insets.top + 76 }}
             >
               <Pressable
@@ -136,14 +136,14 @@ export default function HistoryScreen() {
           </Pressable>
         </Modal>
 
-        <View className="flex-row rounded-full bg-primaryMuted p-1 dark:bg-primaryMutedDark">
+        <View className="flex-row rounded-xl bg-primaryMuted p-1 dark:bg-primaryMutedDark">
           {SECTION_OPTIONS.map((option) => {
             const isActive = section === option.key;
             return (
               <Pressable
                 key={option.key}
                 onPress={() => setSection(option.key)}
-                className={`flex-1 items-center rounded-full py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
+                className={`flex-1 items-center rounded-xl py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
                   }`}
               >
                 <Text
@@ -159,14 +159,14 @@ export default function HistoryScreen() {
 
         {section === 'overview' && (
           <>
-            <View className="flex-row rounded-full bg-primaryMuted p-1 dark:bg-primaryMutedDark ">
+            <View className="flex-row rounded-xl bg-primaryMuted p-1 dark:bg-primaryMutedDark ">
               {RANGE_OPTIONS.map((option) => {
                 const isActive = rangeDays === option.days;
                 return (
                   <Pressable
                     key={option.label}
                     onPress={() => setRangeDays(option.days)}
-                    className={`flex-1 items-center rounded-full py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
+                    className={`flex-1 items-center rounded-xl py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
                       }`}
                   >
                     <Text

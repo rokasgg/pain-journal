@@ -51,7 +51,7 @@ export function MonthCalendar({ markers, onSelectDate, className }: MonthCalenda
   const days = eachDayOfInterval({ start: gridStart, end: gridEnd });
 
   return (
-    <View className={`gap-3 border-primary dark:border-primaryDark border rounded-2xl bg-white p-2 dark:bg-surfaceDark ${className ?? ''}`}>
+    <View className={`gap-3 border-primary dark:border-primaryDark  rounded-2xl bg-white p-2 dark:bg-surfaceDark ${className ?? ''}`}>
       <View className="flex-row items-center justify-between">
         <Pressable
           onPress={() => setVisibleMonth((prev) => subMonths(prev, 1))}

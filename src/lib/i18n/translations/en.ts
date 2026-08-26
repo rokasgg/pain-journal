@@ -149,6 +149,9 @@ export const en = {
     saveChanges: 'Save Changes',
     savedToast: '{{type}} check-in saved!',
     checkinUpdatedToast: 'Check-in updated!',
+    checkinDeletedToast: 'Check-in deleted.',
+    deleteConfirmTitle: 'Delete check-in',
+    deleteConfirmMessage: 'Are you sure you want to delete this check-in? This cannot be undone.',
     eveningLockedTitle: 'Evening check-in is locked',
     eveningLockedMessage: 'Evening check-in unlocks at 16:00.',
     dateLabel: 'Date',
@@ -212,6 +215,7 @@ export const en = {
     painAndMovementSection: 'Pain & Movement',
     lifestyleSection: 'Lifestyle',
     exercisesSection: 'Exercises',
+    sleepSection: 'Sleep',
   },
   patterns: {
     description:

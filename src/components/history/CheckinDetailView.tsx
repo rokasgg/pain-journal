@@ -1,9 +1,16 @@
-import { Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useRef, useState } from 'react';
+import { Dimensions, Modal, Pressable, Text, View } from 'react-native';
 
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { PAIN_AREA_LABEL_KEYS, TRIGGER_LABEL_KEYS } from '@/constants/symptoms';
+import { useDeleteCheckin } from '@/hooks/useCheckins';
 import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { colors } from '@/lib/theme';
 import type { Checkin } from '@/types/database.types';
+import { toast } from '@/utils/toast';
 
 function DetailRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   if (value === null || value === undefined || value === '') return null;
@@ -42,10 +49,38 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export interface CheckinDetailViewProps {
   checkin: Checkin;
   showDate?: boolean;
+  /** Called after a successful delete — e.g. to navigate back off a now-gone detail screen. */
+  onDeleted?: () => void;
 }
 
-export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailViewProps) {
+export function CheckinDetailView({ checkin, showDate = true, onDeleted }: CheckinDetailViewProps) {
   const { t } = useTranslation();
+  const router = useRouter();
+  const deleteCheckin = useDeleteCheckin();
+  const menuButtonRef = useRef<View>(null);
+  const [menuPosition, setMenuPosition] = useState<{ top: number; right: number } | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isConfirmDeleteVisible, setIsConfirmDeleteVisible] = useState(false);
+
+  const openMenu = () => {
+    menuButtonRef.current?.measureInWindow((x, y, width, height) => {
+      setMenuPosition({ top: y + height + 4, right: Dimensions.get('window').width - (x + width) });
+      setIsMenuOpen(true);
+    });
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsConfirmDeleteVisible(false);
+    const { error } = await deleteCheckin.mutateAsync(checkin.id);
+
+    if (error) {
+      toast.error(error);
+      return;
+    }
+
+    toast.success(t('checkin.checkinDeletedToast'));
+    onDeleted?.();
+  };
 
   const symptomLabels = [
     checkin.symptoms.tingling && t('symptoms.tingling'),
@@ -64,12 +99,63 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
         <Text className="text-xl font-bold text-strongGray dark:text-white">
           {t(checkin.type === 'morning' ? 'detail.morningCheckin' : 'detail.eveningCheckin')}
         </Text>
-        {showDate && (
-          <Text className="text-sm text-strongGray dark:text-white">
-            {formatCheckinDate(checkin.checkin_date)}
-          </Text>
-        )}
+
+        <View className="flex-row items-center gap-3">
+          {showDate && (
+            <Text className="text-sm text-strongGray dark:text-white">
+              {formatCheckinDate(checkin.checkin_date)}
+            </Text>
+          )}
+          <Pressable ref={menuButtonRef} onPress={openMenu} hitSlop={8} accessibilityRole="button">
+            <Ionicons name="ellipsis-horizontal" size={20} color={colors.gray} />
+          </Pressable>
+        </View>
       </View>
+
+      <Modal
+        visible={isMenuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsMenuOpen(false)}
+      >
+        <Pressable className="flex-1" onPress={() => setIsMenuOpen(false)}>
+          {menuPosition && (
+            <View
+              className="absolute w-40 gap-0.5 rounded-xl border border-gray bg-white p-1 shadow-lg dark:border-gray-800 dark:bg-surfaceDark"
+              style={{ top: menuPosition.top, right: menuPosition.right }}
+            >
+              <Pressable
+                onPress={() => {
+                  setIsMenuOpen(false);
+                  router.push({ pathname: '/checkin/edit/[id]', params: { id: checkin.id } });
+                }}
+                className="rounded-lg px-3 py-2.5"
+              >
+                <Text className="text-sm font-medium text-black dark:text-white">{t('common.edit')}</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setIsMenuOpen(false);
+                  setIsConfirmDeleteVisible(true);
+                }}
+                className="rounded-lg px-3 py-2.5"
+              >
+                <Text className="text-sm font-medium text-red-600 dark:text-red-500">{t('common.delete')}</Text>
+              </Pressable>
+            </View>
+          )}
+        </Pressable>
+      </Modal>
+
+      <ConfirmModal
+        visible={isConfirmDeleteVisible}
+        title={t('checkin.deleteConfirmTitle')}
+        message={t('checkin.deleteConfirmMessage')}
+        confirmLabel={t('common.delete')}
+        variant="destructive"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsConfirmDeleteVisible(false)}
+      />
 
       <Section title={t('detail.painAndMovementSection')}>
         <ScaleRow label={t('detail.painLevel')} value={checkin.pain_level} />
@@ -78,8 +164,8 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
       </Section>
 
       {checkin.type === 'morning' && (
-        <View>
-          <DetailRow label={t('detail.sleepQuality')} value={checkin.sleep_quality} />
+        <Section title={t('detail.sleepSection')}>
+          <ScaleRow label={t('detail.sleepQuality')} value={checkin.sleep_quality} />
           <DetailRow label={t('detail.sleepHours')} value={checkin.sleep_hours} />
           <DetailRow
             label={t('detail.wokeUpWithPain')}
@@ -89,7 +175,7 @@ export function CheckinDetailView({ checkin, showDate = true }: CheckinDetailVie
             label={t('detail.sleepPosition')}
             value={checkin.sleep_position ? t(`sleepPosition.${checkin.sleep_position}`) : null}
           />
-        </View>
+        </Section>
       )}
 
       {checkin.type === 'evening' && (

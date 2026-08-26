@@ -34,7 +34,7 @@ export function FlowerHealthCard() {
     // celebration without completing a real check-in — no visible hint.
     <Pressable
       onLongPress={() => useCelebrationStore.getState().show()}
-      className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark border"
+      className="flex-row items-center gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark"
     >
       <View style={{ width: SVG_WIDTH, height: SVG_HEIGHT }} className='ml-2 mr-2'>
         {stage.svg ? (

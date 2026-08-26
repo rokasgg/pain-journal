@@ -13,7 +13,7 @@ export function ThemeSwitcher() {
   const setMode = useThemeStore((state) => state.setMode);
 
   return (
-    <View className="flex-row rounded-lg bg-surface p-1 dark:dark:bg-surfaceDark border-gray dark:border-primaryDark border">
+    <View className="flex-row rounded-lg bg-surface p-1 dark:dark:bg-surfaceDark border-gray dark:border-primaryDark">
       {OPTIONS.map((option) => {
         const isActive = option.value === mode;
 

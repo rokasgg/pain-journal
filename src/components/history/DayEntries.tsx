@@ -37,7 +37,6 @@ export function DayEntries({ checkins, flareUps }: DayEntriesProps) {
 
       {morningCheckin && (
         <View className="gap-4">
-          <EditLink href={{ pathname: '/checkin/edit/[id]', params: { id: morningCheckin.id } }} />
           <CheckinDetailView checkin={morningCheckin} showDate={false} />
         </View>
       )}
@@ -46,7 +45,6 @@ export function DayEntries({ checkins, flareUps }: DayEntriesProps) {
 
       {eveningCheckin && (
         <View className="gap-4">
-          <EditLink href={{ pathname: '/checkin/edit/[id]', params: { id: eveningCheckin.id } }} />
           <CheckinDetailView checkin={eveningCheckin} showDate={false} />
         </View>
       )}

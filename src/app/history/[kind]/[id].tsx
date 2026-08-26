@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams, type Href } from 'expo-router';
+import { Link, useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { CheckinDetailView } from '@/components/history/CheckinDetailView';
@@ -20,6 +20,7 @@ function EditLink({ href }: { href: Href }) {
 
 export default function HistoryEntryDetailModal() {
   const { kind, id } = useLocalSearchParams<{ kind: 'checkin' | 'flareUp'; id: string }>();
+  const router = useRouter();
   const { t } = useTranslation();
   const { checkins } = useCheckinHistory(90);
   const { flareUps } = useFlareUps(90);
@@ -55,8 +56,7 @@ export default function HistoryEntryDetailModal() {
 
   return (
     <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-4 px-6 py-6">
-      <EditLink href={{ pathname: '/checkin/edit/[id]', params: { id: checkin.id } }} />
-      <CheckinDetailView checkin={checkin} />
+      <CheckinDetailView checkin={checkin} onDeleted={() => router.back()} />
     </ScrollView>
   );
 }

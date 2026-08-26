@@ -55,7 +55,7 @@ export function PainTrendChart({ checkins }: PainTrendChartProps) {
   }
 
   return (
-    <View className="gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark border">
+    <View className="gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark ">
       <View>
         <Text className="text-base font-semibold text-black dark:text-white">{t('detail.painIntensityChartTitle')}</Text>
         <Text className="text-sm text-gray-500 dark:text-gray">{t('detail.painIntensityChartSubtitle')}</Text>

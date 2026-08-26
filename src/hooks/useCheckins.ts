@@ -99,3 +99,25 @@ export function useUpsertCheckin() {
     },
   });
 }
+
+export function useDeleteCheckin() {
+  const { user } = useSession();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string): Promise<{ error: string | null }> => {
+      if (!user) return { error: t('common.notSignedIn') };
+
+      const { error } = await supabase.from('checkins').delete().eq('id', id).eq('user_id', user.id);
+
+      return { error: error?.message ?? null };
+    },
+    onSuccess: (result) => {
+      if (!result.error) {
+        queryClient.invalidateQueries({ queryKey: ['checkins', 'today', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['checkins', 'history', user?.id] });
+        queryClient.invalidateQueries({ queryKey: ['checkins', 'date', user?.id] });
+      }
+    },
+  });
+}

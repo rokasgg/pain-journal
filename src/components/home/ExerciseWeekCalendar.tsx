@@ -47,7 +47,7 @@ export function ExerciseWeekCalendar({ exercisedDates, onSelectDate, className }
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
   const { t } = useTranslation();
   return (
-    <View className={`gap-3 border-primary dark:border-primaryDark border rounded-2xl bg-white p-2 dark:bg-surfaceDark ${className ?? ''}`}>
+    <View className={`gap-3 border-primary dark:border-primaryDark  rounded-2xl bg-white p-2 dark:bg-surfaceDark ${className ?? ''}`}>
 
       <View className="flex-row items-center justify-between p-2">
         <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">
@@ -98,11 +98,11 @@ export function ExerciseWeekCalendar({ exercisedDates, onSelectDate, className }
               )}
               <View
                 style={{ zIndex: 1 }}
-                className={`h-8 w-8 items-center justify-center rounded-full ${isCurrentDay ? 'bg-primary dark:bg-primaryDark' : ''
+                className={`h-8 w-8 items-center justify-center rounded-full ${isCurrentDay ? 'dark:bg-primaryDark' : ''
                   }`}
               >
                 <Text
-                  className={`text-md ${isCurrentDay || exercised ? 'font-semibold text-white' : 'text-black dark:text-white'
+                  className={`text-md ${isCurrentDay ? 'text-black font-bold' : exercised ? 'font-semibold text-white' : 'text-black dark:text-white'
                     }`}
                 >
                   {format(day, 'd')}

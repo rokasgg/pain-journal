@@ -19,7 +19,7 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
 
   return (
     <View
-      className={`flex-row items-center justify-between rounded-2xl border p-4 ${done
+      className={`flex-row items-center justify-between rounded-2xl p-4 ${done
         ? 'border-gray-200 bg-surface dark:border-gray-800 dark:bg-surfaceDark'
         : locked
           ? 'border-gray-200 bg-surface opacity-60 dark:border-gray-800 dark:bg-surfaceDark'
@@ -44,7 +44,7 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
         <Ionicons name="lock-closed" size={25} color={colors.gray} />
       ) : (
         <Link href={href} asChild>
-          <Pressable className="rounded-full bg-primary px-4 py-2 dark:bg-primaryDark">
+          <Pressable className="rounded-full bg-primary px-4 py-2 dark:bg-primaryDark active:opacity-60">
             <Text className="text-sm font-semibold text-white">{t('home.start')}</Text>
           </Pressable>
         </Link>

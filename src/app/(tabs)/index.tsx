@@ -2,7 +2,6 @@ import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
 import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
 import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
 import { FlowerHealthCard } from '@/components/home/FlowerHealthCard';
-import { PhysioSummaryCard } from '@/components/home/PhysioSummaryCard';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useQueryClient } from '@tanstack/react-query';
@@ -60,7 +59,7 @@ export default function HomeScreen() {
         <CheckinStatusCard />
 
         <Link href="/flare-up/new" asChild>
-          <Pressable className="items-center rounded-xl justify-center bg-primary h-16 py-3 dark:bg-primaryDark">
+          <Pressable className="items-center rounded-xl justify-center bg-primary h-16 py-3 dark:bg-primaryDark active:opacity-90">
             <Text className="font-medium text-white text-lg">{t('home.logFlareUp')}</Text>
           </Pressable>
         </Link>
@@ -84,7 +83,7 @@ export default function HomeScreen() {
         </Link> */}
         <View className="gap-3">
 
-          <PhysioSummaryCard />
+          {/* <PhysioSummaryCard /> */}
 
           {/* <PhysioFocusCard /> */}
 

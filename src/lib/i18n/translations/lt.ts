@@ -154,6 +154,9 @@ export const lt: typeof en = {
     saveChanges: 'Išsaugoti pakeitimus',
     savedToast: '{{type}} patikrinimas išsaugotas!',
     checkinUpdatedToast: 'Patikrinimas atnaujintas!',
+    checkinDeletedToast: 'Patikrinimas ištrintas.',
+    deleteConfirmTitle: 'Ištrinti patikrinimą',
+    deleteConfirmMessage: 'Ar tikrai norite ištrinti šį patikrinimą? Šio veiksmo atšaukti negalėsite.',
     eveningLockedTitle: 'Vakaro patikrinimas užrakintas',
     eveningLockedMessage: 'Vakaro patikrinimas atsirakina 16:00.',
     dateLabel: 'Data',
@@ -217,6 +220,7 @@ export const lt: typeof en = {
     painAndMovementSection: 'Skausmas ir judėjimas',
     lifestyleSection: 'Gyvensena',
     exercisesSection: 'Pratimai',
+    sleepSection: 'Miegas',
   },
   patterns: {
     description:

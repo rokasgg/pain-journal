@@ -128,10 +128,10 @@ export default function SettingsScreen() {
             {t('settings.account')}
           </Text>
 
-          <View className="overflow-hidden rounded-lg border border-gray dark:border-gray bg-surface dark:bg-surfaceDark">
+          <View className="overflow-hidden rounded-lg  border-gray dark:border-gray bg-surface dark:bg-surfaceDark">
             <Pressable
               onPress={() => router.push('/modal/edit-profile')}
-              className="flex-row items-center justify-between border-b border-gray px-4 py-3.5 dark:border-gray"
+              className="flex-row items-center justify-between border-gray px-4 py-3.5 dark:border-gray active:opacity-60"
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="person-outline" size={20} color={colors.gray} />
@@ -142,7 +142,7 @@ export default function SettingsScreen() {
 
             <Pressable
               onPress={handleResetPassword}
-              className="flex-row items-center justify-between px-4 py-3.5"
+              className="flex-row items-center justify-between px-4 py-3.5 active:opacity-60"
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="lock-closed-outline" size={20} color={colors.gray} />
@@ -158,10 +158,10 @@ export default function SettingsScreen() {
             {t('settings.healthInfo')}
           </Text>
 
-          <View className="overflow-hidden rounded-lg border border-gray dark:border-gray bg-surface dark:bg-surfaceDark">
+          <View className="overflow-hidden rounded-lg border-gray dark:border-gray bg-surface dark:bg-surfaceDark">
             <Pressable
               onPress={() => router.push('/modal/injury-info' as Href)}
-              className="flex-row items-center justify-between border-b border-gray px-4 py-3.5 dark:border-gray"
+              className="flex-row items-center justify-between border-gray px-4 py-3.5 active:opacity-60 dark:border-gray"
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="bandage-outline" size={20} color={colors.gray} />
@@ -172,7 +172,7 @@ export default function SettingsScreen() {
 
             <Pressable
               onPress={() => router.push('/modal/notifications' as Href)}
-              className="flex-row items-center justify-between px-4 py-3.5"
+              className="flex-row items-center active:opacity-60 justify-between px-4 py-3.5 active:opacity-60"
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="notifications-outline" size={20} color={colors.gray} />
@@ -188,10 +188,10 @@ export default function SettingsScreen() {
             {t('settings.legal')}
           </Text>
 
-          <View className="overflow-hidden rounded-lg border border-gray dark:border-gray bg-surface dark:bg-surfaceDark">
+          <View className="overflow-hidden rounded-lg  border-gray dark:border-gray bg-surface dark:bg-surfaceDark">
             <Pressable
               onPress={() => toast.info(t('settings.privacyPolicyComingSoon'))}
-              className="flex-row items-center justify-between px-4 py-3.5"
+              className="flex-row items-center justify-between px-4 py-3.5 active:opacity-60"
             >
               <View className="flex-row items-center gap-3">
                 <Ionicons name="document-text-outline" size={20} color={colors.gray} />
@@ -218,7 +218,7 @@ export default function SettingsScreen() {
 
         <Pressable
           onPress={() => setIsSignOutModalVisible(true)}
-          className="items-center rounded-lg border border-red-600 py-3 dark:border-red-500"
+          className="items-center rounded-lg border border-red-600 py-3 dark:border-red-500 active:opacity-60"
         >
           <Text className="font-semibold text-red-600 dark:text-red-500">{t('settings.signOut')}</Text>
         </Pressable>

@@ -14,7 +14,7 @@ export function LanguageSwitcher() {
   ];
 
   return (
-    <View className="flex-row rounded-lg bg-gray-100 p-1 dark:bg-surfaceDark bg-surface border-gray dark:border-primaryDark border">
+    <View className="flex-row rounded-lg bg-gray-100 p-1 dark:bg-surfaceDark bg-surface border-gray dark:border-primaryDark">
       {options.map((option) => {
         const isActive = option.value === locale;
 
