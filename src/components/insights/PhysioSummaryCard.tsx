@@ -15,7 +15,7 @@ export function PhysioSummaryCard() {
 
   return (
     <Link href="/history/physio-summary" asChild>
-      <Pressable className="flex-row items-center justify-between gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark border">
+      <Pressable className="flex-row items-center justify-between gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark border-primary dark:border-primaryDark">
         <View className="flex-1 gap-1">
           <Text className="text-base font-semibold text-black dark:text-white">
             {t('home.physioSummaryTitle')}

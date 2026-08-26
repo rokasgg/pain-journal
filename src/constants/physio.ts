@@ -43,6 +43,7 @@ export const MUSCLE_CATEGORY_OPTIONS: { value: string; labelKey: string }[] = [
   { value: 'upperBack', labelKey: 'physioVisit.category.upperBack' },
   { value: 'lowerBack', labelKey: 'physioVisit.category.lowerBack' },
   { value: 'hip', labelKey: 'physioVisit.category.hip' },
+  { value: 'legs', labelKey: 'physioVisit.category.legs' },
 ];
 
 // Canonical values stored verbatim in `muscle_findings.muscle_name`, decoupled from
@@ -72,4 +73,12 @@ export const MUSCLE_NAME_OPTIONS: { value: string; labelKey: string; category: s
   { value: 'Quadratus lumborum', labelKey: 'physioVisit.muscle.quadratusLumborum', category: 'lowerBack' },
   { value: 'Piriformis', labelKey: 'physioVisit.muscle.piriformis', category: 'hip' },
   { value: 'Gluteus medius', labelKey: 'physioVisit.muscle.gluteusMedius', category: 'hip' },
+  { value: 'Gluteus maximus', labelKey: 'physioVisit.muscle.gluteusMaximus', category: 'legs' },
+  { value: 'Quadriceps', labelKey: 'physioVisit.muscle.quadriceps', category: 'legs' },
+  { value: 'Hamstrings', labelKey: 'physioVisit.muscle.hamstrings', category: 'legs' },
+  { value: 'Adductors', labelKey: 'physioVisit.muscle.adductors', category: 'legs' },
+  { value: 'Iliotibial band (IT band)', labelKey: 'physioVisit.muscle.itBand', category: 'legs' },
+  { value: 'Gastrocnemius', labelKey: 'physioVisit.muscle.gastrocnemius', category: 'legs' },
+  { value: 'Soleus', labelKey: 'physioVisit.muscle.soleus', category: 'legs' },
+  { value: 'Tibialis anterior', labelKey: 'physioVisit.muscle.tibialisAnterior', category: 'legs' },
 ];

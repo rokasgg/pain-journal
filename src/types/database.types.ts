@@ -94,6 +94,17 @@ export type FlareUpInsert = Omit<FlareUp, 'id' | 'created_at'> & {
 
 export type MuscleStatus = 'weak' | 'tight' | 'normal' | 'improving';
 
+export interface PhysioQuestion {
+  id: string;
+  text: string;
+  discussed: boolean;
+  answer: string | null;
+  // Whether this question was drafted on the pre-visit screen (carried over
+  // from a past visit, or an AI suggestion) vs. added while wrapping up this
+  // visit's own notes step.
+  created_before_visit: boolean;
+}
+
 export interface PhysioAssessment {
   id: string;
   user_id: string;
@@ -101,6 +112,7 @@ export interface PhysioAssessment {
   physio_name: string | null;
   overall_notes: string | null;
   next_visit_date: string | null;
+  questions: PhysioQuestion[];
   created_at: string;
   muscle_findings?: MuscleFinding[];
 }

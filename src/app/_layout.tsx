@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
+import { useColorScheme } from 'react-native';
 
 import { AppSplashScreen } from '@/components/AppSplashScreen';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -15,6 +16,7 @@ import { useSession } from '@/hooks/useSession';
 import { useSyncReminderNotifications } from '@/hooks/useSyncReminderNotifications';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { queryClient } from '@/lib/queryClient';
+import { colors } from '@/lib/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => { });
 
@@ -28,6 +30,7 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
+  const isDark = useColorScheme() === 'dark';
 
   useSyncReminderNotifications();
 
@@ -110,19 +113,30 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="history/physio-summary"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.physioSummary') }}
+          options={{
+            headerShown: true,
+            title: t('screenTitles.physioSummary'),
+            headerBackTitle: '',
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
         />
-        <Stack.Screen
-          name="physio-visit/new"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.logPhysioVisit') }}
-        />
+        <Stack.Screen name="physio-visit/new" options={{ headerShown: false }} />
         <Stack.Screen
           name="physio-visit/edit/[id]"
           options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editPhysioVisit') }}
         />
         <Stack.Screen
           name="physio-visit/[id]"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.physioVisitDetails') }}
+          options={{
+            headerShown: true,
+            title: t('screenTitles.physioVisitDetails'),
+            headerBackTitle: '',
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
         />
         <Stack.Screen
           name="history/physio-visits"
@@ -138,6 +152,9 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.physioFocusDetail'),
             headerBackTitle: t('tabs.insights'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
           }}
         />
         <Stack.Screen

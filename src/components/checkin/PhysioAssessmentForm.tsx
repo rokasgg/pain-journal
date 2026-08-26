@@ -4,6 +4,7 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form';
 import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
 
 import { MuscleFindingRow } from '@/components/checkin/MuscleFindingRow';
+import { PhysioQuestionsEditor } from '@/components/physioVisitWizard/PhysioQuestionsEditor';
 import { DatePickerField } from '@/components/ui/DatePickerField';
 import { Input } from '@/components/ui/Input';
 import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
@@ -31,6 +32,7 @@ const emptyDefaults: PhysioAssessmentFormData = {
   physio_name: null,
   overall_notes: null,
   next_visit_date: null,
+  questions: [],
   findings: [emptyFinding],
 };
 
@@ -122,6 +124,19 @@ export function PhysioAssessmentForm({
             onChangeText={onChange}
             onBlur={onBlur}
           />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="questions"
+        render={({ field: { value, onChange } }) => (
+          <>
+            <Text className="text-sm font-medium text-black dark:text-white">
+              {t('physioVisit.questionsForNextVisit')}
+            </Text>
+            <PhysioQuestionsEditor questions={value} onChange={onChange} />
+          </>
         )}
       />
 

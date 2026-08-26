@@ -8,20 +8,20 @@ const corsHeaders = {
 
 const REPORT_WINDOW_DAYS = 30;
 
-const SYSTEM_PROMPT = `You are writing a clinical handoff summary of a patient's self-reported neck/back pain journal, to be read by their physiotherapist before or during an appointment. The clinician should be able to skim it in under 30 seconds and get an accurate picture of the last ${REPORT_WINDOW_DAYS} days.
+const SYSTEM_PROMPT = `You are writing a clinical handoff summary of a patient's self-reported neck/back pain journal, to be read by their physiotherapist before or during an appointment. The clinician should be able to skim it in under 15 seconds and get an accurate, concrete picture of the last ${REPORT_WINDOW_DAYS} days.
 
 You will receive JSON with:
-- "injury": the patient's self-reported injury context, if any (injury_started_on, injury_description — may mention specific levels/areas, e.g. cervical disc levels). May be null if not filled in. Weave this into the Overview so the clinician has it without having to ask.
+- "injury": the patient's self-reported injury context, if any (injury_started_on, injury_description — may mention specific levels/areas, e.g. cervical disc levels). May be null if not filled in. Mention it only if it changes how the clinician should read the rest of the summary.
 - "checkins": twice-daily entries (morning/evening) with pain_level, stiffness_level, range_of_motion, sleep fields (morning only), activity/exercise fields including exercise_hours and exercise_intensity (evening only), symptoms, triggers, notes.
 - "flareUps": ad-hoc pain-spike events with pain_level, likely_cause, description, occurred_at.
 
-Write a short, plain-text report (no markdown symbols like # or **) with these sections, each a one-line header followed by 1-3 sentences:
-Overview — injury context (if provided), entry count, date range, general trend in pain/stiffness/range of motion over the period.
-Flare-ups — frequency and any recurring likely cause.
-Possible Triggers — patterns in triggers, sleep, activity, or screen time that correlate with higher pain, if the data actually supports it.
-Notes for the Clinician — anything else concretely useful (e.g. symptom patterns, exercise adherence).
+Write a short, plain-text report (no markdown symbols like # or **) with exactly two sections:
 
-Only report patterns clearly supported by the data — do not invent correlations from too few data points. If a section has nothing notable, say so briefly rather than omitting it or padding it. State plainly this is patient-reported data, not a diagnosis.`;
+WHAT CHANGED — 2-3 sentences: the pain/stiffness/range-of-motion trend across the period (compare the earlier half of the window to the more recent half — e.g. "Pain stable at 0-3, stiffness stays high at 5-8 with no clear improvement"). Numbers over adjectives.
+
+WHAT TO MENTION TO THE PHYSIO — a bullet list, max 4-5 bullets, each one short line. Merge flare-ups and trigger patterns into one practical list (e.g. "3 flare-ups in 2 weeks, all on the right side", "Correlates with poor sleep — 2 of 3 cases"). Only include a bullet if the data actually supports it — fewer, sharper bullets beat padding to reach 5.
+
+Hard limits: each section is at most 3 sentences or 5 bullets, whichever applies. Be concrete and terse — no throat-clearing, no restating the same point twice, no generic filler phrases ("it is important to note that", "overall it seems", etc). Only report patterns clearly supported by the data — do not invent correlations from too few data points. End with one plain sentence stating this is patient-reported data, not a diagnosis.`;
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English",
@@ -119,8 +119,8 @@ Deno.serve(async (req: Request) => {
 
   const response = await anthropic.messages.create({
     model: "claude-opus-5",
-    max_tokens: 1024,
-    output_config: { effort: "medium" },
+    max_tokens: 900,
+    output_config: { effort: "low" },
     system: `${SYSTEM_PROMPT}\n\nRespond in ${LANGUAGE_NAMES[locale]}.`,
     messages: [{ role: "user", content: JSON.stringify({ injury: profile ?? null, checkins, flareUps }) }],
   });

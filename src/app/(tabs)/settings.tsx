@@ -1,8 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
@@ -89,33 +88,7 @@ export default function SettingsScreen() {
         automaticallyAdjustKeyboardInsets
       >
         <View className="items-center gap-3">
-          <View className="relative">
-            {avatarUrl ? (
-              <Image
-                source={{ uri: avatarUrl }}
-                className="h-24 w-24 rounded-full bg-gray dark:bg-gray"
-                contentFit="cover"
-              />
-            ) : (
-              <View className="h-24 w-24 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800">
-                <Ionicons name="person" size={40} color={colors.gray} />
-              </View>
-            )}
 
-            <Pressable
-              onPress={handleEditAvatar}
-              disabled={isUploadingAvatar}
-              accessibilityRole="button"
-              accessibilityLabel={t('settings.changeAvatar')}
-              className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-full bg-primary dark:bg-primaryDark"
-            >
-              {isUploadingAvatar ? (
-                <ActivityIndicator size="small" color={colors.white} />
-              ) : (
-                <Ionicons name="pencil" size={16} color={colors.white} />
-              )}
-            </Pressable>
-          </View>
 
           <View className="items-center gap-0.5">
             <Text className="text-xl font-bold text-black dark:text-white">{name}</Text>

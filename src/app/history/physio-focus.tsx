@@ -67,14 +67,14 @@ export default function PhysioFocusDetailScreen() {
       <View className="h-px bg-gray-200 dark:bg-gray-800" />
 
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
+        <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray ml-4">
           {t('physioVisits.title')}
         </Text>
         <Link href={'/physio-visit/new' as Href} asChild>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('physioVisits.logAVisit')}
-            className="h-8 w-8 items-center justify-center rounded-full dark:bg-primaryDark active:bg-primary/20"
+            className="h-8 w-8 items-center justify-center rounded-full dark:bg-primaryDark active:bg-primary/20 mr-3"
           >
             <Ionicons name="add" size={20} color={colors.primary} />
           </Pressable>

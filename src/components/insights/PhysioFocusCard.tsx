@@ -36,9 +36,9 @@ export function PhysioFocusCard() {
                     : t('insights.nextVisitNotSet'),
                 })}
               </Text>
-              {profile?.last_physio_focus_summary && (
+              {/* {profile?.last_physio_focus_summary && (
                 <Text className="text-sm text-black dark:text-white">{profile.last_physio_focus_summary}</Text>
-              )}
+              )} */}
             </>
           )}
         </View>
