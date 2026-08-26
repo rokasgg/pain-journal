@@ -179,13 +179,11 @@ export const en = {
     avgDailyPain: 'Avg Daily Pain ({{range}})',
     flares: 'Flares ({{range}})',
     findPatterns: 'Find patterns with AI',
-    recentEntries: 'History this week',
-    loadMore: 'Load more +',
+    overview: 'Overview',
+    calendar: 'Calendar',
     dayNoEntries: 'No check-ins or flare-ups logged for this day.',
     previousMonth: 'Previous month',
     nextMonth: 'Next month',
-    allEntries: 'All entries',
-    viewAllEntries: 'View all entries',
   },
   detail: {
     painLevel: 'Pain level',
@@ -393,7 +391,6 @@ export const en = {
     editPhysioVisit: 'Edit Physio Visit',
     injuryInfo: 'Injury Info',
     notifications: 'Notifications',
-    calendarTitle: 'Calendar',
   },
   image: {
     permissionRequired: 'Photo library permission is required.',

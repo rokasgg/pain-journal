@@ -18,5 +18,6 @@ export const colors = {
   selectedTabColor: '#a8d6f0ff',
   lightGrey: '#c4caceff',
   strongGray: '#416352',
+  flameBlue: '#6389daff',
 
 } as const;

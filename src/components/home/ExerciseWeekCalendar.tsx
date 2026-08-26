@@ -5,6 +5,7 @@ import { WebView } from 'react-native-webview';
 
 import { FULL_FLAME_SVG } from '@/constants/fullFlameSvg';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { colors } from '@/lib/theme';
 
 const DATE_FNS_LOCALES = { en: enUS, lt } as const;
 
@@ -88,10 +89,10 @@ export function ExerciseWeekCalendar({ exercisedDates, onSelectDate, className }
                   style={{
                     position: 'absolute',
                     top: 21,
-                    height: 2,
+                    height: 5,
                     left: connectLeft ? 0 : '50%',
                     right: connectRight ? 0 : '50%',
-                    backgroundColor: '#3b82f6',
+                    backgroundColor: colors.flameBlue,
                   }}
                 />
               )}

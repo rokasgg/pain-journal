@@ -1,5 +1,4 @@
 import { type DayMarker } from '@/components/history/WeekCalendar';
-import { type HistoryEntry } from '@/components/history/EntryListItem';
 import type { Checkin, FlareUp } from '@/types/database.types';
 
 export function buildCalendarMarkers(checkins: Checkin[], flareUps: FlareUp[]): Record<string, DayMarker> {
@@ -37,15 +36,4 @@ export function buildCalendarMarkers(checkins: Checkin[], flareUps: FlareUp[]): 
   }
 
   return markers;
-}
-
-export function buildHistoryEntries(checkins: Checkin[], flareUps: FlareUp[]): HistoryEntry[] {
-  const checkinEntries: HistoryEntry[] = checkins.map((data) => ({ kind: 'checkin', data }));
-  const flareUpEntries: HistoryEntry[] = flareUps.map((data) => ({ kind: 'flareUp', data }));
-
-  return [...checkinEntries, ...flareUpEntries].sort((a, b) => {
-    const aDate = a.kind === 'checkin' ? a.data.checkin_date : a.data.occurred_at;
-    const bDate = b.kind === 'checkin' ? b.data.checkin_date : b.data.occurred_at;
-    return bDate.localeCompare(aDate);
-  });
 }

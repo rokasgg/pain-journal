@@ -1,24 +1,37 @@
-import { EntryListItem } from '@/components/history/EntryListItem';
 import { Ionicons } from '@expo/vector-icons';
-import { Link, useRouter, type Href } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DayEntries } from '@/components/history/DayEntries';
+import { MonthCalendar } from '@/components/history/MonthCalendar';
 import { PainTrendChart } from '@/components/history/PainTrendChart';
 import { StatTile } from '@/components/history/StatTile';
-import { WeekCalendar } from '@/components/history/WeekCalendar';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useFlareUps } from '@/hooks/useFlareUps';
-import { buildCalendarMarkers, buildHistoryEntries } from '@/lib/historyEntries';
+import { formatCheckinDate } from '@/lib/dates';
+import { buildCalendarMarkers } from '@/lib/historyEntries';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
+const CALENDAR_LOOKBACK_DAYS = 365;
+
+type Section = 'overview' | 'calendar';
+
 export default function HistoryScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  const [section, setSection] = useState<Section>('overview');
   const [rangeDays, setRangeDays] = useState<number>(7);
-  const [visibleEntryCount, setVisibleEntryCount] = useState(4);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
+
+  const SECTION_OPTIONS: { key: Section; label: string }[] = [
+    { key: 'overview', label: t('history.overview') },
+    { key: 'calendar', label: t('history.calendar') },
+  ];
 
   const RANGE_OPTIONS = [
     { label: t('history.week'), days: 7 },
@@ -30,8 +43,8 @@ export default function HistoryScreen() {
 
   const { checkins } = useCheckinHistory(rangeDays);
   const { flareUps } = useFlareUps(rangeDays);
-  const { checkins: allCheckins } = useCheckinHistory(90);
-  const { flareUps: allFlareUps } = useFlareUps(90);
+  const { checkins: allCheckins } = useCheckinHistory(CALENDAR_LOOKBACK_DAYS);
+  const { flareUps: allFlareUps } = useFlareUps(CALENDAR_LOOKBACK_DAYS);
 
   const avgPain = useMemo(() => {
     if (checkins.length === 0) return null;
@@ -70,49 +83,71 @@ export default function HistoryScreen() {
     [allCheckins, allFlareUps],
   );
 
-  const entries = useMemo(() => buildHistoryEntries(checkins, flareUps), [checkins, flareUps]);
-
-  const visibleEntries = entries.slice(0, visibleEntryCount);
-  const hasMoreEntries = visibleEntryCount < entries.length;
+  const dayCheckins = selectedDate ? allCheckins.filter((c) => c.checkin_date === selectedDate) : [];
+  const dayFlareUps = selectedDate
+    ? allFlareUps.filter((f) => f.occurred_at.slice(0, 10) === selectedDate)
+    : [];
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top']}>
       <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-8">
-        <View className="flex-column items-start justify-between">
-          <Text className="text-2xl font-bold text-black dark:text-white mb-2">{t('history.title')}</Text>
+        <View className="flex-row items-center justify-between">
+          <Text className="text-2xl font-bold text-black dark:text-white">{t('history.title')}</Text>
 
-          <View className="flex-row w-full justify-between">
-            <Link href="/flare-up/new" asChild>
-              <Pressable className="rounded-full border border-red-600 px-6 py-2 dark:border-red-500">
-                <Text className="text-sm font-semibold text-red-600 dark:text-red-500">
+          <Pressable
+            onPress={() => setIsAddMenuOpen((open) => !open)}
+            accessibilityRole="button"
+            accessibilityLabel={t('history.addPastEntry')}
+            className="h-9 w-9 items-center justify-center rounded-full dark:bg-primaryDark"
+          >
+            <Ionicons name={isAddMenuOpen ? 'close' : 'add'} size={24} color={colors.primary} />
+          </Pressable>
+        </View>
+
+        <Modal visible={isAddMenuOpen} transparent animationType="fade" onRequestClose={() => setIsAddMenuOpen(false)}>
+          <Pressable className="flex-1" onPress={() => setIsAddMenuOpen(false)}>
+            <View
+              className="absolute right-6 w-52 gap-0.5 rounded-xl border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-800 dark:bg-surfaceDark"
+              style={{ top: insets.top + 76 }}
+            >
+              <Pressable
+                onPress={() => {
+                  setIsAddMenuOpen(false);
+                  router.push('/checkin/backfill');
+                }}
+                className="rounded-lg px-3 py-2.5"
+              >
+                <Text className="text-sm font-medium text-black dark:text-white">
+                  {t('history.addPastEntry')}
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => {
+                  setIsAddMenuOpen(false);
+                  router.push('/flare-up/new');
+                }}
+                className="rounded-lg px-3 py-2.5"
+              >
+                <Text className="text-sm font-medium text-red-600 dark:text-red-500">
                   {t('history.logFlareUpChip')}
                 </Text>
               </Pressable>
-            </Link>
+            </View>
+          </Pressable>
+        </Modal>
 
-            <Link href="/checkin/backfill" asChild>
-              <Pressable className="rounded-full bg-primary px-6 py-2 dark:bg-primaryDark">
-                <Text className="text-sm font-semibold text-white">{t('history.addPastEntry')}</Text>
-              </Pressable>
-            </Link>
-          </View>
-        </View>
-
-        <View className="flex-row rounded-full bg-primaryMuted p-1 dark:bg-primaryMutedDark ">
-          {RANGE_OPTIONS.map((option) => {
-            const isActive = rangeDays === option.days;
+        <View className="flex-row rounded-full bg-primaryMuted p-1 dark:bg-primaryMutedDark">
+          {SECTION_OPTIONS.map((option) => {
+            const isActive = section === option.key;
             return (
               <Pressable
-                key={option.label}
-                onPress={() => {
-                  setRangeDays(option.days);
-                  setVisibleEntryCount(4);
-                }}
+                key={option.key}
+                onPress={() => setSection(option.key)}
                 className={`flex-1 items-center rounded-full py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
                   }`}
               >
                 <Text
-                  className={`text-sm font-medium ${isActive ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray'
+                  className={`text-sm font-semibold ${isActive ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray'
                     }`}
                 >
                   {option.label}
@@ -122,51 +157,66 @@ export default function HistoryScreen() {
           })}
         </View>
 
-        <View className="flex-row gap-3">
-          <StatTile
-            label={t('history.avgDailyPain', { range: activeRange.label })}
-            value={avgPain !== null ? avgPain.toFixed(1) : '—'}
-            trend={avgPainTrend}
-          />
-          <StatTile label={t('history.flares', { range: activeRange.label })} value={String(flareUps.length)} />
-        </View>
+        {section === 'overview' && (
+          <>
+            <View className="flex-row rounded-full bg-primaryMuted p-1 dark:bg-primaryMutedDark ">
+              {RANGE_OPTIONS.map((option) => {
+                const isActive = rangeDays === option.days;
+                return (
+                  <Pressable
+                    key={option.label}
+                    onPress={() => setRangeDays(option.days)}
+                    className={`flex-1 items-center rounded-full py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
+                      }`}
+                  >
+                    <Text
+                      className={`text-sm font-medium ${isActive ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray'
+                        }`}
+                    >
+                      {option.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
 
-        <PainTrendChart checkins={checkins} />
-
-        <Link href={'/history/patterns' as Href} asChild>
-          <Pressable className="items-center rounded-xl justify-center bg-primary h-16 py-3 dark:bg-primaryDark">
-            <Text className="font-semibold text-white text-lg dark:text-white">{t('history.findPatterns')}</Text>
-          </Pressable>
-        </Link>
-
-        <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
-          {t('history.recentEntries')}
-        </Text>
-        <WeekCalendar
-          markers={calendarMarkers}
-          onSelectDate={(date) => router.push(`/history/day/${date}`)}
-        />
-
-        {visibleEntries.length > 0 && (
-          <View className="gap-3">
-
-            {visibleEntries.map((entry) => (
-              <EntryListItem
-                key={`${entry.kind}-${entry.data.id}`}
-                entry={entry}
-                onPress={() => router.push(`/history/${entry.kind}/${entry.data.id}` as Href)}
+            <View className="flex-row gap-3">
+              <StatTile
+                label={t('history.avgDailyPain', { range: activeRange.label })}
+                value={avgPain !== null ? avgPain.toFixed(1) : '—'}
+                trend={avgPainTrend}
               />
-            ))}
-          </View>
+              <StatTile label={t('history.flares', { range: activeRange.label })} value={String(flareUps.length)} />
+            </View>
+
+            <PainTrendChart checkins={checkins} />
+          </>
         )}
-        {hasMoreEntries && (
-          <Pressable
-            className="flex-row items-center justify-center gap-1 rounded-xl h-16 py-3 dark:bg-primaryDark"
-            onPress={() => router.push('/history/all-entries' as Href)}
-          >
-            <Text className="font-semibold text-primary text-lg dark:text-white">{t('history.viewAllEntries')}</Text>
-            <Ionicons name="chevron-forward" size={18} color={colors.primary} />
-          </Pressable>
+
+        {section === 'calendar' && (
+          <>
+            <MonthCalendar
+              markers={calendarMarkers}
+              onSelectDate={(date) =>
+                setSelectedDate((prev) => (prev === date ? null : date))
+              }
+            />
+
+            {selectedDate && (
+              <View className="gap-4">
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-base font-semibold text-black dark:text-white">
+                    {formatCheckinDate(selectedDate)}
+                  </Text>
+                  <Pressable onPress={() => setSelectedDate(null)} hitSlop={8}>
+                    <Ionicons name="close" size={20} color={colors.gray} />
+                  </Pressable>
+                </View>
+
+                <DayEntries checkins={dayCheckins} flareUps={dayFlareUps} />
+              </View>
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
