@@ -4,30 +4,35 @@ import { Pressable, View } from 'react-native';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
-const TOTAL_STEPS = 4;
+const DEFAULT_TOTAL_STEPS = 4;
 
 export interface WizardProgressProps {
   step: number;
-  onClose: () => void;
+  onClose?: () => void;
+  totalSteps?: number;
 }
 
-export function WizardProgress({ step, onClose }: WizardProgressProps) {
+export function WizardProgress({ step, onClose, totalSteps = DEFAULT_TOTAL_STEPS }: WizardProgressProps) {
   const { t } = useTranslation();
 
   return (
     <View className="flex-row items-center justify-between px-2 pt-2">
-      <Pressable
-        onPress={onClose}
-        accessibilityRole="button"
-        accessibilityLabel={t('common.cancel')}
-        hitSlop={8}
-        className="h-11 w-11 items-center justify-center"
-      >
-        <Ionicons name="close" size={22} color={colors.gray} />
-      </Pressable>
+      {onClose ? (
+        <Pressable
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.cancel')}
+          hitSlop={8}
+          className="h-11 w-11 items-center justify-center"
+        >
+          <Ionicons name="close" size={22} color={colors.gray} />
+        </Pressable>
+      ) : (
+        <View className="h-11 w-11" />
+      )}
 
       <View className="flex-row items-center gap-1.5 pr-4">
-        {Array.from({ length: TOTAL_STEPS }, (_, index) => {
+        {Array.from({ length: totalSteps }, (_, index) => {
           const isCurrent = index === step - 1;
           const isDone = index < step - 1;
           return (

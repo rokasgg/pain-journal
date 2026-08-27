@@ -4,6 +4,7 @@ import { Text, View } from 'react-native';
 
 import { CheckinForm, type CheckinFormData } from '@/components/checkin/CheckinForm';
 import { useUpsertCheckin } from '@/hooks/useCheckins';
+import { useFlareUpFollowUpCandidate } from '@/hooks/useFlareUps';
 import { useTodayStatus } from '@/hooks/useTodayStatus';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -18,6 +19,7 @@ export default function CheckinModal() {
   const { t } = useTranslation();
   const upsertCheckin = useUpsertCheckin();
   const { eveningUnlocked } = useTodayStatus();
+  const flareUpFollowUpCandidate = useFlareUpFollowUpCandidate();
 
   const handleSubmit = async (data: CheckinFormData) => {
     const { error } = await upsertCheckin.mutateAsync({
@@ -55,6 +57,7 @@ export default function CheckinModal() {
       type={isMorning ? 'morning' : 'evening'}
       submitLabel={t('checkin.saveCheckin')}
       onSubmit={handleSubmit}
+      flareUpCandidate={isMorning ? flareUpFollowUpCandidate : null}
     />
   );
 }

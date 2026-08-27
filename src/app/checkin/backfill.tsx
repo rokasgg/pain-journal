@@ -80,7 +80,7 @@ export default function BackfillModal() {
             />
 
             <View className="gap-2">
-              <Text className="text-sm font-medium text-black dark:text-white">{t('checkin.typeLabel')}</Text>
+              <Text className="text-sm font-medium text-primary dark:text-white">{t('checkin.typeLabel')}</Text>
               <View className="flex-row gap-2">
                 {(['morning', 'evening'] as const).map((option) => {
                   const isActive = checkinType === option;
@@ -108,7 +108,7 @@ export default function BackfillModal() {
                 })}
               </View>
               {isEveningLockedForDate && (
-                <Text className="text-sm text-gray-500 dark:text-gray">
+                <Text className="text-sm text-gray dark:text-gray">
                   {t('checkin.eveningLockedMessage')}
                 </Text>
               )}

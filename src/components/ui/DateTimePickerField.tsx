@@ -35,7 +35,7 @@ export function DateTimePickerField({
   return (
     <View className={`gap-1.5 ${className ?? ''}`}>
       {label && (
-        <Text className={`text-sm font-medium text-black dark:text-white ${labelClassName ?? ''}`}>
+        <Text className={`text-sm font-medium text-primary dark:text-white ${labelClassName ?? ''}`}>
           {label}
         </Text>
       )}
@@ -43,9 +43,9 @@ export function DateTimePickerField({
       <Pressable
         onPress={openPicker}
         accessibilityRole="button"
-        className="rounded-lg border border-gray-300 px-4 py-3 dark:border-gray-700"
+        className="rounded-lg bg-white border border-gray px-4 py-3 dark:border-gray-700"
       >
-        <Text className="text-black dark:text-white">
+        <Text className="text-primary dark:text-white">
           {capitalize(format(parseISO(value), 'EEE, MMM d yyyy HH:mm', { locale: currentDateFnsLocale() }))}
         </Text>
       </Pressable>

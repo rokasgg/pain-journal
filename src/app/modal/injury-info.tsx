@@ -1,5 +1,5 @@
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { DatePickerField } from '@/components/ui/DatePickerField';
 import { Input } from '@/components/ui/Input';
@@ -44,39 +44,49 @@ function InjuryInfoForm({ profile }: InjuryInfoFormProps) {
   };
 
   return (
-    <View className="gap-3">
-      <DatePickerField
-        label={t('settings.injuryStartDate')}
-        value={injuryStartedOn}
-        onChange={setInjuryStartedOn}
-        maximumDate={new Date()}
-      />
-      <DatePickerField
-        label={t('settings.healingStartDate')}
-        value={healingStartedOn}
-        onChange={setHealingStartedOn}
-        maximumDate={new Date()}
-      />
-      <Input
-        label={t('settings.description')}
-        placeholder={t('settings.whatHappenedPlaceholder')}
-        multiline
-        numberOfLines={3}
-        value={injuryDescription}
-        onChangeText={setInjuryDescription}
-      />
-
-      <Pressable
-        onPress={handleSave}
-        disabled={updateProfileMutation.isPending}
-        className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
+    <View className="flex-1">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-3 px-6 py-8"
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
       >
-        {updateProfileMutation.isPending ? (
-          <ActivityIndicator color={colors.white} />
-        ) : (
-          <Text className="font-semibold text-white">{t('settings.saveInjuryInfo')}</Text>
-        )}
-      </Pressable>
+        <DatePickerField
+          label={t('settings.injuryStartDate')}
+          value={injuryStartedOn}
+          onChange={setInjuryStartedOn}
+          maximumDate={new Date()}
+        />
+        <DatePickerField
+          label={t('settings.healingStartDate')}
+          value={healingStartedOn}
+          onChange={setHealingStartedOn}
+          maximumDate={new Date()}
+        />
+        <Input
+          label={t('settings.description')}
+          placeholder={t('settings.whatHappenedPlaceholder')}
+          multiline
+          numberOfLines={6}
+          style={{ minHeight: 140, textAlignVertical: 'top' }}
+          value={injuryDescription}
+          onChangeText={setInjuryDescription}
+        />
+      </ScrollView>
+
+      <View className="px-6 pb-12">
+        <Pressable
+          onPress={handleSave}
+          disabled={updateProfileMutation.isPending}
+          className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark active:opacity-80"
+        >
+          {updateProfileMutation.isPending ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text className="font-semibold text-white">{t('settings.saveInjuryInfo')}</Text>
+          )}
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -85,13 +95,14 @@ export default function InjuryInfoScreen() {
   const { profile, isLoading } = useProfile();
 
   return (
-    <ScrollView
-      className="flex-1 bg-background dark:bg-backgroundDark"
-      contentContainerClassName="gap-6 px-6 py-8"
-      keyboardShouldPersistTaps="handled"
-      automaticallyAdjustKeyboardInsets
-    >
-      {isLoading ? <ActivityIndicator /> : <InjuryInfoForm key={profile?.id ?? 'none'} profile={profile} />}
-    </ScrollView>
+    <View className="flex-1 bg-background dark:bg-backgroundDark">
+      {isLoading ? (
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator />
+        </View>
+      ) : (
+        <InjuryInfoForm key={profile?.id ?? 'none'} profile={profile} />
+      )}
+    </View>
   );
 }

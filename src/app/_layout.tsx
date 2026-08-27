@@ -73,7 +73,11 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="modal/injury-info"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.injuryInfo') }}
+          options={{
+            headerShown: true, title: t('screenTitles.injuryInfo'), headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
         />
         <Stack.Screen
           name="modal/notifications"
@@ -81,11 +85,22 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="checkin/[type]"
-          options={{ headerShown: true, title: t('screenTitles.checkin'), headerBackTitle: t('tabs.home') }}
+          options={{
+            headerShown: true, title: t('screenTitles.checkin'),
+            headerBackTitle: t('tabs.home'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
+
         />
         <Stack.Screen
           name="checkin/backfill"
-          options={{ headerShown: true, title: t('screenTitles.backfillCheckin'), headerBackTitle: t('tabs.home') }}
+          options={{
+            headerShown: true, title: t('screenTitles.backfillCheckin'), headerBackTitle: t('tabs.home'), headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
         />
         <Stack.Screen
           name="checkin/edit/[id]"
@@ -93,15 +108,23 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="flare-up/new"
-          options={{ headerShown: true, title: t('screenTitles.logFlareUp'), headerBackTitle: t('tabs.home') }}
+          options={{
+            headerShown: true, title: t('screenTitles.logFlareUp'), headerBackTitle: t('tabs.home'), headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
         />
         <Stack.Screen
           name="flare-up/edit/[id]"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editFlareUp') }}
+          options={{
+            presentation: 'modal', headerShown: true, title: t('screenTitles.editFlareUp'),
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
         />
         <Stack.Screen
           name="history/[kind]/[id]"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.entryDetails') }}
+          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.entryDetails'), }}
         />
         <Stack.Screen
           name="history/day/[date]"

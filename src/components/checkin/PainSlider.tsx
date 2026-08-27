@@ -26,6 +26,7 @@ export function PainSlider({
 }: PainSliderProps) {
   const { t } = useTranslation();
   const resolvedMinLabel = minLabel ?? t('checkin.none');
+  const resolvedNeutralLabel = t('checkin.moderate');
   const resolvedMaxLabel = maxLabel ?? t('checkin.severe');
   const isDark = useColorScheme() === 'dark';
   const trackColor = isDark ? colors.primaryDark : colors.primary;

@@ -77,6 +77,8 @@ export type CheckinInsert = Omit<
   exercise_intensity?: number | null;
 };
 
+export type FlareUpStatus = 'resolved' | 'ongoing' | 'unknown';
+
 export interface FlareUp {
   id: string;
   user_id: string;
@@ -84,12 +86,22 @@ export interface FlareUp {
   pain_level: number;
   likely_cause: string | null;
   description: string | null;
+  status: FlareUpStatus;
+  status_updated_at: string;
+  resolved_duration_minutes: number | null;
+  resolution_note: string | null;
   created_at: string;
 }
 
-export type FlareUpInsert = Omit<FlareUp, 'id' | 'created_at'> & {
+export type FlareUpInsert = Omit<
+  FlareUp,
+  'id' | 'created_at' | 'status_updated_at' | 'resolved_duration_minutes' | 'resolution_note'
+> & {
   id?: string;
   created_at?: string;
+  status_updated_at?: string;
+  resolved_duration_minutes?: number | null;
+  resolution_note?: string | null;
 };
 
 export type MuscleStatus = 'weak' | 'tight' | 'normal' | 'improving';

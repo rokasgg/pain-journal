@@ -1,4 +1,4 @@
-import { differenceInCalendarDays, format, parseISO } from 'date-fns';
+import { differenceInCalendarDays, differenceInMinutes, format, parseISO } from 'date-fns';
 import { enUS, lt } from 'date-fns/locale';
 
 import { useLocaleStore } from '@/store/useLocaleStore';
@@ -43,4 +43,8 @@ export const WEEKDAY_LABELS_BY_LOCALE = {
 
 export function daysSince(dateStr: string): number {
   return differenceInCalendarDays(new Date(), parseISO(dateStr));
+}
+
+export function minutesSince(dateStr: string): number {
+  return differenceInMinutes(new Date(), parseISO(dateStr));
 }

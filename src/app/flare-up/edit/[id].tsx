@@ -43,6 +43,7 @@ export default function EditFlareUpModal() {
         pain_level: flareUp.pain_level,
         likely_cause: flareUp.likely_cause,
         description: flareUp.description,
+        status: flareUp.status,
       }}
       submitLabel={t('flareUp.saveChanges')}
       onSubmit={handleSubmit}

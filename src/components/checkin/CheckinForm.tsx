@@ -1,15 +1,19 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { type ReactNode, useState } from 'react';
+import { Stack } from 'expo-router';
+import { useState, type ReactNode } from 'react';
 import { Controller, useForm, useWatch, type Control } from 'react-hook-form';
-import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { EveningFields } from '@/components/checkin/EveningFields';
+import { FlareUpFollowUpStep } from '@/components/checkin/FlareUpFollowUpStep';
 import { MorningFields } from '@/components/checkin/MorningFields';
 import { PainAreaChips } from '@/components/checkin/PainAreaChips';
 import { PainSlider } from '@/components/checkin/PainSlider';
+import { StepDots } from '@/components/checkin/StepDots';
 import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
 import { YesNoField } from '@/components/checkin/YesNoField';
+import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import {
@@ -18,9 +22,11 @@ import {
   type EveningCheckinFormData,
   type MorningCheckinFormData,
 } from '@/lib/validations/checkin';
-import type { CheckinType } from '@/types/database.types';
+import type { CheckinType, FlareUp } from '@/types/database.types';
 
 export type CheckinFormData = MorningCheckinFormData | EveningCheckinFormData;
+
+const TOTAL_STEPS = 3;
 
 export const morningDefaults: MorningCheckinFormData = {
   pain_level: 0,
@@ -56,12 +62,22 @@ export interface CheckinFormProps {
   submitLabel: string;
   onSubmit: (data: CheckinFormData) => Promise<void>;
   header?: ReactNode;
+  flareUpCandidate?: FlareUp | null;
 }
 
-export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header }: CheckinFormProps) {
+export function CheckinForm({
+  type,
+  defaultValues,
+  submitLabel,
+  onSubmit,
+  header,
+  flareUpCandidate,
+}: CheckinFormProps) {
   const { t } = useTranslation();
   const isMorning = type === 'morning';
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [flareUpStepDone, setFlareUpStepDone] = useState(false);
 
   const { control, handleSubmit } = useForm<CheckinFormData>({
     resolver: zodResolver(isMorning ? morningCheckinSchema : eveningCheckinSchema),
@@ -81,130 +97,174 @@ export function CheckinForm({ type, defaultValues, submitLabel, onSubmit, header
   const handleSave = async (data: CheckinFormData) => {
     const finalData: CheckinFormData = isInPain
       ? data
-      : { ...data, pain_level: 0, symptoms: { ...data.symptoms, pain_areas: [] } };
+      : { ...data, pain_level: 0, triggers: [], symptoms: { ...data.symptoms, pain_areas: [] } };
 
     setIsSubmitting(true);
     await onSubmit(finalData);
     setIsSubmitting(false);
   };
 
+  if (flareUpCandidate && !flareUpStepDone) {
+    return (
+      <View className="flex-1 bg-background dark:bg-backgroundDark">
+        <Stack.Screen options={{ headerRight: () => <StepDots step={0} totalSteps={TOTAL_STEPS} /> }} />
+        <FlareUpFollowUpStep flareUp={flareUpCandidate} onDone={() => setFlareUpStepDone(true)} />
+      </View>
+    );
+  }
+
   return (
-    <ScrollView
-      className="flex-1 bg-background dark:bg-backgroundDark"
-      contentContainerClassName="gap-6 px-6 py-6"
-      keyboardShouldPersistTaps="handled"
-      automaticallyAdjustKeyboardInsets
-    >
-      {header}
+    <View className="flex-1 bg-background dark:bg-backgroundDark">
+      <Stack.Screen options={{ headerRight: () => <StepDots step={step} totalSteps={TOTAL_STEPS} /> }} />
 
-      {isMorning ? (
-        <Controller
-          control={control as Control<MorningCheckinFormData>}
-          name="woke_up_with_pain"
-          render={({ field: { value, onChange } }) => (
-            <YesNoField
-              label={t('checkin.wokeUpWithPain')}
-              value={value}
-              onChange={onChange}
-              info={t('checkin.wokeUpWithPainInfo')}
-            />
-          )}
-        />
-      ) : (
-        <YesNoField
-          label={t('checkin.inPainNow')}
-          value={eveningInPain}
-          onChange={setEveningInPain}
-          info={t('checkin.inPainNowInfo')}
-        />
-      )}
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-6 px-6 py-6"
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+      >
+        {step === 1 && (
+          <>
+            {header}
 
-      {isInPain && (
-        <>
-          <Controller
-            control={control}
-            name="pain_level"
-            render={({ field: { value, onChange } }) => (
-              <PainSlider
-                label={t('checkin.painLevel')}
-                value={value}
-                onChange={onChange}
-                info={t('checkin.painLevelInfo')}
+            {isMorning ? (
+              <Controller
+                control={control as Control<MorningCheckinFormData>}
+                name="woke_up_with_pain"
+                render={({ field: { value, onChange } }) => (
+                  <YesNoField
+                    label={t('checkin.wokeUpWithPain')}
+                    value={value}
+                    onChange={onChange}
+                    info={t('checkin.wokeUpWithPainInfo')}
+                  />
+                )}
+              />
+            ) : (
+              <YesNoField
+                label={t('checkin.inPainNow')}
+                value={eveningInPain}
+                onChange={setEveningInPain}
+                info={t('checkin.inPainNowInfo')}
               />
             )}
-          />
 
-          <Controller
-            control={control}
-            name="symptoms.pain_areas"
-            render={({ field: { value, onChange } }) => (
-              <PainAreaChips value={value ?? []} onChange={onChange} />
+            {isInPain && (
+              <>
+                <Controller
+                  control={control}
+                  name="pain_level"
+                  render={({ field: { value, onChange } }) => (
+                    <PainSlider
+                      label={t('checkin.painLevel')}
+                      value={value}
+                      onChange={onChange}
+                      info={t('checkin.painLevelInfo')}
+                    />
+                  )}
+                />
+
+                <Controller
+                  control={control}
+                  name="symptoms.pain_areas"
+                  render={({ field: { value, onChange } }) => (
+                    <PainAreaChips value={value ?? []} onChange={onChange} />
+                  )}
+                />
+              </>
             )}
-          />
-        </>
-      )}
 
-      <Controller
-        control={control}
-        name="stiffness_level"
-        render={({ field: { value, onChange } }) => (
-          <PainSlider
-            label={t('checkin.stiffness')}
-            value={value}
-            onChange={onChange}
-            minLabel={t('checkin.flexible')}
-            maxLabel={t('checkin.rigid')}
-            info={t('checkin.stiffnessInfo')}
-          />
+            <Controller
+              control={control}
+              name="stiffness_level"
+              render={({ field: { value, onChange } }) => (
+                <PainSlider
+                  label={t('checkin.stiffness')}
+                  value={value}
+                  onChange={onChange}
+                  minLabel={t('checkin.flexible')}
+                  maxLabel={t('checkin.rigid')}
+                  info={t('checkin.stiffnessInfo')}
+                />
+              )}
+            />
+
+            <Controller
+              control={control}
+              name="range_of_motion"
+              render={({ field: { value, onChange } }) => (
+                <PainSlider
+                  label={t('checkin.rangeOfMotion')}
+                  value={value}
+                  onChange={onChange}
+                  minLabel={t('checkin.limited')}
+                  maxLabel={t('checkin.full')}
+                  info={t('checkin.rangeOfMotionInfo')}
+                />
+              )}
+            />
+          </>
         )}
-      />
 
-      <Controller
-        control={control}
-        name="range_of_motion"
-        render={({ field: { value, onChange } }) => (
-          <PainSlider
-            label={t('checkin.rangeOfMotion')}
-            value={value}
-            onChange={onChange}
-            minLabel={t('checkin.limited')}
-            maxLabel={t('checkin.full')}
-            info={t('checkin.rangeOfMotionInfo')}
-          />
+        {step === 2 &&
+          (isMorning ? (
+            <MorningFields control={control as Control<MorningCheckinFormData>} />
+          ) : (
+            <EveningFields control={control as Control<EveningCheckinFormData>} />
+          ))}
+
+        {step === 3 && (
+          <>
+            <Controller
+              control={control}
+              name="symptoms"
+              render={({ field: { value, onChange } }) => (
+                <SymptomCheckboxes value={value} onChange={onChange} />
+              )}
+            />
+
+            {isInPain && (
+              <Controller
+                control={control}
+                name="triggers"
+                render={({ field: { value, onChange } }) => <TriggerChips value={value} onChange={onChange} />}
+              />
+            )}
+          </>
         )}
-      />
+      </ScrollView>
 
-      {isMorning ? (
-        <MorningFields control={control as Control<MorningCheckinFormData>} />
-      ) : (
-        <EveningFields control={control as Control<EveningCheckinFormData>} />
-      )}
-
-      <Controller
-        control={control}
-        name="symptoms"
-        render={({ field: { value, onChange } }) => (
-          <SymptomCheckboxes value={value} onChange={onChange} />
+      <WizardFooter>
+        {step > 1 && (
+          <Pressable
+            onPress={() => setStep((current) => (current - 1) as 1 | 2)}
+            className="flex-1 items-center rounded-lg border border-gray-300 py-3 dark:border-gray-700"
+          >
+            <Text className="font-semibold text-black dark:text-white">{t('common.back')}</Text>
+          </Pressable>
         )}
-      />
 
-      <Controller
-        control={control}
-        name="triggers"
-        render={({ field: { value, onChange } }) => <TriggerChips value={value} onChange={onChange} />}
-      />
-
-      <Pressable
-        onPress={handleSubmit(handleSave)}
-        disabled={isSubmitting}
-        className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
-      >
-        {isSubmitting ? (
-          <ActivityIndicator color={colors.white} />
+        {step < 3 ? (
+          <Pressable
+            onPress={() => setStep((current) => (current + 1) as 2 | 3)}
+            className="flex-1 items-center rounded-lg bg-primary py-3 dark:bg-primaryDark"
+          >
+            <Text className="font-semibold text-white">{t('common.next')}</Text>
+          </Pressable>
         ) : (
-          <Text className="font-semibold text-white">{submitLabel}</Text>
+          <Pressable
+            onPress={handleSubmit(handleSave)}
+            disabled={isSubmitting}
+            className="flex-1 items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <Text className="font-semibold text-white">{submitLabel}</Text>
+            )}
+          </Pressable>
         )}
-      </Pressable>
-    </ScrollView>
+      </WizardFooter>
+    </View>
   );
 }

@@ -1,12 +1,13 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { PainSlider } from '@/components/checkin/PainSlider';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
 import { DateTimePickerField } from '@/components/ui/DateTimePickerField';
 import { Input } from '@/components/ui/Input';
+import { FLARE_UP_STATUS_OPTIONS } from '@/constants/flareUp';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { flareUpSchema, type FlareUpFormData } from '@/lib/validations/flareUp';
@@ -22,6 +23,7 @@ const emptyDefaults: FlareUpFormData = {
   pain_level: 5,
   likely_cause: null,
   description: null,
+  status: 'resolved',
 };
 
 export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubmit }: FlareUpFormProps) {
@@ -69,6 +71,40 @@ export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubm
             onChange={onChange}
             info={t('checkin.flareUpPainLevelInfo')}
           />
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="status"
+        render={({ field: { value, onChange } }) => (
+          <View className="gap-2">
+            <Text className="text-sm font-medium text-strongGray dark:text-white">
+              {t('flareUp.stillOngoingQuestion')}
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              {FLARE_UP_STATUS_OPTIONS.map((option) => {
+                const isActive = value === option.value;
+                return (
+                  <Pressable
+                    key={option.value}
+                    onPress={() => onChange(option.value)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: isActive }}
+                    className={`rounded-full px-3 py-1.5 ${isActive ? option.activeClassName : 'bg-primaryMuted dark:bg-primaryMutedDark'
+                      }`}
+                  >
+                    <Text
+                      className={`text-sm font-medium ${isActive ? option.activeTextClassName : 'text-primary dark:text-white'
+                        }`}
+                    >
+                      {t(option.labelKey)}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
         )}
       />
 

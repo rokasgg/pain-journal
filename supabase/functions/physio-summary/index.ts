@@ -19,7 +19,7 @@ Write a short, plain-text report (no markdown symbols like # or **) with exactly
 
 WHAT CHANGED — 2-3 sentences: the pain/stiffness/range-of-motion trend across the period (compare the earlier half of the window to the more recent half — e.g. "Pain stable at 0-3, stiffness stays high at 5-8 with no clear improvement"). Numbers over adjectives.
 
-WHAT TO MENTION TO THE PHYSIO — a bullet list, max 4-5 bullets, each one short line. Merge flare-ups and trigger patterns into one practical list (e.g. "3 flare-ups in 2 weeks, all on the right side", "Correlates with poor sleep — 2 of 3 cases"). Only include a bullet if the data actually supports it — fewer, sharper bullets beat padding to reach 5.
+WHAT TO MENTION TO THE PHYSIO — a bullet list, max 4-5 bullets, each one short line. Merge flare-ups and trigger patterns into one practical list (e.g. "3 flare-ups in 2 weeks, all on the right side", "Correlates with poor sleep — 2 of 3 cases"). Each flare-up has a "status" ("resolved"/"ongoing"/"unknown") and, when resolved, "resolved_duration_minutes". When multiple flare-ups have a known duration, report the average duration alongside frequency (e.g. "3 flare-ups in 2 weeks, avg 1.5 days") instead of frequency alone — convert minutes to hours/days for readability. Only include a bullet if the data actually supports it — fewer, sharper bullets beat padding to reach 5.
 
 Hard limits: each section is at most 3 sentences or 5 bullets, whichever applies. Be concrete and terse — no throat-clearing, no restating the same point twice, no generic filler phrases ("it is important to note that", "overall it seems", etc). Only report patterns clearly supported by the data — do not invent correlations from too few data points. End with one plain sentence stating this is patient-reported data, not a diagnosis.`;
 
@@ -85,7 +85,7 @@ Deno.serve(async (req: Request) => {
       .order("checkin_date"),
     supabase
       .from("flare_ups")
-      .select("occurred_at, pain_level, likely_cause, description")
+      .select("occurred_at, pain_level, likely_cause, description, status, resolved_duration_minutes")
       .gte("occurred_at", since.toISOString())
       .order("occurred_at"),
     supabase

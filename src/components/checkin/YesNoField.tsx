@@ -19,7 +19,7 @@ export function YesNoField({ label, value, onChange, info, className }: YesNoFie
       onPress={() => onChange(!value)}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: !!value }}
-      className={`flex-row items-center justify-between rounded-lg border border-gray bg-white px-4 py-3 dark:border-gray ${className ?? ''}`}
+      className={`flex-row items-center justify-between rounded-lg border border-gray bg-white dark:bg-backgroundDark px-4 py-3 dark:border-gray ${className ?? ''}`}
     >
       <View className="flex-row items-center gap-1.5">
         <Text className="text-base text-strongGray dark:text-white">{label}</Text>
