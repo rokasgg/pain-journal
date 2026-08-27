@@ -6,7 +6,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AskAiCta } from '@/components/insights/AskAiCta';
 import { PhysioFocusCard } from '@/components/insights/PhysioFocusCard';
 import { TodaysFocusCard } from '@/components/insights/TodaysFocusCard';
-import { TopTriggers } from '@/components/insights/TopTriggers';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export default function InsightsScreen() {
@@ -39,7 +38,7 @@ export default function InsightsScreen() {
           <TodaysFocusCard />
           <AskAiCta />
           <PhysioFocusCard />
-          <TopTriggers />
+          {/* <TopTriggers /> */}
         </View>
       </ScrollView>
     </SafeAreaView>

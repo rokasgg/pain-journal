@@ -1,13 +1,11 @@
 import { eachDayOfInterval, endOfWeek, format, isToday, startOfWeek } from 'date-fns';
-import { enUS, lt } from 'date-fns/locale';
 import { Pressable, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
 import { FULL_FLAME_SVG } from '@/constants/fullFlameSvg';
+import { capitalize, DATE_FNS_LOCALES, WEEKDAY_LABELS_BY_LOCALE } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
-
-const DATE_FNS_LOCALES = { en: enUS, lt } as const;
 
 const FLAME_WIDTH = 30;
 const FLAME_HEIGHT = 56;
@@ -26,21 +24,16 @@ function flameHtml(svg: string) {
 </html>`;
 }
 
-function capitalize(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 export interface ExerciseWeekCalendarProps {
   exercisedDates: Set<string>;
   onSelectDate: (date: string) => void;
   className?: string;
 }
 
-const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
 export function ExerciseWeekCalendar({ exercisedDates, onSelectDate, className }: ExerciseWeekCalendarProps) {
   const { locale } = useTranslation();
   const dateFnsLocale = DATE_FNS_LOCALES[locale];
+  const weekdayLabels = WEEKDAY_LABELS_BY_LOCALE[locale];
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
@@ -59,7 +52,7 @@ export function ExerciseWeekCalendar({ exercisedDates, onSelectDate, className }
       </View>
 
       <View className="flex-row">
-        {WEEKDAY_LABELS.map((label, index) => (
+        {weekdayLabels.map((label, index) => (
           <View key={index} className="flex-1 items-center">
             <Text className="text-xs font-medium text-gray-500 dark:text-gray">{label}</Text>
           </View>

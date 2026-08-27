@@ -3,6 +3,7 @@ import { format, parseISO } from 'date-fns';
 import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 
+import { capitalize, currentDateFnsLocale } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 export interface DatePickerFieldProps {
@@ -48,7 +49,9 @@ export function DatePickerField({
         className="rounded-lg bg-white border border-gray px-4 py-3 dark:border-gray"
       >
         <Text className={value ? 'text-strongGray dark:text-white' : 'text-gray'}>
-          {value ? format(parseISO(value), 'EEE, MMM d yyyy') : resolvedPlaceholder}
+          {value
+            ? capitalize(format(parseISO(value), 'EEE, MMM d yyyy', { locale: currentDateFnsLocale() }))
+            : resolvedPlaceholder}
         </Text>
       </Pressable>
 

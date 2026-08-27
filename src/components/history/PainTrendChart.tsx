@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Platform, Text, useColorScheme, View } from 'react-native';
 import { CartesianChart, Line } from 'victory-native';
 
+import { capitalize, currentDateFnsLocale } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import type { Checkin } from '@/types/database.types';
@@ -76,7 +77,7 @@ export function PainTrendChart({ checkins }: PainTrendChartProps) {
             formatYLabel: (label) => String(Math.round(label)),
             formatXLabel: (label) => {
               const point = data[Math.round(label)];
-              return point ? format(parseISO(point.date), 'MMM d') : '';
+              return point ? capitalize(format(parseISO(point.date), 'MMM d', { locale: currentDateFnsLocale() })) : '';
             },
           }}
         >

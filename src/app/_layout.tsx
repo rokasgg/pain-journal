@@ -163,6 +163,9 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.aiChat'),
             headerBackTitle: t('tabs.insights'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
           }}
         />
       </Stack>

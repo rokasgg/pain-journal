@@ -1,16 +1,10 @@
 
 import { eachDayOfInterval, endOfWeek, format, isToday, startOfWeek } from 'date-fns';
-import { enUS, lt } from 'date-fns/locale';
 import { Pressable, Text, useColorScheme, View } from 'react-native';
 
+import { capitalize, DATE_FNS_LOCALES, WEEKDAY_LABELS_BY_LOCALE } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { getPainColor } from '@/lib/painColor';
-
-const DATE_FNS_LOCALES = { en: enUS, lt } as const;
-
-function capitalize(text: string): string {
-    return text.charAt(0).toUpperCase() + text.slice(1);
-}
 
 export interface DayMarker {
     hasMorning: boolean;
@@ -25,11 +19,10 @@ export interface MonthCalendarProps {
     className?: string;
 }
 
-const WEEKDAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-
 export function WeekCalendar({ markers, onSelectDate, className }: MonthCalendarProps) {
     const { locale } = useTranslation();
     const dateFnsLocale = DATE_FNS_LOCALES[locale];
+    const weekdayLabels = WEEKDAY_LABELS_BY_LOCALE[locale];
     const isDark = useColorScheme() === 'dark';
     const today = new Date();
     const weekStart = startOfWeek(today, { weekStartsOn: 1 });
@@ -45,7 +38,7 @@ export function WeekCalendar({ markers, onSelectDate, className }: MonthCalendar
             </View>
 
             <View className="flex-row">
-                {WEEKDAY_LABELS.map((label, index) => (
+                {weekdayLabels.map((label, index) => (
                     <View key={index} className="flex-1 items-center">
                         <Text className="text-xs font-medium text-gray-500 dark:text-gray">{label}</Text>
                     </View>

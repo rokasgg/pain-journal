@@ -68,7 +68,7 @@ export default function ChatScreen() {
               <Pressable
                 key={prompt}
                 onPress={() => sendMessage(prompt)}
-                className="rounded-xl border border-primary bg-primaryMuted px-4 py-3 dark:border-primaryDark dark:bg-primaryMutedDark"
+                className="rounded-xl border-primary bg-primaryMuted px-4 py-3 dark:border-primaryDark dark:bg-primaryMutedDark"
               >
                 <Text className="text-sm font-medium text-strongGray dark:text-white">{prompt}</Text>
               </Pressable>
@@ -80,8 +80,8 @@ export default function ChatScreen() {
           <View
             key={index}
             className={`max-w-[85%] rounded-2xl px-4 py-3 ${message.role === 'user'
-                ? 'self-end bg-primary dark:bg-primaryDark'
-                : 'self-start bg-surface dark:bg-surfaceDark'
+              ? 'self-end bg-primary dark:bg-primaryDark'
+              : 'self-start bg-surface dark:bg-surfaceDark'
               }`}
           >
             <Text className={message.role === 'user' ? 'text-white' : 'text-black dark:text-white'}>
@@ -97,14 +97,14 @@ export default function ChatScreen() {
         )}
       </ScrollView>
 
-      <View className="flex-row items-center gap-2 border-t border-gray-200 px-4 py-3 dark:border-gray-800">
+      <View className="flex-row items-center gap-2 border-t border-gray px-4 py-3 dark:border-gray-800 h-24 mb-4">
         <TextInput
           value={input}
           onChangeText={setInput}
           placeholder={t('insights.chatInputPlaceholder')}
           placeholderTextColor={colors.gray}
           multiline
-          className="max-h-24 flex-1 rounded-xl border border-gray-300 bg-surface px-3 py-2.5 text-black dark:border-gray-700 dark:bg-surfaceDark dark:text-white"
+          className="max-h-24 flex-1 rounded-xl  border-gray-300 bg-surface px-3 py-4 text-black dark:border-gray-700 dark:bg-surfaceDark dark:text-white"
         />
         <Pressable
           onPress={() => sendMessage(input)}

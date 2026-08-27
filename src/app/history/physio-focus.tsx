@@ -6,9 +6,23 @@ import { PhysioSummaryCard } from '@/components/insights/PhysioSummaryCard';
 import { MUSCLE_STATUS_OPTIONS } from '@/constants/physio';
 import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
 import { useProfile } from '@/hooks/useProfile';
-import { formatCheckinDate } from '@/lib/dates';
+import { daysSince, formatCheckinDate, formatMonthDay } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+
+function MetricCard({ label, value }: { label: string; value: string }) {
+  return (
+    <View className="min-h-[76px] basis-[48%] grow justify-between rounded-xl bg-surface p-3 dark:bg-surfaceDark">
+      <Text
+        numberOfLines={2}
+        className="text-xs font-medium uppercase text-gray-500 dark:text-gray"
+      >
+        {label}
+      </Text>
+      <Text className="text-lg font-bold text-black dark:text-white">{value}</Text>
+    </View>
+  );
+}
 
 export default function PhysioFocusDetailScreen() {
   const { t } = useTranslation();
@@ -26,39 +40,56 @@ export default function PhysioFocusDetailScreen() {
     );
   }
 
-  const weakCount = latest ? (latest.muscle_findings ?? []).filter((f) => f.status === 'weak').length : 0;
-  const tightCount = latest ? (latest.muscle_findings ?? []).filter((f) => f.status === 'tight').length : 0;
-  const statsLine = latest
-    ? t('home.physioFocusStats', {
-      count: assessments.length,
-      date: formatCheckinDate(latest.visit_date),
-      weak: weakCount,
-      tight: tightCount,
-    })
-    : null;
+  const metrics: { key: string; label: string; value: string }[] = latest
+    ? [
+        { key: 'visits', label: t('insights.metricVisits'), value: String(assessments.length) },
+        { key: 'lastVisit', label: t('insights.metricLastVisit'), value: formatMonthDay(latest.visit_date) },
+      ]
+    : [];
+
+  const daysUntilNextVisit = latest?.next_visit_date ? -daysSince(latest.next_visit_date) : null;
 
   return (
-    <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-4 px-6 py-6">
+    <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
       {!latest ? (
         <Text className="text-gray-500 dark:text-gray">{t('home.physioFocusEmpty')}</Text>
       ) : (
         <>
-          <Text className="text-sm text-gray-500 dark:text-gray">
-            {t('insights.lastVisitLabel', { date: formatCheckinDate(latest.visit_date) })}
-          </Text>
-          <Text className="text-sm text-gray-500 dark:text-gray">
-            {t('insights.nextVisitLabel', {
-              date: latest.next_visit_date ? formatCheckinDate(latest.next_visit_date) : t('insights.nextVisitNotSet'),
-            })}
-          </Text>
+          <View className="min-h-[64px] flex-row items-center gap-2 rounded-xl bg-surface p-3 dark:bg-surfaceDark">
+            <Ionicons name="calendar-outline" size={18} color={colors.gray} />
+            <View className="flex-1 justify-center">
+              <Text className="text-xs text-gray-500 dark:text-gray">
+                {t('insights.nextVisitShortLabel')}
+              </Text>
+              <Text className="text-base font-semibold text-black dark:text-white">
+                {latest.next_visit_date ? formatCheckinDate(latest.next_visit_date) : t('insights.nextVisitNotSet')}
+              </Text>
+            </View>
+            {daysUntilNextVisit !== null && daysUntilNextVisit >= 0 && (
+              <View className="rounded-full bg-primaryMuted px-2.5 py-1 dark:bg-primaryMutedDark">
+                <Text className="text-xs font-semibold text-primary dark:text-primaryDark">
+                  {daysUntilNextVisit === 0
+                    ? t('insights.daysUntilNextVisitToday')
+                    : t('insights.daysUntilNextVisit', { days: daysUntilNextVisit })}
+                </Text>
+              </View>
+            )}
+          </View>
 
           {profile?.last_physio_focus_summary && (
-            <Text className="text-base text-black dark:text-white">{profile.last_physio_focus_summary}</Text>
+            <View className="gap-1.5 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
+              <Text className="text-xs font-semibold uppercase text-gray-500 dark:text-gray">
+                {t('insights.physioFocusSectionTitle')}
+              </Text>
+              <Text className="text-base text-black dark:text-white">{profile.last_physio_focus_summary}</Text>
+            </View>
           )}
 
-          {statsLine && <Text className="text-xs text-gray-500 dark:text-gray">{statsLine}</Text>}
-
-          <View className="h-px bg-gray-200 dark:bg-gray-800" />
+          <View className="flex-row flex-wrap gap-3">
+            {metrics.map((metric) => (
+              <MetricCard key={metric.key} label={metric.label} value={metric.value} />
+            ))}
+          </View>
 
           <PhysioSummaryCard />
         </>
@@ -67,14 +98,14 @@ export default function PhysioFocusDetailScreen() {
       <View className="h-px bg-gray-200 dark:bg-gray-800" />
 
       <View className="flex-row items-center justify-between">
-        <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray ml-4">
+        <Text className="ml-4 text-sm font-semibold uppercase text-gray-500 dark:text-gray">
           {t('physioVisits.title')}
         </Text>
         <Link href={'/physio-visit/new' as Href} asChild>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('physioVisits.logAVisit')}
-            className="h-8 w-8 items-center justify-center rounded-full dark:bg-primaryDark active:bg-primary/20 mr-3"
+            className="mr-3 h-8 w-8 items-center justify-center rounded-full dark:bg-primaryDark active:bg-primary/20"
           >
             <Ionicons name="add" size={20} color={colors.primary} />
           </Pressable>
