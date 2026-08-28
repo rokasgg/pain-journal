@@ -19,5 +19,6 @@ export const colors = {
   lightGrey: '#c4caceff',
   strongGray: '#416352',
   flameBlue: '#6389daff',
+  bone: '#F5F0E6',
 
 } as const;

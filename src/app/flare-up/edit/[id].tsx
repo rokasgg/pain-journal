@@ -26,14 +26,16 @@ export default function EditFlareUpModal() {
 
   const handleSubmit = async (data: FlareUpFormData) => {
     const { error } = await updateFlareUp.mutateAsync({ id: flareUp.id, ...data });
+    return { error };
+  };
 
-    if (error) {
-      toast.error(error);
-      return;
-    }
-
-    router.back();
+  // Runs right after a successful save. Toast before router.back() — not
+  // after — so the toast's checkmark animation starts painting while this
+  // screen is still frontmost, instead of racing the outgoing
+  // screen-transition animation.
+  const handleSaved = () => {
     toast.success(t('flareUp.updatedToast'));
+    router.back();
   };
 
   return (
@@ -47,6 +49,7 @@ export default function EditFlareUpModal() {
       }}
       submitLabel={t('flareUp.saveChanges')}
       onSubmit={handleSubmit}
+      onSaved={handleSaved}
     />
   );
 }

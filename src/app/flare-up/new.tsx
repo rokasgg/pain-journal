@@ -13,15 +13,19 @@ export default function NewFlareUpModal() {
 
   const handleSubmit = async (data: FlareUpFormData) => {
     const { error } = await createFlareUp.mutateAsync(data);
-
-    if (error) {
-      toast.error(error);
-      return;
-    }
-
-    router.back();
-    toast.success(t('flareUp.loggedToast'));
+    return { error };
   };
 
-  return <FlareUpForm submitLabel={t('flareUp.logFlareUp')} onSubmit={handleSubmit} />;
+  // Toast fires *before* router.back() — not after — so the success toast's
+  // checkmark animation starts painting while this screen is still
+  // frontmost, instead of racing the outgoing screen-transition animation
+  // (see checkin/[type].tsx for the full explanation).
+  const handleSaved = () => {
+    toast.success(t('flareUp.loggedToast'));
+    router.back();
+  };
+
+  return (
+    <FlareUpForm submitLabel={t('flareUp.logFlareUp')} onSubmit={handleSubmit} onSaved={handleSaved} />
+  );
 }

@@ -66,7 +66,10 @@ export default function EditCheckinModal() {
     return { error };
   };
 
-  // Runs after CheckinForm's success checkmark animation finishes.
+  // Runs right after a successful save. Toast before router.back() — not
+  // after — so the toast's checkmark animation starts painting while this
+  // screen is still frontmost, instead of racing the outgoing
+  // screen-transition animation.
   const handleSaved = () => {
     toast.success(t('checkin.checkinUpdatedToast'));
     router.back();

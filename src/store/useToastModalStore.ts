@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 
-type ToastModalVariant = 'default' | 'destructive';
+// 'success' gets the AnimatedCheckmark treatment in ToastModalHost; 'info'
+// and 'destructive' don't (info isn't a completion, destructive is an error).
+type ToastModalVariant = 'success' | 'info' | 'destructive';
 
 interface ToastModalState {
   visible: boolean;
@@ -13,7 +15,7 @@ interface ToastModalState {
 export const useToastModalStore = create<ToastModalState>((set) => ({
   visible: false,
   message: '',
-  variant: 'default',
+  variant: 'success',
   show: (message, variant) => set({ visible: true, message, variant }),
   hide: () => set({ visible: false }),
 }));

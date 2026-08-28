@@ -76,13 +76,33 @@ function RootLayoutNav() {
 
   return (
     <ErrorBoundary>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="(auth)" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          // Explicit (not native-stack's implicit 'default') so plain-push
+          // screens slide the same way on iOS and Android — Android's
+          // implicit default can render as an inconsistent fade/scale
+          // depending on OS/RN Screens version.
+          animation: 'slide_from_right',
+        }}
+      >
+        {/* Reached via router.replace (auth/onboarding/tabs mode switches),
+            not a user-initiated push — a directional slide would misread as
+            "entering a sub-page", so fade instead. */}
+        <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
+        <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
+        <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
         <Stack.Screen
           name="modal/edit-profile"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editProfile') }}
+          options={{
+            presentation: 'modal',
+            // presentation:'modal' alone doesn't guarantee the same slide-up
+            // feel cross-platform — pin it explicitly (same on every modal
+            // screen below).
+            animation: 'slide_from_bottom',
+            headerShown: true,
+            title: t('screenTitles.editProfile'),
+          }}
         />
         <Stack.Screen
           name="modal/injury-info"
@@ -94,7 +114,12 @@ function RootLayoutNav() {
         />
         <Stack.Screen
           name="modal/notifications"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.notifications') }}
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+            headerShown: true,
+            title: t('screenTitles.notifications'),
+          }}
         />
         <Stack.Screen
           name="checkin/[type]"
@@ -130,22 +155,37 @@ function RootLayoutNav() {
         <Stack.Screen
           name="flare-up/edit/[id]"
           options={{
-            presentation: 'modal', headerShown: true, title: t('screenTitles.editFlareUp'),
+            presentation: 'modal', animation: 'slide_from_bottom', headerShown: true, title: t('screenTitles.editFlareUp'),
             headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
             headerShadowVisible: false,
           }}
         />
         <Stack.Screen
           name="history/[kind]/[id]"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.entryDetails'), }}
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+            headerShown: true,
+            title: t('screenTitles.entryDetails'),
+          }}
         />
         <Stack.Screen
           name="history/day/[date]"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.dayDetails') }}
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+            headerShown: true,
+            title: t('screenTitles.dayDetails'),
+          }}
         />
         <Stack.Screen
           name="history/patterns"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.patternAnalysis') }}
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+            headerShown: true,
+            title: t('screenTitles.patternAnalysis'),
+          }}
         />
         <Stack.Screen
           name="history/physio-summary"
@@ -161,7 +201,12 @@ function RootLayoutNav() {
         <Stack.Screen name="physio-visit/new" options={{ headerShown: false }} />
         <Stack.Screen
           name="physio-visit/edit/[id]"
-          options={{ presentation: 'modal', headerShown: true, title: t('screenTitles.editPhysioVisit') }}
+          options={{
+            presentation: 'modal',
+            animation: 'slide_from_bottom',
+            headerShown: true,
+            title: t('screenTitles.editPhysioVisit'),
+          }}
         />
         <Stack.Screen
           name="physio-visit/[id]"

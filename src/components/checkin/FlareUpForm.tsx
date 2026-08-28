@@ -11,11 +11,20 @@ import { FLARE_UP_STATUS_OPTIONS } from '@/constants/flareUp';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { flareUpSchema, type FlareUpFormData } from '@/lib/validations/flareUp';
+import { toast } from '@/utils/toast';
 
 export interface FlareUpFormProps {
   defaultValues?: FlareUpFormData;
   submitLabel: string;
-  onSubmit: (data: FlareUpFormData) => Promise<void>;
+  // Performs the actual save and reports the outcome instead of navigating
+  // itself: `{ error }` on success or failure, or `undefined` when the save
+  // was intentionally short-circuited — same contract as CheckinForm.
+  onSubmit: (data: FlareUpFormData) => Promise<{ error: string | null } | undefined>;
+  // Called right after a successful save — do the toast + navigation here,
+  // not in onSubmit, so a short-circuited/failed save never navigates. The
+  // success toast itself (toast.success, via ToastModalHost) is what plays
+  // the checkmark animation now, not this form's submit button.
+  onSaved?: () => void;
 }
 
 const emptyDefaults: FlareUpFormData = {
@@ -26,7 +35,7 @@ const emptyDefaults: FlareUpFormData = {
   status: 'resolved',
 };
 
-export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubmit }: FlareUpFormProps) {
+export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubmit, onSaved }: FlareUpFormProps) {
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -37,8 +46,24 @@ export function FlareUpForm({ defaultValues = emptyDefaults, submitLabel, onSubm
 
   const handleSave = async (data: FlareUpFormData) => {
     setIsSubmitting(true);
-    await onSubmit(data);
+    const result = await onSubmit(data);
+
+    if (!result) {
+      // Save was intentionally short-circuited — just reset, no error/success UI.
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (result.error) {
+      setIsSubmitting(false);
+      toast.error(result.error);
+      return;
+    }
+
+    // No success animation on the button itself — the toast shown by onSaved
+    // (via toast.success) already plays the checkmark, ToastModalHost.tsx.
     setIsSubmitting(false);
+    onSaved?.();
   };
 
   return (

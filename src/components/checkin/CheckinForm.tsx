@@ -14,7 +14,6 @@ import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
 import { YesNoField } from '@/components/checkin/YesNoField';
 import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
-import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
 import { useProfile } from '@/hooks/useProfile';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -68,9 +67,10 @@ export interface CheckinFormProps {
   // was intentionally short-circuited (e.g. a confirm dialog needs to be
   // shown first) — in that case the form just resets, no error/success UI.
   onSubmit: (data: CheckinFormData) => Promise<{ error: string | null } | undefined>;
-  // Called once the success checkmark animation finishes — do the toast +
-  // navigation here, not in onSubmit, so the animation always gets to play
-  // before the screen unmounts.
+  // Called right after a successful save — do the toast + navigation here,
+  // not in onSubmit, so a short-circuited/failed save never navigates. The
+  // success toast itself (toast.success, via ToastModalHost) is what plays
+  // the checkmark animation now, not this form's submit button.
   onSaved?: () => void;
   header?: ReactNode;
   flareUpCandidate?: FlareUp | null;
@@ -89,7 +89,6 @@ export function CheckinForm({
   const { profile } = useProfile();
   const isMorning = type === 'morning';
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [flareUpStepDone, setFlareUpStepDone] = useState(false);
 
@@ -147,9 +146,10 @@ export function CheckinForm({
       return;
     }
 
-    // Keep isSubmitting true (button stays locked/disabled) while the
-    // checkmark plays; onSaved fires once it completes.
-    setShowSuccess(true);
+    // No success animation on the button itself — the toast shown by onSaved
+    // (via toast.success) already plays the checkmark, ToastModalHost.tsx.
+    setIsSubmitting(false);
+    onSaved?.();
   };
 
   if (flareUpCandidate && !flareUpStepDone) {
@@ -339,11 +339,9 @@ export function CheckinForm({
           <Pressable
             onPress={handleSubmit(handleSave)}
             disabled={isSubmitting}
-            className="flex-1 flex-row items-center justify-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
+            className="flex-1 items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
           >
-            {showSuccess ? (
-              <AnimatedCheckmark size={28} color={colors.white} strokeWidth={2.5} onAnimationComplete={onSaved} />
-            ) : isSubmitting ? (
+            {isSubmitting ? (
               <ActivityIndicator color={colors.white} />
             ) : (
               <Text className="font-semibold text-white">{submitLabel}</Text>

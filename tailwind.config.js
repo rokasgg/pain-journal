@@ -21,6 +21,7 @@ const colors = {
   strongGray: '#416352',
   selectedTab: '#506873',
   selectedTabColor: '#CDE6F4',
+  bone: '#F5F0E6',
   test: '#CDE6F4'
 };
 

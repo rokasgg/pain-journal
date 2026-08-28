@@ -31,11 +31,17 @@ export default function CheckinModal() {
     return { error };
   };
 
-  // Runs after CheckinForm's success checkmark animation finishes.
+  // Runs right after a successful save. Toast fires *before* router.back() —
+  // not after — so the toast overlay (and its checkmark animation) mounts
+  // and starts painting while this screen is still frontmost, instead of
+  // racing the outgoing screen-transition animation. Firing it after
+  // router.back() let the transition eat into the checkmark's first frames,
+  // so by the time the overlay was actually visible the animation looked
+  // like it started halfway through.
   const handleSaved = () => {
-    router.back();
     toast.success(t('checkin.savedToast', { type: t(isMorning ? 'home.morning' : 'home.evening') }));
     useCelebrationStore.getState().show();
+    router.back();
   };
 
   if (!isMorning && !eveningUnlocked) {
