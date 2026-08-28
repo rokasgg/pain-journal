@@ -39,12 +39,12 @@ export default function BackfillModal() {
   const handleSubmit = async (data: CheckinFormData) => {
     if (checkinType === 'evening' && isEveningLockedForDate) {
       toast.error(t('checkin.eveningLockedMessage'));
-      return;
+      return undefined;
     }
 
     if (existingCheckin) {
       setShowAlreadyLoggedModal(true);
-      return;
+      return undefined;
     }
 
     const { error } = await upsertCheckin.mutateAsync({
@@ -53,11 +53,11 @@ export default function BackfillModal() {
       ...data,
     });
 
-    if (error) {
-      toast.error(error);
-      return;
-    }
+    return { error };
+  };
 
+  // Runs after CheckinForm's success checkmark animation finishes.
+  const handleSaved = () => {
     toast.success(t('checkin.checkinUpdatedToast'));
     useCelebrationStore.getState().show();
     router.back();
@@ -70,6 +70,7 @@ export default function BackfillModal() {
         type={checkinType}
         submitLabel={t('checkin.saveCheckin')}
         onSubmit={handleSubmit}
+        onSaved={handleSaved}
         header={
           <View className="gap-6">
             <DatePickerField

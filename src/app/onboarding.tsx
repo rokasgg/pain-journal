@@ -21,6 +21,7 @@ import {
 import { useUpdateProfile } from '@/hooks/useProfile';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { useOnboardingCompleteStore } from '@/store/useOnboardingCompleteStore';
 import type {
   CheckinDepthPreference,
   InjuryOnsetPeriod,
@@ -105,6 +106,10 @@ export default function OnboardingScreen() {
       return;
     }
 
+    // Navigate first, then show the success checkmark once Home has landed
+    // — playing it here and only then replacing the route cut the animation
+    // off half-finished, visible during the screen transition itself.
+    useOnboardingCompleteStore.getState().markPending();
     router.replace('/(tabs)');
   };
 

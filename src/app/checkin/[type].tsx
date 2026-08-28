@@ -28,11 +28,11 @@ export default function CheckinModal() {
       ...data,
     });
 
-    if (error) {
-      toast.error(error);
-      return;
-    }
+    return { error };
+  };
 
+  // Runs after CheckinForm's success checkmark animation finishes.
+  const handleSaved = () => {
     router.back();
     toast.success(t('checkin.savedToast', { type: t(isMorning ? 'home.morning' : 'home.evening') }));
     useCelebrationStore.getState().show();
@@ -57,6 +57,7 @@ export default function CheckinModal() {
       type={isMorning ? 'morning' : 'evening'}
       submitLabel={t('checkin.saveCheckin')}
       onSubmit={handleSubmit}
+      onSaved={handleSaved}
       flareUpCandidate={isMorning ? flareUpFollowUpCandidate : null}
     />
   );

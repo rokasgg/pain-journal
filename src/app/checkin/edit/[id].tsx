@@ -63,11 +63,11 @@ export default function EditCheckinModal() {
       ...data,
     });
 
-    if (error) {
-      toast.error(error);
-      return;
-    }
+    return { error };
+  };
 
+  // Runs after CheckinForm's success checkmark animation finishes.
+  const handleSaved = () => {
     toast.success(t('checkin.checkinUpdatedToast'));
     router.back();
   };
@@ -78,6 +78,7 @@ export default function EditCheckinModal() {
       defaultValues={toFormData(checkin)}
       submitLabel={t('checkin.saveChanges')}
       onSubmit={handleSubmit}
+      onSaved={handleSaved}
       header={
         <Text className="text-sm text-gray dark:text-gray">
           {formatCheckinDate(checkin.checkin_date)} · {t(checkin.type === 'morning' ? 'home.morning' : 'home.evening')}

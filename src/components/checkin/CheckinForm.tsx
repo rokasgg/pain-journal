@@ -14,6 +14,7 @@ import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
 import { YesNoField } from '@/components/checkin/YesNoField';
 import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
+import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
 import { useProfile } from '@/hooks/useProfile';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -24,6 +25,7 @@ import {
   type MorningCheckinFormData,
 } from '@/lib/validations/checkin';
 import type { CheckinType, FlareUp } from '@/types/database.types';
+import { toast } from '@/utils/toast';
 
 export type CheckinFormData = MorningCheckinFormData | EveningCheckinFormData;
 
@@ -61,7 +63,15 @@ export interface CheckinFormProps {
   type: CheckinType;
   defaultValues?: CheckinFormData;
   submitLabel: string;
-  onSubmit: (data: CheckinFormData) => Promise<void>;
+  // Performs the actual save and reports the outcome instead of navigating
+  // itself: `{ error }` on success or failure, or `undefined` when the save
+  // was intentionally short-circuited (e.g. a confirm dialog needs to be
+  // shown first) — in that case the form just resets, no error/success UI.
+  onSubmit: (data: CheckinFormData) => Promise<{ error: string | null } | undefined>;
+  // Called once the success checkmark animation finishes — do the toast +
+  // navigation here, not in onSubmit, so the animation always gets to play
+  // before the screen unmounts.
+  onSaved?: () => void;
   header?: ReactNode;
   flareUpCandidate?: FlareUp | null;
 }
@@ -71,6 +81,7 @@ export function CheckinForm({
   defaultValues,
   submitLabel,
   onSubmit,
+  onSaved,
   header,
   flareUpCandidate,
 }: CheckinFormProps) {
@@ -78,6 +89,7 @@ export function CheckinForm({
   const { profile } = useProfile();
   const isMorning = type === 'morning';
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [flareUpStepDone, setFlareUpStepDone] = useState(false);
 
@@ -120,8 +132,24 @@ export function CheckinForm({
       : { ...data, pain_level: 0, triggers: [], symptoms: { ...data.symptoms, pain_areas: [] } };
 
     setIsSubmitting(true);
-    await onSubmit(finalData);
-    setIsSubmitting(false);
+    const result = await onSubmit(finalData);
+
+    if (!result) {
+      // Save was intentionally short-circuited (e.g. a confirm dialog needs
+      // to be shown first) — just reset, no error/success UI.
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (result.error) {
+      setIsSubmitting(false);
+      toast.error(result.error);
+      return;
+    }
+
+    // Keep isSubmitting true (button stays locked/disabled) while the
+    // checkmark plays; onSaved fires once it completes.
+    setShowSuccess(true);
   };
 
   if (flareUpCandidate && !flareUpStepDone) {
@@ -311,9 +339,11 @@ export function CheckinForm({
           <Pressable
             onPress={handleSubmit(handleSave)}
             disabled={isSubmitting}
-            className="flex-1 items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
+            className="flex-1 flex-row items-center justify-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
           >
-            {isSubmitting ? (
+            {showSuccess ? (
+              <AnimatedCheckmark size={28} color={colors.white} strokeWidth={2.5} onAnimationComplete={onSaved} />
+            ) : isSubmitting ? (
               <ActivityIndicator color={colors.white} />
             ) : (
               <Text className="font-semibold text-white">{submitLabel}</Text>
