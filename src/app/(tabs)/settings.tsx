@@ -1,12 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Switch, Text, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
+import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -18,12 +19,24 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { user } = useSession();
+  const { profile } = useProfile();
+  // Switch's on/off track colors are native props NativeWind can't style
+  // (same sanctioned exception as the tab bar in (tabs)/_layout.tsx).
+  const isDark = useColorScheme() === 'dark';
+  const updateProfileMutation = useUpdateProfile();
   const uploadAvatar = useAuthStore((state) => state.uploadAvatar);
   const updateProfile = useAuthStore((state) => state.updateProfile);
   const resetPassword = useAuthStore((state) => state.resetPassword);
   const signOut = useAuthStore((state) => state.signOut);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [isSignOutModalVisible, setIsSignOutModalVisible] = useState(false);
+
+  const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
+
+  const handleToggleAiInsights = async (value: boolean) => {
+    const { error } = await updateProfileMutation.mutateAsync({ ai_insights_enabled: value });
+    if (error) toast.error(error);
+  };
 
   const name = (user?.user_metadata?.name as string | undefined) ?? t('common.anonymous');
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
@@ -153,6 +166,20 @@ export default function SettingsScreen() {
               </View>
               <Ionicons name="chevron-forward" size={18} color={colors.gray} />
             </Pressable>
+
+            <View className="flex-row items-center justify-between px-4 py-3.5">
+              <View className="flex-row items-center gap-3">
+                <Ionicons name="sparkles-outline" size={20} color={colors.gray} />
+                <Text className="text-base text-strongGray dark:text-white">{t('settings.aiInsights')}</Text>
+              </View>
+              <Switch
+                value={aiInsightsEnabled}
+                onValueChange={handleToggleAiInsights}
+                trackColor={{ false: colors.gray, true: isDark ? colors.primaryDark : colors.primary }}
+                thumbColor={colors.white}
+                ios_backgroundColor={colors.gray}
+              />
+            </View>
           </View>
         </View>
 

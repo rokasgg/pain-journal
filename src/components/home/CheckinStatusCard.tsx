@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { useProfile } from '@/hooks/useProfile';
 import { useTodayStatus } from '@/hooks/useTodayStatus';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -55,18 +56,30 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
 
 export function CheckinStatusCard() {
   const { t } = useTranslation();
+  const { profile } = useProfile();
   const { morningDone, eveningDone, eveningUnlocked } = useTodayStatus();
+
+  const morningCard = (
+    <StatusCard label={t('home.morning')} icon="sunny" done={morningDone} href="/checkin/morning" />
+  );
+  const eveningCard = (
+    <StatusCard
+      label={t('home.evening')}
+      icon="moon"
+      done={eveningDone}
+      href="/checkin/evening"
+      locked={!eveningUnlocked}
+    />
+  );
+
+  // From onboarding's "when are you worst" answer — show that check-in first
+  // so the more relevant one doesn't require scrolling past the other.
+  const eveningFirst = profile?.worst_time_of_day === 'evening';
 
   return (
     <View className="gap-3">
-      <StatusCard label={t('home.morning')} icon="sunny" done={morningDone} href="/checkin/morning" />
-      <StatusCard
-        label={t('home.evening')}
-        icon="moon"
-        done={eveningDone}
-        href="/checkin/evening"
-        locked={!eveningUnlocked}
-      />
+      {eveningFirst ? eveningCard : morningCard}
+      {eveningFirst ? morningCard : eveningCard}
     </View>
   );
 }

@@ -19,6 +19,7 @@ export default function PatternsModal() {
 
   const analysis = profile?.last_pattern_analysis ?? null;
   const analyzedAt = profile?.last_pattern_analysis_at ?? null;
+  const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
 
   return (
     <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
@@ -28,6 +29,8 @@ export default function PatternsModal() {
 
       {isProfileLoading ? (
         <ActivityIndicator />
+      ) : !aiInsightsEnabled ? (
+        <Text className="text-base text-gray-500 dark:text-gray">{t('patterns.aiDisabled')}</Text>
       ) : analysis ? (
         <View className="gap-2">
           {analyzedAt && (
@@ -43,19 +46,21 @@ export default function PatternsModal() {
         </Text>
       )}
 
-      <Pressable
-        onPress={handleRun}
-        disabled={isPending}
-        className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
-      >
-        {isPending ? (
-          <ActivityIndicator color={colors.white} />
-        ) : (
-          <Text className="font-semibold text-white">
-            {analysis ? t('patterns.reRunAnalysis') : t('patterns.runAnalysis')}
-          </Text>
-        )}
-      </Pressable>
+      {aiInsightsEnabled && (
+        <Pressable
+          onPress={handleRun}
+          disabled={isPending}
+          className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
+        >
+          {isPending ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text className="font-semibold text-white">
+              {analysis ? t('patterns.reRunAnalysis') : t('patterns.runAnalysis')}
+            </Text>
+          )}
+        </Pressable>
+      )}
     </ScrollView>
   );
 }

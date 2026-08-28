@@ -14,6 +14,7 @@ import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
 import { YesNoField } from '@/components/checkin/YesNoField';
 import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
+import { useProfile } from '@/hooks/useProfile';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import {
@@ -74,14 +75,33 @@ export function CheckinForm({
   flareUpCandidate,
 }: CheckinFormProps) {
   const { t } = useTranslation();
+  const { profile } = useProfile();
   const isMorning = type === 'morning';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [flareUpStepDone, setFlareUpStepDone] = useState(false);
 
+  // Onboarding's "how much time per check-in" answer: 'quick' collapses the
+  // Symptoms/Triggers step into an optional expandable section on step 2
+  // instead of forcing a 3rd required step. 'detailed'/'varies'/unset behave
+  // exactly as before (3 full steps).
+  const isQuickMode = profile?.checkin_depth_preference === 'quick';
+  const totalSteps = isQuickMode ? 2 : TOTAL_STEPS;
+  const [showMoreDetails, setShowMoreDetails] = useState(false);
+
+  const resolvedDefaultValues = defaultValues
+    ? defaultValues
+    : {
+      ...(isMorning ? morningDefaults : eveningDefaults),
+      // Onboarding's "does pain radiate" answer: pre-check the two most
+      // likely symptoms on a fresh check-in (never overrides a saved entry).
+      symptoms:
+        profile?.pain_radiates === 'yes' ? { tingling: true, numbness: true } : {},
+    };
+
   const { control, handleSubmit } = useForm<CheckinFormData>({
     resolver: zodResolver(isMorning ? morningCheckinSchema : eveningCheckinSchema),
-    defaultValues: defaultValues ?? (isMorning ? morningDefaults : eveningDefaults),
+    defaultValues: resolvedDefaultValues,
   });
 
   // Morning has a real persisted gate (`woke_up_with_pain`); evening has no DB
@@ -107,7 +127,7 @@ export function CheckinForm({
   if (flareUpCandidate && !flareUpStepDone) {
     return (
       <View className="flex-1 bg-background dark:bg-backgroundDark">
-        <Stack.Screen options={{ headerRight: () => <StepDots step={0} totalSteps={TOTAL_STEPS} /> }} />
+        <Stack.Screen options={{ headerRight: () => <StepDots step={0} totalSteps={totalSteps} /> }} />
         <FlareUpFollowUpStep flareUp={flareUpCandidate} onDone={() => setFlareUpStepDone(true)} />
       </View>
     );
@@ -115,7 +135,7 @@ export function CheckinForm({
 
   return (
     <View className="flex-1 bg-background dark:bg-backgroundDark">
-      <Stack.Screen options={{ headerRight: () => <StepDots step={step} totalSteps={TOTAL_STEPS} /> }} />
+      <Stack.Screen options={{ headerRight: () => <StepDots step={step} totalSteps={totalSteps} /> }} />
 
       <ScrollView
         className="flex-1"
@@ -206,14 +226,50 @@ export function CheckinForm({
           </>
         )}
 
-        {step === 2 &&
-          (isMorning ? (
-            <MorningFields control={control as Control<MorningCheckinFormData>} />
-          ) : (
-            <EveningFields control={control as Control<EveningCheckinFormData>} />
-          ))}
+        {step === 2 && (
+          <>
+            {isMorning ? (
+              <MorningFields control={control as Control<MorningCheckinFormData>} />
+            ) : (
+              <EveningFields control={control as Control<EveningCheckinFormData>} />
+            )}
 
-        {step === 3 && (
+            {isQuickMode &&
+              (!showMoreDetails ? (
+                <Pressable
+                  onPress={() => setShowMoreDetails(true)}
+                  accessibilityRole="button"
+                  className="items-center rounded-lg border border-dashed border-gray-400 py-3 dark:border-gray-600"
+                >
+                  <Text className="text-sm font-medium text-gray-500 dark:text-gray">
+                    {t('checkin.addMoreDetails')}
+                  </Text>
+                </Pressable>
+              ) : (
+                <>
+                  <Controller
+                    control={control}
+                    name="symptoms"
+                    render={({ field: { value, onChange } }) => (
+                      <SymptomCheckboxes value={value} onChange={onChange} />
+                    )}
+                  />
+
+                  {isInPain && (
+                    <Controller
+                      control={control}
+                      name="triggers"
+                      render={({ field: { value, onChange } }) => (
+                        <TriggerChips value={value} onChange={onChange} />
+                      )}
+                    />
+                  )}
+                </>
+              ))}
+          </>
+        )}
+
+        {!isQuickMode && step === 3 && (
           <>
             <Controller
               control={control}
@@ -244,7 +300,7 @@ export function CheckinForm({
           </Pressable>
         )}
 
-        {step < 3 ? (
+        {step < totalSteps ? (
           <Pressable
             onPress={() => setStep((current) => (current + 1) as 2 | 3)}
             className="flex-1 items-center rounded-lg bg-primary py-3 dark:bg-primaryDark"

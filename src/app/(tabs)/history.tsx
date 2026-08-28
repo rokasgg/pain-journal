@@ -143,7 +143,7 @@ export default function HistoryScreen() {
               <Pressable
                 key={option.key}
                 onPress={() => setSection(option.key)}
-                className={`flex-1 items-center rounded-xl py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
+                className={`flex-1 items-center rounded-xl py-2 active:bg-surface/20 dark:active:bg-surfaceDark ${isActive ? 'bg-surface dark:bg-primary/80' : ''
                   }`}
               >
                 <Text

@@ -156,6 +156,17 @@ export type ReminderSettingsUpsert = Partial<Omit<ReminderSettings, 'user_id' | 
   user_id: string;
 };
 
+export type InjuryOnsetPeriod = 'this_week' | 'month_ago' | 'months_ago' | 'year_plus' | 'unknown';
+export type PainRadiates = 'yes' | 'no' | 'sometimes';
+export type WorstTimeOfDay = 'morning' | 'evening' | 'after_activity' | 'no_pattern';
+export type PrimaryGoal =
+  | 'track_progress'
+  | 'identify_triggers'
+  | 'prepare_for_appointments'
+  | 'track_exercises'
+  | 'just_journal';
+export type CheckinDepthPreference = 'quick' | 'detailed' | 'varies';
+
 export interface Profile {
   id: string;
   full_name: string | null;
@@ -168,10 +179,39 @@ export interface Profile {
   last_physio_summary_at: string | null;
   last_physio_focus_summary: string | null;
   last_physio_focus_summary_at: string | null;
+
+  // Onboarding wizard answers — see src/app/onboarding.tsx.
+  onboarding_completed: boolean;
+  injury_onset_date: string | null;
+  injury_onset_period: InjuryOnsetPeriod | null;
+  pain_locations: string[];
+  pain_character: string[];
+  pain_radiates: PainRadiates | null;
+  worst_time_of_day: WorstTimeOfDay | null;
+  primary_goal: PrimaryGoal | null;
+  checkin_depth_preference: CheckinDepthPreference | null;
+  ai_insights_enabled: boolean;
+
   created_at: string;
   updated_at: string;
 }
 
 export type ProfileUpdate = Partial<
-  Pick<Profile, 'full_name' | 'injury_started_on' | 'injury_description' | 'healing_started_on'>
+  Pick<
+    Profile,
+    | 'full_name'
+    | 'injury_started_on'
+    | 'injury_description'
+    | 'healing_started_on'
+    | 'onboarding_completed'
+    | 'injury_onset_date'
+    | 'injury_onset_period'
+    | 'pain_locations'
+    | 'pain_character'
+    | 'pain_radiates'
+    | 'worst_time_of_day'
+    | 'primary_goal'
+    | 'checkin_depth_preference'
+    | 'ai_insights_enabled'
+  >
 >;

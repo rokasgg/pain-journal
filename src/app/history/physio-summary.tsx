@@ -19,6 +19,7 @@ export default function PhysioSummaryModal() {
 
   const summary = profile?.last_physio_summary ?? null;
   const generatedAt = profile?.last_physio_summary_at ?? null;
+  const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
 
   return (
     <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-6 px-6 py-6">
@@ -26,6 +27,8 @@ export default function PhysioSummaryModal() {
 
       {isProfileLoading ? (
         <ActivityIndicator />
+      ) : !aiInsightsEnabled ? (
+        <Text className="text-base text-gray-500 dark:text-gray">{t('physioSummary.aiDisabled')}</Text>
       ) : summary ? (
         <View className="gap-2 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
           {generatedAt && (
@@ -39,19 +42,21 @@ export default function PhysioSummaryModal() {
         <Text className="text-base text-gray-500 dark:text-gray">{t('physioSummary.noSummaryYet')}</Text>
       )}
 
-      <Pressable
-        onPress={handleGenerate}
-        disabled={isPending}
-        className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
-      >
-        {isPending ? (
-          <ActivityIndicator color={colors.white} />
-        ) : (
-          <Text className="font-semibold text-white">
-            {summary ? t('physioSummary.regenerate') : t('physioSummary.generate')}
-          </Text>
-        )}
-      </Pressable>
+      {aiInsightsEnabled && (
+        <Pressable
+          onPress={handleGenerate}
+          disabled={isPending}
+          className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
+        >
+          {isPending ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text className="font-semibold text-white">
+              {summary ? t('physioSummary.regenerate') : t('physioSummary.generate')}
+            </Text>
+          )}
+        </Pressable>
+      )}
     </ScrollView>
   );
 }

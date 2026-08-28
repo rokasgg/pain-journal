@@ -1,7 +1,7 @@
 import '../../global.css';
 
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
@@ -24,7 +24,7 @@ const MIN_SPLASH_MS = 3000;
 
 function RootLayoutNav() {
   const { session, isLoading } = useSession();
-  const { isLoading: profileLoading } = useProfile();
+  const { profile, isLoading: profileLoading } = useProfile();
   const { isLoading: todayLoading } = useTodayCheckins();
   const { t } = useTranslation();
   const segments = useSegments();
@@ -44,17 +44,29 @@ function RootLayoutNav() {
   }, []);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || profileLoading) return;
 
     const isAuthenticated = !!session;
     const inAuthGroup = segments[0] === '(auth)';
+    // Cast to string: expo-router's generated route types don't include this
+    // new top-level route yet (same workaround as other new routes elsewhere
+    // in this codebase, e.g. history/physio-visits.tsx).
+    const inOnboarding = (segments[0] as string) === 'onboarding';
+    // profile is auto-created by the on_auth_user_created DB trigger, so once
+    // authenticated it should exist; treat a still-missing row as "not
+    // onboarded yet" rather than crashing the redirect logic.
+    const needsOnboarding = isAuthenticated && !profile?.onboarding_completed;
 
     if (!isAuthenticated && !inAuthGroup) {
       router.replace('/(auth)/login');
     } else if (isAuthenticated && inAuthGroup) {
+      router.replace((needsOnboarding ? '/onboarding' : '/(tabs)') as Href);
+    } else if (needsOnboarding && !inOnboarding) {
+      router.replace('/onboarding' as Href);
+    } else if (!needsOnboarding && inOnboarding) {
       router.replace('/(tabs)');
     }
-  }, [session, isLoading, segments, router]);
+  }, [session, isLoading, profile, profileLoading, segments, router]);
 
   const showSplash = isLoading || profileLoading || todayLoading || !minTimeElapsed;
 
@@ -66,6 +78,7 @@ function RootLayoutNav() {
     <ErrorBoundary>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="onboarding" />
         <Stack.Screen name="(auth)" />
         <Stack.Screen
           name="modal/edit-profile"
