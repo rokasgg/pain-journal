@@ -48,3 +48,16 @@ export function daysSince(dateStr: string): number {
 export function minutesSince(dateStr: string): number {
   return differenceInMinutes(new Date(), parseISO(dateStr));
 }
+
+export function formatTime(dateStr: string): string {
+  return format(parseISO(dateStr), 'HH:mm');
+}
+
+// Whether an ISO timestamp falls on today's local calendar day — used to
+// find "today's" exercise_logs row without a timezone-unsafe date-range
+// query (logged_at is a timestamptz; comparing the local formatted date
+// after fetch avoids the UTC-boundary bugs toISOString() range queries
+// would introduce, same reasoning as todayLocalDate() above).
+export function isToday(dateStr: string): boolean {
+  return format(parseISO(dateStr), 'yyyy-MM-dd') === todayLocalDate();
+}

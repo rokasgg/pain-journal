@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { useSession } from '@/hooks/useSession';
+import { extractFunctionErrorMessage } from '@/lib/functionsError';
 import { supabase } from '@/lib/supabase';
 import { useLocaleStore } from '@/store/useLocaleStore';
 
@@ -21,7 +22,10 @@ export function useAnalyzePatterns() {
         { body: { locale } },
       );
 
-      if (error) return { analysis: null, error: error.message };
+      if (error) {
+        const message = await extractFunctionErrorMessage(error, error.message);
+        return { analysis: null, error: message };
+      }
       if (data?.error) return { analysis: null, error: data.error };
 
       return { analysis: data?.analysis ?? null, error: null };

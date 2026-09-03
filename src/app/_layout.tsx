@@ -218,6 +218,36 @@ function RootLayoutNav() {
             headerShadowVisible: false,
           }}
         />
+        <Stack.Screen
+          name="routine/complete"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.completeRoutine'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="routine/new"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.newRoutine'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="routine/view"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.viewRoutine'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
+        />
         <Stack.Screen name="physio-visit/new" options={{ headerShown: false }} />
         <Stack.Screen
           name="physio-visit/edit/[id]"

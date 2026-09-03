@@ -3,9 +3,9 @@ import { useState } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
 import { AskAiCta } from '@/components/insights/AskAiCta';
 import { PhysioFocusCard } from '@/components/insights/PhysioFocusCard';
-import { TodaysFocusCard } from '@/components/insights/TodaysFocusCard';
 import { useProfile } from '@/hooks/useProfile';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -19,9 +19,8 @@ export default function InsightsScreen() {
   // Settings' "AI insights" toggle for existing profiles).
   const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
 
-  // Onboarding's "primary goal" answer decides which card leads: "prepare for
-  // appointments" cares most about the physio-focus summary, "track
-  // exercises" cares most about today's stretch/strengthen checklist.
+  // Onboarding's "primary goal" answer decides whether the physio-focus
+  // summary leads the tab — "prepare for appointments" cares most about it.
   // Everything else keeps the standard order.
   const physioFocusFirst = profile?.primary_goal === 'prepare_for_appointments';
 
@@ -47,8 +46,8 @@ export default function InsightsScreen() {
         </View>
 
         <View className="gap-3">
+          <TodaysRoutineCard />
           {physioFocusFirst && aiInsightsEnabled && <PhysioFocusCard />}
-          <TodaysFocusCard />
           {aiInsightsEnabled && <AskAiCta />}
           {!physioFocusFirst && aiInsightsEnabled && <PhysioFocusCard />}
           {/* <TopTriggers /> */}

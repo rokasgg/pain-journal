@@ -215,3 +215,66 @@ export type ProfileUpdate = Partial<
     | 'ai_insights_enabled'
   >
 >;
+
+// One exercise within a Routine's `exercises` jsonb array. `id` is a
+// client-generated string (not a DB row id — exercises don't have their own
+// table), used to match entries up with ExerciseLog.completed_exercises.
+export interface RoutineExercise {
+  id: string;
+  name: string;
+  muscle_group: string;
+  target_sets_reps: string;
+  instructions: string;
+  caution_notes: string;
+}
+
+export interface Routine {
+  id: string;
+  user_id: string;
+  // Set when generated from a physio visit; null when created from free
+  // text/onboarding. FK target is `physio_assessments` in the DB (see
+  // supabase_routines_migration.sql) — the app-level name for that table's
+  // domain is "physio visit", hence this column's name.
+  physio_visit_id: string | null;
+  title: string;
+  is_active: boolean;
+  exercises: RoutineExercise[];
+  created_at: string;
+}
+
+// Creating a routine with is_active: true auto-deactivates the user's other
+// routines via a DB trigger (see migration) — callers don't need to
+// deactivate the previous one themselves first.
+export type RoutineInsert = Omit<Routine, 'id' | 'created_at'> & {
+  id?: string;
+  created_at?: string;
+};
+
+export type ExerciseLogStatus = 'FULL' | 'PARTIAL' | 'SKIPPED';
+
+// One exercise's outcome within an ExerciseLog's `completed_exercises` jsonb
+// array. `exercise_id` matches a `RoutineExercise.id` from the routine this
+// log is for. `pain_discomfort_level` is 0-10, enforced app-side only (same
+// as every other 0-10 field in this schema, e.g. checkins.pain_level).
+export interface CompletedExercise {
+  exercise_id: string;
+  completed: boolean;
+  pain_discomfort_level: number;
+  flagged_pain: boolean;
+  note: string | null;
+}
+
+export interface ExerciseLog {
+  id: string;
+  user_id: string;
+  routine_id: string;
+  logged_at: string;
+  status: ExerciseLogStatus;
+  completed_exercises: CompletedExercise[];
+  general_note: string | null;
+}
+
+export type ExerciseLogInsert = Omit<ExerciseLog, 'id' | 'logged_at'> & {
+  id?: string;
+  logged_at?: string;
+};

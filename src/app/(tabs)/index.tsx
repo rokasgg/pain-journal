@@ -2,6 +2,7 @@ import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
 import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
 import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
 import { FlowerHealthCard } from '@/components/home/FlowerHealthCard';
+import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
 import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -74,6 +75,8 @@ export default function HomeScreen() {
         <FlowerHealthCard />
 
         <CheckinStatusCard />
+
+        <TodaysRoutineCard />
 
         <Link href="/flare-up/new" asChild>
           <Pressable className="items-center rounded-xl justify-center bg-primary h-16 py-3 dark:bg-primaryDark active:opacity-90">
