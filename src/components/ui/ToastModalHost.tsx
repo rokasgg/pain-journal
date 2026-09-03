@@ -1,3 +1,5 @@
+import * as Haptics from 'expo-haptics';
+import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
@@ -34,6 +36,18 @@ export function ToastModalHost() {
   const message = useToastModalStore((state) => state.message);
   const variant = useToastModalStore((state) => state.variant);
   const hide = useToastModalStore((state) => state.hide);
+
+  // ToastModalHost itself is mounted once, permanently, from the root
+  // layout — only the JSX it returns is conditionally null, unlike
+  // AnimatedCheckmark below (which genuinely mounts/unmounts as `visible`
+  // toggles). So this needs `visible` in the deps to fire on every new toast
+  // display, not just once ever on app start. No haptic for
+  // 'info'/'destructive', matching the checkmark's success-only scoping.
+  useEffect(() => {
+    if (visible && variant === 'success') {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+  }, [visible, variant]);
 
   if (!visible) return null;
 

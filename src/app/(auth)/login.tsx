@@ -36,7 +36,9 @@ export default function LoginScreen() {
       return;
     }
 
-    toast.success(t('auth.welcomeBack'));
+    // No success toast here — the root layout's splash screen already
+    // covers the transition into the app, so a tap-to-dismiss "Welcome
+    // back!" dialog on top of it was just an extra step to clear.
   };
 
   return (

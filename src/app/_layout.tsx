@@ -3,7 +3,7 @@ import '../../global.css';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { AppSplashScreen } from '@/components/AppSplashScreen';
@@ -31,6 +31,9 @@ function RootLayoutNav() {
   const router = useRouter();
   const [minTimeElapsed, setMinTimeElapsed] = useState(false);
   const isDark = useColorScheme() === 'dark';
+  // Tracks whether the *previous* render had a session, so we can tell a
+  // fresh sign-in (null -> session) apart from every other re-render.
+  const wasAuthenticatedRef = useRef(false);
 
   useSyncReminderNotifications();
 
@@ -42,6 +45,23 @@ function RootLayoutNav() {
     const timeout = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
     return () => clearTimeout(timeout);
   }, []);
+
+  // Re-run the minimum-splash-time gate on every fresh sign-in, not just on
+  // cold app boot. Without this, the timer (started once above) has almost
+  // always already elapsed by the time someone finishes typing their
+  // credentials and taps "Log In" — so the splash barely flashed on the
+  // login -> tabs transition even though it's the same handoff the cold-boot
+  // splash was built for.
+  useEffect(() => {
+    const isAuthenticated = !!session;
+    if (isAuthenticated && !wasAuthenticatedRef.current) {
+      setMinTimeElapsed(false);
+      const timeout = setTimeout(() => setMinTimeElapsed(true), MIN_SPLASH_MS);
+      wasAuthenticatedRef.current = true;
+      return () => clearTimeout(timeout);
+    }
+    wasAuthenticatedRef.current = isAuthenticated;
+  }, [session]);
 
   useEffect(() => {
     if (isLoading || profileLoading) return;
