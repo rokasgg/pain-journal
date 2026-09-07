@@ -1,3 +1,4 @@
+import { subDays } from 'date-fns';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useSession } from '@/hooks/useSession';
@@ -5,6 +6,33 @@ import { isToday } from '@/lib/dates';
 import { t } from '@/lib/i18n/useTranslation';
 import { supabase } from '@/lib/supabase';
 import type { CompletedExercise, ExerciseLog, ExerciseLogStatus } from '@/types/database.types';
+
+// Recent exercise_logs across all of the user's routines (not scoped to one
+// routine_id like useTodayExerciseLog) — used to drive the Home streak
+// calendar's "which days did I do my routine" view.
+export function useExerciseLogHistory(days = 7) {
+  const { user } = useSession();
+  const since = subDays(new Date(), days).toISOString();
+
+  const { data: logs, isLoading } = useQuery({
+    queryKey: ['exerciseLogs', 'history', user?.id, days],
+    queryFn: async (): Promise<ExerciseLog[]> => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('exercise_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .gte('logged_at', since)
+        .order('logged_at', { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as ExerciseLog[];
+    },
+    enabled: !!user,
+    staleTime: 60_000,
+  });
+
+  return { logs: logs ?? [], isLoading };
+}
 
 // Finds today's exercise_logs row for a routine, if any. Fetches the last
 // few logs and filters by local calendar day client-side rather than a

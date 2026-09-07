@@ -149,9 +149,9 @@ export const en = {
     screenTimeHours: 'Screen time (hours)',
     screenTimeHoursInfo:
       'Roughly how many hours you spent looking at a screen today (phone, computer, TV) — prolonged screen time is a common neck-strain trigger.',
-    didExercises: 'Did PT/stretches today',
+    didExercises: 'Any other workout today?',
     didExercisesInfo:
-      "Whether you did a dedicated physical therapy, stretching, or exercise session today — separate from your day's general activity level above.",
+      "Any other physical activity today — a gym session, a run, sports — separate from your day's general activity level above, and separate from your prescribed routine exercises, if you have one (those are tracked on their own step).",
     exerciseIntensity: 'Exercise intensity',
     exerciseIntensityInfo: 'How intense that exercise/PT session felt, from 0 (very light) to 10 (very intense).',
     light: 'Light',
@@ -572,6 +572,8 @@ export const en = {
     discomfortDuringExercise: 'Discomfort during this exercise',
     exerciseNotePlaceholder: 'Note for this exercise (optional)',
     exerciseDetailButton: 'Expand details for {{name}}',
+    selectAll: 'Select all (no discomfort)',
+    deselectAll: 'Deselect all',
     generalNoteLabel: 'General note',
     generalNotePlaceholder: 'How did the whole routine go?',
     saveLog: 'Save',

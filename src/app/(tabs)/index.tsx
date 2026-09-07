@@ -4,7 +4,8 @@ import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
 import { FlowerHealthCard } from '@/components/home/FlowerHealthCard';
 import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
 import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
-import { useCheckinHistory } from '@/hooks/useCheckins';
+import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
+import { toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useOnboardingCompleteStore } from '@/store/useOnboardingCompleteStore';
@@ -34,13 +35,17 @@ export default function HomeScreen() {
     setDebugCheckmarkVisible(false);
   };
 
-  const { checkins } = useCheckinHistory(7);
+  // Routine-adherence streak, not a generic "were you active today" one —
+  // a day lights up only when the prescribed routine was actually logged
+  // (FULL or PARTIAL), regardless of any other activity noted on the
+  // evening check-in's separate, unrelated `did_exercises` question.
+  const { logs: exerciseLogs } = useExerciseLogHistory(7);
   const exercisedDates = useMemo(
     () =>
       new Set(
-        checkins.filter((c) => c.type === 'evening' && c.did_exercises).map((c) => c.checkin_date),
+        exerciseLogs.filter((log) => log.status !== 'SKIPPED').map((log) => toLocalDate(log.logged_at)),
       ),
-    [checkins],
+    [exerciseLogs],
   );
 
   const handleRefresh = async () => {

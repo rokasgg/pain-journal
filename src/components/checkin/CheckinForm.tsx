@@ -9,6 +9,7 @@ import { FlareUpFollowUpStep } from '@/components/checkin/FlareUpFollowUpStep';
 import { MorningFields } from '@/components/checkin/MorningFields';
 import { PainAreaChips } from '@/components/checkin/PainAreaChips';
 import { PainSlider } from '@/components/checkin/PainSlider';
+import { RoutineTrainingStep } from '@/components/checkin/RoutineTrainingStep';
 import { StepDots } from '@/components/checkin/StepDots';
 import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
@@ -74,6 +75,13 @@ export interface CheckinFormProps {
   onSaved?: () => void;
   header?: ReactNode;
   flareUpCandidate?: FlareUp | null;
+  // Whether the user has an active routine — evening only. When true, a
+  // dedicated "did you train today?" step is inserted before step 1 (see
+  // RoutineTrainingStep), same pre-step mechanism as flareUpCandidate.
+  // Determined by the caller (checkin/[type].tsx via useActiveRoutine())
+  // rather than by CheckinForm itself, matching how flareUpCandidate is
+  // resolved by its caller too.
+  hasActiveRoutine?: boolean;
 }
 
 export function CheckinForm({
@@ -84,6 +92,7 @@ export function CheckinForm({
   onSaved,
   header,
   flareUpCandidate,
+  hasActiveRoutine,
 }: CheckinFormProps) {
   const { t } = useTranslation();
   const { profile } = useProfile();
@@ -91,6 +100,7 @@ export function CheckinForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [flareUpStepDone, setFlareUpStepDone] = useState(false);
+  const [routineStepDone, setRoutineStepDone] = useState(false);
 
   // Onboarding's "how much time per check-in" answer: 'quick' collapses the
   // Symptoms/Triggers step into an optional expandable section on step 2
@@ -100,19 +110,9 @@ export function CheckinForm({
   const totalSteps = isQuickMode ? 2 : TOTAL_STEPS;
   const [showMoreDetails, setShowMoreDetails] = useState(false);
 
-  const resolvedDefaultValues = defaultValues
-    ? defaultValues
-    : {
-      ...(isMorning ? morningDefaults : eveningDefaults),
-      // Onboarding's "does pain radiate" answer: pre-check the two most
-      // likely symptoms on a fresh check-in (never overrides a saved entry).
-      symptoms:
-        profile?.pain_radiates === 'yes' ? { tingling: true, numbness: true } : {},
-    };
-
   const { control, handleSubmit } = useForm<CheckinFormData>({
     resolver: zodResolver(isMorning ? morningCheckinSchema : eveningCheckinSchema),
-    defaultValues: resolvedDefaultValues,
+    defaultValues: defaultValues ?? (isMorning ? morningDefaults : eveningDefaults),
   });
 
   // Morning has a real persisted gate (`woke_up_with_pain`); evening has no DB
@@ -157,6 +157,15 @@ export function CheckinForm({
       <View className="flex-1 bg-background dark:bg-backgroundDark">
         <Stack.Screen options={{ headerRight: () => <StepDots step={0} totalSteps={totalSteps} /> }} />
         <FlareUpFollowUpStep flareUp={flareUpCandidate} onDone={() => setFlareUpStepDone(true)} />
+      </View>
+    );
+  }
+
+  if (hasActiveRoutine && !routineStepDone) {
+    return (
+      <View className="flex-1 bg-background dark:bg-backgroundDark">
+        <Stack.Screen options={{ headerRight: () => <StepDots step={0} totalSteps={totalSteps} /> }} />
+        <RoutineTrainingStep onDone={() => setRoutineStepDone(true)} />
       </View>
     );
   }

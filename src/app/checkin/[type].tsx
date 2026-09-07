@@ -3,9 +3,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 
 import { CheckinForm, type CheckinFormData } from '@/components/checkin/CheckinForm';
-import { ExerciseRoutineCheckinCard } from '@/components/checkin/ExerciseRoutineCheckinCard';
 import { useUpsertCheckin } from '@/hooks/useCheckins';
 import { useFlareUpFollowUpCandidate } from '@/hooks/useFlareUps';
+import { useActiveRoutine } from '@/hooks/useRoutines';
 import { useTodayStatus } from '@/hooks/useTodayStatus';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -21,6 +21,7 @@ export default function CheckinModal() {
   const upsertCheckin = useUpsertCheckin();
   const { eveningUnlocked } = useTodayStatus();
   const flareUpFollowUpCandidate = useFlareUpFollowUpCandidate();
+  const { routine: activeRoutine } = useActiveRoutine();
 
   const handleSubmit = async (data: CheckinFormData) => {
     const { error } = await upsertCheckin.mutateAsync({
@@ -66,7 +67,7 @@ export default function CheckinModal() {
       onSubmit={handleSubmit}
       onSaved={handleSaved}
       flareUpCandidate={isMorning ? flareUpFollowUpCandidate : null}
-      header={!isMorning ? <ExerciseRoutineCheckinCard /> : undefined}
+      hasActiveRoutine={!isMorning && !!activeRoutine}
     />
   );
 }

@@ -59,5 +59,14 @@ export function formatTime(dateStr: string): string {
 // after fetch avoids the UTC-boundary bugs toISOString() range queries
 // would introduce, same reasoning as todayLocalDate() above).
 export function isToday(dateStr: string): boolean {
-  return format(parseISO(dateStr), 'yyyy-MM-dd') === todayLocalDate();
+  return toLocalDate(dateStr) === todayLocalDate();
+}
+
+// Converts any ISO timestamp (e.g. exercise_logs.logged_at, a timestamptz)
+// to its local calendar-day string — the general form of the check `isToday`
+// does above, exposed for callers that need to bucket timestamps by local
+// day rather than just compare against today (e.g. building a Set of
+// exercised dates for a calendar widget).
+export function toLocalDate(dateStr: string): string {
+  return format(parseISO(dateStr), 'yyyy-MM-dd');
 }

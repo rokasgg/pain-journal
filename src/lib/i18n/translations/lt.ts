@@ -153,9 +153,9 @@ export const lt: typeof en = {
     screenTimeHours: 'Laikas prie ekrano (val.)',
     screenTimeHoursInfo:
       'Maždaug kiek valandų šiandien praleidote žiūrėdami į ekraną (telefoną, kompiuterį, TV) — ilgas laikas prie ekrano yra dažnas kaklo įtampos sukėlėjas.',
-    didExercises: 'Šiandien atlikote pratimus/mankštą',
+    didExercises: 'Ar šiandien sportavote papildomai?',
     didExercisesInfo:
-      'Ar šiandien atlikote skirtą fizinės terapijos, tempimo ar mankštos seansą — atskirai nuo bendro dienos aktyvumo lygio aukščiau.',
+      'Bet koks kitas fizinis aktyvumas šiandien — treniruotė salėje, bėgimas, sportas — atskirai nuo bendro dienos aktyvumo lygio aukščiau ir atskirai nuo jūsų priskirtos reabilitacijos treniruotės pratimų, jei tokią turite (jie sekami atskirame žingsnyje).',
     exerciseIntensity: 'Pratimų intensyvumas',
     exerciseIntensityInfo:
       'Koks buvo šio pratimų/fizinės terapijos seanso intensyvumas, nuo 0 (labai lengvas) iki 10 (labai intensyvus).',
@@ -580,6 +580,8 @@ export const lt: typeof en = {
     discomfortDuringExercise: 'Diskomfortas šio pratimo metu',
     exerciseNotePlaceholder: 'Pastaba šiam pratimui (neprivaloma)',
     exerciseDetailButton: 'Išskleisti detales pratimui {{name}}',
+    selectAll: 'Pažymėti visus (be diskomforto)',
+    deselectAll: 'Nužymėti visus',
     generalNoteLabel: 'Bendra pastaba',
     generalNotePlaceholder: 'Kaip sekėsi visa treniruotė?',
     saveLog: 'Išsaugoti',
