@@ -62,11 +62,21 @@ export function TodaysRoutineCard() {
         </Pressable>
       </Link>
 
-      <Link href={'/routine/new' as Href} asChild>
-        <Pressable className="items-center py-1">
-          <Text className="text-sm font-medium text-primary dark:text-primaryDark">{t('routine.newRoutine')}</Text>
-        </Pressable>
-      </Link>
+      <View className="flex-row justify-center gap-4">
+        <Link href={'/routine/new' as Href} asChild>
+          <Pressable className="items-center py-1">
+            <Text className="text-sm font-medium text-primary dark:text-primaryDark">{t('routine.newRoutine')}</Text>
+          </Pressable>
+        </Link>
+
+        <Link href={'/routine/history' as Href} asChild>
+          <Pressable className="items-center py-1">
+            <Text className="text-sm font-medium text-primary dark:text-primaryDark">
+              {t('routine.routineHistory')}
+            </Text>
+          </Pressable>
+        </Link>
+      </View>
     </View>
   );
 }

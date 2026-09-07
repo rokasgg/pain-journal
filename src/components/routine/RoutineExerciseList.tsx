@@ -1,0 +1,64 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
+
+import { colors } from '@/lib/theme';
+import type { RoutineExercise } from '@/types/database.types';
+
+export interface RoutineExerciseListProps {
+  exercises: RoutineExercise[];
+}
+
+// Read-only, expandable exercise list — shared between routine/view.tsx
+// (the active routine) and routine/[id].tsx (any past routine from
+// history), so the two don't duplicate this presentation.
+export function RoutineExerciseList({ exercises }: RoutineExerciseListProps) {
+  // Each exercise expands/collapses independently, not a single-expand
+  // accordion — a Set of currently-expanded exercise ids.
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  return (
+    <>
+      {exercises.map((exercise) => {
+        const isExpanded = expandedIds.has(exercise.id);
+        return (
+          <View
+            key={exercise.id}
+            className="gap-1.5 rounded-xl border border-gray-200 bg-surface p-4 dark:border-gray-800 dark:bg-surfaceDark"
+          >
+            <Pressable
+              onPress={() => toggleExpanded(exercise.id)}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: isExpanded }}
+              className="flex-row items-center justify-between gap-3"
+            >
+              <View className="flex-1">
+                <Text className="text-base font-semibold text-black dark:text-white">{exercise.name}</Text>
+                <Text className="text-xs text-gray-500 dark:text-gray">
+                  {exercise.muscle_group} · {exercise.target_sets_reps}
+                </Text>
+              </View>
+              <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={18} color={colors.gray} />
+            </Pressable>
+
+            {isExpanded && (
+              <View className="gap-1.5 pt-1.5">
+                <Text className="text-sm text-black dark:text-white">{exercise.instructions}</Text>
+                <Text className="text-xs italic text-amber-700 dark:text-amber-500">{exercise.caution_notes}</Text>
+              </View>
+            )}
+          </View>
+        );
+      })}
+    </>
+  );
+}

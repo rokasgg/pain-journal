@@ -239,6 +239,36 @@ function RootLayoutNav() {
           }}
         />
         <Stack.Screen
+          name="routine/review"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.reviewRoutine'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="routine/history"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.routineHistory'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
+        />
+        <Stack.Screen
+          name="routine/[id]"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.viewRoutine'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
+        />
+        <Stack.Screen
           name="routine/view"
           options={{
             headerShown: true,

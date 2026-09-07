@@ -196,6 +196,16 @@ Deno.serve(async (req: Request) => {
     muscleStatesJson = "N/A";
   }
 
+  // Client-supplied exercises to keep from the user's previous routine —
+  // spliced in verbatim after Claude's response, never sent through Claude
+  // itself (asking an LLM to "reproduce unchanged" risks subtle rewording,
+  // and these are already known-good). Validated below with the same
+  // isValidExercise() used for Claude's own output, since this is now
+  // client-supplied data unlike the rest of this function's inputs.
+  const carryForwardExercises = Array.isArray(body?.carry_forward_exercises)
+    ? body.carry_forward_exercises.filter(isValidExercise)
+    : [];
+
   const userMessage = `INPUT DATA:
 - Patient Diagnosis / Main Issue: ${diagnosisOrBodyArea}
 - Physio Visit Notes & Recommendations: ${physioNotesOrRawInput}
@@ -265,29 +275,15 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // is_active: true — the DB trigger (deactivate_other_routines(), see
-  // supabase_routines_migration.sql) auto-deactivates the user's previous
-  // active routine, so this insert doesn't need to do that itself.
-  const { data: routine, error: insertError } = await supabase
-    .from("routines")
-    .insert({
-      user_id: user.id,
-      physio_visit_id: physioVisitId,
-      title: parsed.routine_title,
-      is_active: true,
-      exercises: parsed.exercises,
-    })
-    .select()
-    .single();
+  // Nothing is saved here anymore — this returns a draft for the client to
+  // review/edit on routine/review.tsx; the actual insert (with is_active:
+  // true, which is what triggers deactivate_other_routines() in
+  // supabase_routines_migration.sql) happens client-side via
+  // useCreateRoutine() only once the user confirms/edits and taps Save.
+  const exercises = [...carryForwardExercises, ...parsed.exercises];
 
-  if (insertError) {
-    return new Response(JSON.stringify({ error: insertError.message }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  return new Response(JSON.stringify({ routine, summary: parsed.summary }), {
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+  return new Response(
+    JSON.stringify({ routine_title: parsed.routine_title, summary: parsed.summary, exercises }),
+    { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+  );
 });
