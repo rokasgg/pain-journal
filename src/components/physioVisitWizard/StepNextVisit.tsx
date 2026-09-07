@@ -4,7 +4,6 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { PhysioQuestionsEditor } from '@/components/physioVisitWizard/PhysioQuestionsEditor';
 import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
 import { DatePickerField } from '@/components/ui/DatePickerField';
-import { Input } from '@/components/ui/Input';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -26,11 +25,9 @@ function shortcutDate(shortcut: NextVisitShortcut): string {
   }
 }
 
-export interface Step4NotesAndNextProps {
-  overallNotes: string | null;
+export interface StepNextVisitProps {
   nextVisitDate: string | null;
   questions: PhysioQuestionFormData[];
-  onChangeOverallNotes: (value: string) => void;
   onChangeNextVisitDate: (value: string | null) => void;
   onChangeQuestions: (questions: PhysioQuestionFormData[]) => void;
   onBack: () => void;
@@ -38,17 +35,15 @@ export interface Step4NotesAndNextProps {
   isSaving: boolean;
 }
 
-export function Step4NotesAndNext({
-  overallNotes,
+export function StepNextVisit({
   nextVisitDate,
   questions,
-  onChangeOverallNotes,
   onChangeNextVisitDate,
   onChangeQuestions,
   onBack,
   onSave,
   isSaving,
-}: Step4NotesAndNextProps) {
+}: StepNextVisitProps) {
   const { t } = useTranslation();
 
   const shortcuts: { key: NextVisitShortcut; labelKey: string }[] = [
@@ -72,53 +67,44 @@ export function Step4NotesAndNext({
 
   return (
     <View className="flex-1">
-    <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-6">
-      <Text className="text-lg font-semibold text-black dark:text-white">
-        {t('physioVisit.wizard.step4Title')}
-      </Text>
-
-      <Input
-        label={t('physioVisit.overallNotes')}
-        multiline
-        numberOfLines={3}
-        value={overallNotes ?? ''}
-        onChangeText={onChangeOverallNotes}
-      />
-
-      <View className="gap-1.5">
-        <Text className="text-sm font-medium text-black dark:text-white">
-          {t('physioVisit.wizard.nextVisitLabel')}
+      <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-6">
+        <Text className="text-lg font-semibold text-black dark:text-white">
+          {t('physioVisit.wizard.step3Title')}
         </Text>
-        <View className="flex-row flex-wrap gap-2">
-          {shortcuts.map((shortcut) => {
-            const isActive = activeShortcut === shortcut.key;
-            return (
-              <Pressable
-                key={shortcut.key}
-                onPress={() => handleShortcutPress(shortcut.key)}
-                className={`rounded-full px-3 py-1.5 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
-                  }`}
-              >
-                <Text className={`text-sm font-medium ${isActive ? 'text-white' : 'text-black dark:text-white'}`}>
-                  {t(shortcut.labelKey)}
-                </Text>
-              </Pressable>
-            );
-          })}
+
+        <View className="gap-1.5">
+          <Text className="text-sm font-medium text-black dark:text-white">
+            {t('physioVisit.wizard.nextVisitLabel')}
+          </Text>
+          <View className="flex-row flex-wrap gap-2">
+            {shortcuts.map((shortcut) => {
+              const isActive = activeShortcut === shortcut.key;
+              return (
+                <Pressable
+                  key={shortcut.key}
+                  onPress={() => handleShortcutPress(shortcut.key)}
+                  className={`rounded-full px-3 py-1.5 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+                    }`}
+                >
+                  <Text className={`text-sm font-medium ${isActive ? 'text-white' : 'text-black dark:text-white'}`}>
+                    {t(shortcut.labelKey)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          {activeShortcut === 'custom' && (
+            <DatePickerField value={nextVisitDate} onChange={onChangeNextVisitDate} className="mt-2" />
+          )}
         </View>
-        {activeShortcut === 'custom' && (
-          <DatePickerField value={nextVisitDate} onChange={onChangeNextVisitDate} className="mt-2" />
-        )}
-      </View>
 
-      <View className="gap-1.5">
-        <Text className="text-sm font-medium text-black dark:text-white">
-          {t('physioVisit.wizard.questionsDiscussedTitle')}
-        </Text>
-        <PhysioQuestionsEditor questions={questions} onChange={onChangeQuestions} />
-      </View>
-
-    </ScrollView>
+        <View className="gap-1.5">
+          <Text className="text-sm font-medium text-black dark:text-white">
+            {t('physioVisit.wizard.questionsDiscussedTitle')}
+          </Text>
+          <PhysioQuestionsEditor questions={questions} onChange={onChangeQuestions} />
+        </View>
+      </ScrollView>
 
       <WizardFooter>
         <Pressable

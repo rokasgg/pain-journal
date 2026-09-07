@@ -1,13 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMemo, useState } from 'react';
-import { Controller, useFieldArray, useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Pressable, ScrollView, Text } from 'react-native';
 
-import { MuscleFindingRow } from '@/components/checkin/MuscleFindingRow';
 import { PhysioQuestionsEditor } from '@/components/physioVisitWizard/PhysioQuestionsEditor';
 import { DatePickerField } from '@/components/ui/DatePickerField';
 import { Input } from '@/components/ui/Input';
-import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -19,21 +17,12 @@ export interface PhysioAssessmentFormProps {
   onSubmit: (data: PhysioAssessmentFormData) => Promise<void>;
 }
 
-const emptyFinding: PhysioAssessmentFormData['findings'][number] = {
-  muscle_name: '',
-  status: 'weak',
-  side: null,
-  severity: null,
-  notes: null,
-};
-
 const emptyDefaults: PhysioAssessmentFormData = {
   visit_date: todayLocalDate(),
   physio_name: null,
   overall_notes: null,
   next_visit_date: null,
   questions: [],
-  findings: [emptyFinding],
 };
 
 export function PhysioAssessmentForm({
@@ -43,32 +32,11 @@ export function PhysioAssessmentForm({
 }: PhysioAssessmentFormProps) {
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { assessments } = usePhysioAssessments();
 
   const { control, handleSubmit } = useForm<PhysioAssessmentFormData>({
     resolver: zodResolver(physioAssessmentSchema),
     defaultValues,
   });
-
-  const { fields, append, remove } = useFieldArray({ control, name: 'findings' });
-
-  // Assessments are already ordered by visit_date desc, so the first occurrence
-  // of each muscle name (case-insensitive) is this user's most recent use of it.
-  const recentMuscleNames = useMemo(() => {
-    const seen = new Set<string>();
-    const names: string[] = [];
-    for (const assessment of assessments) {
-      for (const finding of assessment.muscle_findings ?? []) {
-        const trimmed = finding.muscle_name.trim();
-        const key = trimmed.toLowerCase();
-        if (trimmed && !seen.has(key)) {
-          seen.add(key);
-          names.push(trimmed);
-        }
-      }
-    }
-    return names;
-  }, [assessments]);
 
   const handleSave = async (data: PhysioAssessmentFormData) => {
     setIsSubmitting(true);
@@ -118,11 +86,13 @@ export function PhysioAssessmentForm({
         render={({ field: { value, onChange, onBlur } }) => (
           <Input
             label={t('physioVisit.overallNotes')}
+            info={t('physioVisit.overallNotesInfo')}
             multiline
-            numberOfLines={3}
+            textAlignVertical="top"
             value={value ?? ''}
             onChangeText={onChange}
             onBlur={onBlur}
+            inputClassName="h-48"
           />
         )}
       />
@@ -139,27 +109,6 @@ export function PhysioAssessmentForm({
           </>
         )}
       />
-
-      <Text className="text-sm font-medium text-black dark:text-white">{t('physioVisit.muscleFindings')}</Text>
-
-      {fields.map((field, index) => (
-        <MuscleFindingRow
-          key={field.id}
-          control={control}
-          index={index}
-          onRemove={() => remove(index)}
-          removable={fields.length > 1}
-          recentMuscleNames={recentMuscleNames}
-        />
-      ))}
-
-      <Pressable
-        onPress={() => append(emptyFinding)}
-        accessibilityRole="button"
-        className="items-center rounded-lg border border-dashed border-gray-400 py-3 dark:border-gray-600"
-      >
-        <Text className="text-sm font-medium text-gray-500 dark:text-gray">{t('physioVisit.addMuscle')}</Text>
-      </Pressable>
 
       <Pressable
         onPress={handleSubmit(handleSave)}

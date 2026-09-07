@@ -25,12 +25,21 @@ export default function EditPhysioVisitModal() {
   }
 
   const handleSubmit = async (data: PhysioAssessmentFormData) => {
-    const { visit_date, physio_name, overall_notes, next_visit_date, questions, findings } = data;
+    const { visit_date, physio_name, overall_notes, next_visit_date, questions } = data;
 
+    // The form no longer collects muscle findings — pass through the visit's
+    // existing findings unchanged so editing doesn't wipe historical data via
+    // useUpdatePhysioAssessment's delete-then-reinsert.
     const { error } = await updatePhysioAssessment.mutateAsync({
       id: assessment.id,
       assessment: { visit_date, physio_name, overall_notes, next_visit_date, questions },
-      findings,
+      findings: (assessment.muscle_findings ?? []).map((finding) => ({
+        muscle_name: finding.muscle_name,
+        status: finding.status,
+        side: finding.side as 'left' | 'right' | 'bilateral' | null,
+        severity: finding.severity,
+        notes: finding.notes,
+      })),
     });
 
     if (error) {
@@ -50,13 +59,6 @@ export default function EditPhysioVisitModal() {
         overall_notes: assessment.overall_notes,
         next_visit_date: assessment.next_visit_date,
         questions: assessment.questions ?? [],
-        findings: (assessment.muscle_findings ?? []).map((finding) => ({
-          muscle_name: finding.muscle_name,
-          status: finding.status,
-          side: finding.side as 'left' | 'right' | 'bilateral' | null,
-          severity: finding.severity,
-          notes: finding.notes,
-        })),
       }}
       submitLabel={t('physioVisit.saveChanges')}
       onSubmit={handleSubmit}

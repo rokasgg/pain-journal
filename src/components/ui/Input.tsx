@@ -12,11 +12,12 @@ export interface InputProps extends TextInputProps {
   isPassword?: boolean;
   className?: string;
   labelClassName?: string;
+  inputClassName?: string;
   info?: string;
 }
 
 export const Input = forwardRef<TextInput, InputProps>(function Input(
-  { label, error, isPassword, className, labelClassName, info, secureTextEntry, ...props },
+  { label, error, isPassword, className, labelClassName, inputClassName, info, secureTextEntry, ...props },
   ref,
 ) {
   const { t } = useTranslation();
@@ -40,7 +41,7 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           placeholderTextColor={colors.gray}
           secureTextEntry={hideText}
           className={`rounded-lg border bg-surface px-4 py-3 text-strongGray dark:bg-surfaceDark dark:text-white ${error ? 'border-red dark:border-red-500' : 'border-gray dark:border-gray'
-            } ${isPassword ? 'pr-12' : ''}`}
+            } ${isPassword ? 'pr-12' : ''} ${inputClassName ?? ''}`}
           {...props}
         />
 

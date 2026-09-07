@@ -9,11 +9,9 @@ import type {
 export const ONBOARDING_TOTAL_STEPS = 6;
 
 // Broad, one-level body regions for onboarding's "which areas hurt?" step —
-// deliberately NOT the muscle-level accordion (category → specific muscle,
-// e.g. "Levator scapulae") used in the physio visit log form. That level of
-// detail belongs only in src/components/checkin/MuscleNameField.tsx /
-// PhysioAssessmentForm.tsx, where a physio's actual findings are recorded;
-// onboarding just needs a quick, flat multi-select.
+// deliberately not clinical muscle-level detail (physio visit logging no
+// longer collects that either — see CLAUDE.md's Pain/Neck Tracker Domain
+// section). Onboarding just needs a quick, flat multi-select.
 export const PAIN_LOCATION_OPTIONS: { value: string; labelKey: string }[] = [
   { value: 'neck', labelKey: 'onboarding.locationNeck' },
   { value: 'shoulders_upper_back', labelKey: 'onboarding.locationShouldersUpperBack' },

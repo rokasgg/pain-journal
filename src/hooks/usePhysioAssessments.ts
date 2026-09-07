@@ -63,6 +63,8 @@ export function useCreatePhysioAssessment() {
         return { error: assessmentError?.message ?? t('common.notSignedIn') };
       }
 
+      if (input.findings.length === 0) return { error: null };
+
       const { error: findingsError } = await supabase
         .from('muscle_findings')
         .insert(input.findings.map((finding) => ({ ...finding, assessment_id: assessment.id })));
@@ -99,9 +101,14 @@ export function useUpdatePhysioAssessment() {
 
       // Simplest correct way to reconcile the findings list without a
       // transaction/RPC: drop the old rows for this assessment and reinsert
-      // the current form state as new rows.
+      // the current form state as new rows. Callers now pass through the
+      // assessment's existing findings unchanged (the form no longer collects
+      // them), so this is a no-op for new visits (empty) and preserves old
+      // visits' data on edit.
       const { error: deleteError } = await supabase.from('muscle_findings').delete().eq('assessment_id', input.id);
       if (deleteError) return { error: deleteError.message };
+
+      if (input.findings.length === 0) return { error: null };
 
       const { error: insertError } = await supabase
         .from('muscle_findings')

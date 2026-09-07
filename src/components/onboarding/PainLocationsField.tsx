@@ -10,9 +10,7 @@ export interface PainLocationsFieldProps {
 }
 
 // Flat, single-level multi-select of broad body regions — no accordion, no
-// second-level muscle picker. That level of detail (category → specific
-// muscle, e.g. "Levator scapulae") stays exclusive to the physio visit log
-// form's MuscleNameField.tsx; onboarding only needs a quick toggle list.
+// second-level muscle picker; onboarding only needs a quick toggle list.
 export function PainLocationsField({ value, onChange, className }: PainLocationsFieldProps) {
   const { t } = useTranslation();
 
