@@ -219,7 +219,7 @@ function RootLayoutNav() {
           }}
         />
         <Stack.Screen
-          name="routine/complete"
+          name="routine/complete/[id]"
           options={{
             headerShown: true,
             title: t('screenTitles.completeRoutine'),
@@ -249,16 +249,6 @@ function RootLayoutNav() {
           }}
         />
         <Stack.Screen
-          name="routine/history"
-          options={{
-            headerShown: true,
-            title: t('screenTitles.routineHistory'),
-            headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
-          }}
-        />
-        <Stack.Screen
           name="routine/[id]"
           options={{
             headerShown: true,
@@ -269,10 +259,20 @@ function RootLayoutNav() {
           }}
         />
         <Stack.Screen
+          name="routine/edit/[id]"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.editRoutine'),
+            headerBackButtonDisplayMode: 'minimal',
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
+        />
+        <Stack.Screen
           name="routine/view"
           options={{
             headerShown: true,
-            title: t('screenTitles.viewRoutine'),
+            title: t('screenTitles.routineHistory'),
             headerBackButtonDisplayMode: 'minimal',
             headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
             headerShadowVisible: false,

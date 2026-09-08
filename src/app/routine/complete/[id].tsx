@@ -1,20 +1,26 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ExerciseLogChecklist } from '@/components/checkin/ExerciseLogChecklist';
 import { Input } from '@/components/ui/Input';
 import { useCreateExerciseLog } from '@/hooks/useExerciseLogs';
-import { useActiveRoutine } from '@/hooks/useRoutines';
+import { useRoutine } from '@/hooks/useRoutines';
 import { buildCompletedExercises, computeExerciseLogStatus, initExerciseLogDraft } from '@/lib/exerciseLog';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { toast } from '@/utils/toast';
 
+// Trains one specific routine — reached from that routine's own
+// routine/[id].tsx detail screen's "Start training" button, which only
+// shows for routines currently in rotation. Any in-rotation routine can be
+// trained this way, not just a single "active" one (see
+// useRoutinesInRotation in useRoutines.ts).
 export default function CompleteRoutineScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
-  const { routine, isLoading } = useActiveRoutine();
+  const { routine, isLoading } = useRoutine(id);
   const createExerciseLog = useCreateExerciseLog();
 
   const [draft, setDraft] = useState(() => initExerciseLogDraft(routine?.exercises ?? []));
@@ -32,7 +38,7 @@ export default function CompleteRoutineScreen() {
   if (!routine) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-6 dark:bg-backgroundDark">
-        <Text className="text-center text-gray-500 dark:text-gray">{t('routine.noActiveRoutine')}</Text>
+        <Text className="text-center text-gray-500 dark:text-gray">{t('common.entryNotFound')}</Text>
       </View>
     );
   }

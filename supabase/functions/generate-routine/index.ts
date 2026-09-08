@@ -276,11 +276,23 @@ Deno.serve(async (req: Request) => {
   }
 
   // Nothing is saved here anymore — this returns a draft for the client to
-  // review/edit on routine/review.tsx; the actual insert (with is_active:
-  // true, which is what triggers deactivate_other_routines() in
-  // supabase_routines_migration.sql) happens client-side via
+  // review/edit on routine/review.tsx; the actual insert (with
+  // in_rotation: true — any number of routines can be in rotation at once,
+  // see supabase_routines_migration_v2.sql) happens client-side via
   // useCreateRoutine() only once the user confirms/edits and taps Save.
-  const exercises = [...carryForwardExercises, ...parsed.exercises];
+  //
+  // Reassign fresh ids across the merged list rather than trusting either
+  // source's own: carryForwardExercises keep whatever id they had in the
+  // *previous* routine (e.g. "ex_1"), and Claude always starts its own
+  // numbering at "ex_1" too (per the prompt's example), so combining the two
+  // verbatim reliably produces duplicate ids whenever carry-forward is used
+  // alongside newly generated exercises. Ids only need to be unique within
+  // this one routine — nothing matches them across routines — so overwriting
+  // them here is safe.
+  const exercises = [...carryForwardExercises, ...parsed.exercises].map((exercise, index) => ({
+    ...exercise,
+    id: `ex_${index + 1}`,
+  }));
 
   return new Response(
     JSON.stringify({ routine_title: parsed.routine_title, summary: parsed.summary, exercises }),

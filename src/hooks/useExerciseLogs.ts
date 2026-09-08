@@ -64,6 +64,39 @@ export function useTodayExerciseLog(routineId: string | undefined) {
   return { log, isLoading };
 }
 
+// Same idea as useTodayExerciseLog, but across every routine currently in
+// rotation rather than one specific routine — used by the evening check-in's
+// RoutineTrainingStep to answer "has anything been logged today?" before
+// deciding whether to show a routine picker. A user is assumed to log at
+// most one routine per day (see the routines-in-rotation plan), so this
+// intentionally returns a single log, not one per routine.
+export function useTodayExerciseLogForAny(routineIds: string[]) {
+  const { user } = useSession();
+  const key = [...routineIds].sort().join(',');
+
+  const { data: logs, isLoading } = useQuery({
+    queryKey: ['exerciseLogs', 'recentForAny', user?.id, key],
+    queryFn: async (): Promise<ExerciseLog[]> => {
+      if (!user || routineIds.length === 0) return [];
+      const { data, error } = await supabase
+        .from('exercise_logs')
+        .select('*')
+        .eq('user_id', user.id)
+        .in('routine_id', routineIds)
+        .order('logged_at', { ascending: false })
+        .limit(5);
+      if (error) throw error;
+      return (data ?? []) as ExerciseLog[];
+    },
+    enabled: !!user && routineIds.length > 0,
+    staleTime: 30_000,
+  });
+
+  const log = (logs ?? []).find((entry) => isToday(entry.logged_at)) ?? null;
+
+  return { log, isLoading };
+}
+
 export function useCreateExerciseLog() {
   const { user } = useSession();
   const queryClient = useQueryClient();

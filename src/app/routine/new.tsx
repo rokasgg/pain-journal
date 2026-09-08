@@ -8,11 +8,12 @@ import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
 import { Input } from '@/components/ui/Input';
 import { useGenerateRoutine, type GenerateRoutineInput } from '@/hooks/useGenerateRoutine';
 import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
-import { useActiveRoutine } from '@/hooks/useRoutines';
+import { useRoutinesInRotation } from '@/hooks/useRoutines';
 import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { usePendingRoutineDraftStore } from '@/store/usePendingRoutineDraftStore';
+import type { Routine } from '@/types/database.types';
 import { toast } from '@/utils/toast';
 
 type Source = 'physio_visit' | 'manual_input';
@@ -23,7 +24,7 @@ export default function NewRoutineScreen() {
   const router = useRouter();
   const { t } = useTranslation();
   const { assessments, isLoading: isLoadingAssessments } = usePhysioAssessments();
-  const { routine: currentRoutine } = useActiveRoutine();
+  const { routines: routinesInRotation } = useRoutinesInRotation();
   const generateRoutine = useGenerateRoutine();
   const setDraft = usePendingRoutineDraftStore((s) => s.setDraft);
 
@@ -33,11 +34,21 @@ export default function NewRoutineScreen() {
   const [inputText, setInputText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
+  // With exactly one routine in rotation, carry forward from it directly
+  // (unchanged from before multiple routines existed). With more than one
+  // (e.g. alternating Day A / Day B), the user first picks which one to
+  // carry exercises from — carryFromRoutineId stays null until they do.
+  const [carryFromRoutineId, setCarryFromRoutineId] = useState<string | null>(null);
+  const currentRoutine: Routine | null =
+    routinesInRotation.length === 1
+      ? routinesInRotation[0]
+      : routinesInRotation.find((r) => r.id === carryFromRoutineId) ?? null;
+
   // Most exercises repeat between visits — default to keeping all of the
-  // current routine's exercises, user unchecks the ones that no longer
+  // carry-from routine's exercises, user unchecks the ones that no longer
   // apply, rather than having to opt in to each one.
   const [carryForwardIds, setCarryForwardIds] = useState<Set<string>>(
-    () => new Set(currentRoutine?.exercises.map((exercise) => exercise.id) ?? []),
+    () => new Set(routinesInRotation.length === 1 ? routinesInRotation[0].exercises.map((exercise) => exercise.id) : []),
   );
 
   const toggleCarryForward = (id: string) => {
@@ -47,6 +58,11 @@ export default function NewRoutineScreen() {
       else next.add(id);
       return next;
     });
+  };
+
+  const handleSelectCarryFromRoutine = (routine: Routine) => {
+    setCarryFromRoutineId(routine.id);
+    setCarryForwardIds(new Set(routine.exercises.map((exercise) => exercise.id)));
   };
 
   const canGenerate =
@@ -99,6 +115,32 @@ export default function NewRoutineScreen() {
         {step === 1 && (
           <>
             <Text className="text-sm text-gray-500 dark:text-gray">{t('routine.carryForwardStepDescription')}</Text>
+
+            {routinesInRotation.length > 1 && (
+              <View className="gap-2">
+                <Text className="text-sm font-medium text-strongGray dark:text-white">
+                  {t('routine.carryForwardSourceLabel')}
+                </Text>
+                <View className="gap-2">
+                  {routinesInRotation.map((option) => {
+                    const isSelected = option.id === carryFromRoutineId;
+                    return (
+                      <Pressable
+                        key={option.id}
+                        onPress={() => handleSelectCarryFromRoutine(option)}
+                        className={`flex-row items-center justify-between rounded-lg border px-4 py-3 ${isSelected
+                          ? 'border-primary bg-primaryMuted dark:border-primaryDark dark:bg-primaryMutedDark'
+                          : 'border-gray-200 bg-surface dark:border-gray-800 dark:bg-surfaceDark'
+                          }`}
+                      >
+                        <Text className="text-base text-black dark:text-white">{option.title}</Text>
+                        {isSelected && <Text className="text-primary dark:text-primaryDark">✓</Text>}
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
+            )}
 
             {currentRoutine && currentRoutine.exercises.length > 0 ? (
               <View className="gap-2">

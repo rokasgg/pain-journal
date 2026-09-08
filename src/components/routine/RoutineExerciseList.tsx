@@ -7,12 +7,17 @@ import type { RoutineExercise } from '@/types/database.types';
 
 export interface RoutineExerciseListProps {
   exercises: RoutineExercise[];
+  // Optional — wired up by routine/review.tsx's summary step so long-
+  // pressing a card can open an Edit/Delete action sheet. Other callers
+  // (routine/[id].tsx) omit it and get today's plain expand/collapse-only
+  // behavior.
+  onLongPressExercise?: (exercise: RoutineExercise) => void;
 }
 
-// Read-only, expandable exercise list — shared between routine/view.tsx
-// (the active routine) and routine/[id].tsx (any past routine from
-// history), so the two don't duplicate this presentation.
-export function RoutineExerciseList({ exercises }: RoutineExerciseListProps) {
+// Read-only, expandable exercise list — shared between routine/[id].tsx (any
+// routine, active or from history) and routine/review.tsx's final summary
+// step, so the different screens don't duplicate this presentation.
+export function RoutineExerciseList({ exercises, onLongPressExercise }: RoutineExerciseListProps) {
   // Each exercise expands/collapses independently, not a single-expand
   // accordion — a Set of currently-expanded exercise ids.
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -37,6 +42,7 @@ export function RoutineExerciseList({ exercises }: RoutineExerciseListProps) {
           >
             <Pressable
               onPress={() => toggleExpanded(exercise.id)}
+              onLongPress={onLongPressExercise ? () => onLongPressExercise(exercise) : undefined}
               accessibilityRole="button"
               accessibilityState={{ expanded: isExpanded }}
               className="flex-row items-center justify-between gap-3"

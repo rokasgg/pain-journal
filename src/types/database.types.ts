@@ -237,14 +237,13 @@ export interface Routine {
   // domain is "physio visit", hence this column's name.
   physio_visit_id: string | null;
   title: string;
-  is_active: boolean;
+  // Any number of routines can be `in_rotation` at once (see
+  // supabase_routines_migration_v2.sql) — the user manually picks which one
+  // to train each day, e.g. alternating a physio's Day A / Day B routines.
+  in_rotation: boolean;
   exercises: RoutineExercise[];
   created_at: string;
 }
-
-// Creating a routine with is_active: true auto-deactivates the user's other
-// routines via a DB trigger (see migration) — callers don't need to
-// deactivate the previous one themselves first.
 export type RoutineInsert = Omit<Routine, 'id' | 'created_at'> & {
   id?: string;
   created_at?: string;
