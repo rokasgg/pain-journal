@@ -1,7 +1,9 @@
 import { Link, type Href } from 'expo-router';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 
+import { useTodayExerciseLogForAny } from '@/hooks/useExerciseLogs';
 import { useRoutinesInRotation } from '@/hooks/useRoutines';
+import { formatTime } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // Replaces the old static "Today's focus" widget (which grouped the latest
@@ -9,18 +11,23 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 // AI-generated/hand-entered thing of their own — see generate-routine edge
 // function + the `routines` table.
 //
-// Deliberately minimal: routine title(s) + exercise count, and links — no
-// exercise list/checkboxes here. Explicit product decision: a full checklist
-// on Home read as cluttered; the exercise list (read-only, with a "Start
-// training" button) lives on routine/[id].tsx, and actually logging a
-// routine only happens through routine/complete/[id].tsx or the evening
-// check-in's condensed checklist, never from a Home-screen widget.
+// Deliberately minimal — a status glance, not a browsing surface: either
+// today's training is already logged, or a button to do it. No exercise
+// list/checkboxes/per-routine rows here; the exercise list (read-only, with
+// a "Start training" button) lives on routine/[id].tsx, browsing every
+// routine lives on routine/view.tsx (also where "+ New routine" now lives,
+// via its header button), and actually logging a routine only happens
+// through routine/complete/[id].tsx or the evening check-in's condensed
+// checklist — never from this Home-screen widget. An earlier version listed
+// every in-rotation routine as its own row here, which read as busy once
+// more than one routine was in rotation at once (see useRoutinesInRotation
+// in useRoutines.ts) — replaced by this single status + one CTA.
 //
-// Any number of routines can be "in rotation" at once now (e.g. alternating
-// physio-prescribed routines by day) — see useRoutinesInRotation in
-// useRoutines.ts. With exactly one, this card behaves like it always did
-// (title + count, now a direct link to that routine); with more than one, it
-// lists each so the user can pick which one to do today.
+// "Has anything been logged today?" reuses useTodayExerciseLogForAny(), the
+// same hook RoutineTrainingStep.tsx's evening check-in step already uses —
+// a user is assumed to log at most one routine per day (e.g. alternating
+// Day A / Day B), so this stays a single yes/no across every in-rotation
+// routine, not tracked per routine.
 //
 // Always renders a card, even with none in rotation yet (an empty-state
 // message instead of `return null`) — a card that silently disappears when
@@ -30,6 +37,8 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 export function TodaysRoutineCard() {
   const { t } = useTranslation();
   const { routines, isLoading } = useRoutinesInRotation();
+  const routineIds = routines.map((r) => r.id);
+  const { log } = useTodayExerciseLogForAny(routineIds);
 
   if (isLoading) {
     return (
@@ -53,36 +62,30 @@ export function TodaysRoutineCard() {
     );
   }
 
+  // With exactly one routine in rotation, jump straight into it; with more
+  // than one, the user picks which one on the list (same "user picks each
+  // day" model as everywhere else this comes up).
+  const completeHref = (routines.length === 1 ? `/routine/complete/${routines[0].id}` : '/routine/view') as Href;
+
   return (
     <View className="gap-3 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
-      <View className="gap-2">
-        {routines.map((routine) => (
-          <Link key={routine.id} href={`/routine/${routine.id}` as Href} asChild>
-            <Pressable
-              className={
-                routines.length > 1
-                  ? 'flex-row items-center justify-between rounded-lg border border-gray-200 px-3 py-2 dark:border-gray-800 active:opacity-70'
-                  : 'active:opacity-70'
-              }
-            >
-              <Text className="text-base font-semibold text-black dark:text-white">{routine.title}</Text>
-              <Text className="text-sm text-gray-500 dark:text-gray">
-                {t('routine.exerciseCount', { count: routine.exercises.length })}
-              </Text>
-            </Pressable>
-          </Link>
-        ))}
-      </View>
+      <Text className="text-base font-semibold text-black dark:text-white">{t('routine.todaysRoutineTitle')}</Text>
+
+      {log ? (
+        <Text className="text-sm text-gray-500 dark:text-gray">
+          {t('routine.alreadyLoggedTitle', { time: formatTime(log.logged_at) })}
+        </Text>
+      ) : (
+        <Link href={completeHref} asChild>
+          <Pressable className="items-center rounded-lg bg-primary py-3 dark:bg-primaryDark active:opacity-90">
+            <Text className="font-semibold text-white">{t('routine.completeRoutine')}</Text>
+          </Pressable>
+        </Link>
+      )}
 
       <Link href={'/routine/view' as Href} asChild>
-        <Pressable className="items-center rounded-lg bg-primary py-3 dark:bg-primaryDark active:opacity-90">
-          <Text className="font-semibold text-white">{t('routine.viewRoutine')}</Text>
-        </Pressable>
-      </Link>
-
-      <Link href={'/routine/new' as Href} asChild>
         <Pressable className="items-center py-1">
-          <Text className="text-sm font-medium text-primary dark:text-primaryDark">{t('routine.newRoutine')}</Text>
+          <Text className="text-sm font-medium text-primary dark:text-primaryDark">{t('routine.viewRoutine')}</Text>
         </Pressable>
       </Link>
     </View>

@@ -1,5 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
-import { Link, useRouter, type Href } from 'expo-router';
+import { Link, Stack, useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
@@ -8,16 +9,19 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useDeleteRoutine, useRoutineHistory, useSetRoutineRotation } from '@/hooks/useRoutines';
 import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { colors } from '@/lib/theme';
 import { toast } from '@/utils/toast';
 
 // All of the user's routines, newest first — old ones are never deleted
 // (in_rotation just flips to false, see supabase_routines_migration_v2.sql).
-// This is what TodaysRoutineCard's "View routine" button opens; tapping an
+// This is what TodaysRoutineCard's "View routines" link opens; tapping an
 // entry goes to routine/[id].tsx for the full exercise list (and, for any
 // routine currently in rotation, a "Start training" button — any number of
 // routines can be in rotation at once, e.g. alternating physio-prescribed
 // routines by day). Long-pressing a card opens an Edit/Rotation/Delete
-// action sheet, same pattern as history/physio-visits.tsx.
+// action sheet, same pattern as history/physio-visits.tsx. The header's "+"
+// button opens routine/new.tsx — moved here from TodaysRoutineCard.tsx,
+// since this is where routines are actually browsed/managed.
 export default function ViewRoutinesScreen() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -89,9 +93,25 @@ export default function ViewRoutinesScreen() {
     { label: t('common.delete'), onPress: handleRequestDelete, destructive: true },
   ];
 
+  // "+ New routine" moved here from TodaysRoutineCard.tsx — this is where
+  // routines are actually browsed/managed, so it's the natural home for
+  // adding one too.
+  const headerRight = () => (
+    <Pressable
+      onPress={() => router.push('/routine/new' as Href)}
+      accessibilityRole="button"
+      accessibilityLabel={t('routine.newRoutine')}
+      hitSlop={8}
+      className="mr-1"
+    >
+      <Ionicons name="add" size={26} color={colors.primary} />
+    </Pressable>
+  );
+
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background dark:bg-backgroundDark">
+        <Stack.Screen options={{ headerRight }} />
         <ActivityIndicator />
       </View>
     );
@@ -100,6 +120,7 @@ export default function ViewRoutinesScreen() {
   if (routines.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-6 dark:bg-backgroundDark">
+        <Stack.Screen options={{ headerRight }} />
         <Text className="text-center text-gray-500 dark:text-gray">{t('routine.noRoutinesYet')}</Text>
       </View>
     );
@@ -107,6 +128,7 @@ export default function ViewRoutinesScreen() {
 
   return (
     <>
+      <Stack.Screen options={{ headerRight }} />
       <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-3 px-6 py-6">
         {routines.map((routine) => (
           <Link key={routine.id} href={`/routine/${routine.id}` as Href} asChild>
