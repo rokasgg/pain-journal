@@ -155,6 +155,8 @@ describe('buildMonthlyWrap', () => {
         note: null,
       })),
       general_note: null,
+      pain_before: null,
+      pain_after: null,
     });
     const exerciseLogs = [
       log('2', 'FULL', ['ex_1', 'ex_2']),

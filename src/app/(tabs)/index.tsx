@@ -6,11 +6,14 @@ import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
 import { WrapReadyCard } from '@/components/home/WrapReadyCard';
 import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
 import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
-import { toLocalDate } from '@/lib/dates';
+import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
+import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { weeklyTrainingProgress } from '@/lib/trainingInsights';
 import { useOnboardingCompleteStore } from '@/store/useOnboardingCompleteStore';
 import { haptics } from '@/utils/haptics';
+import { toast } from '@/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
@@ -40,18 +43,22 @@ export default function HomeScreen() {
     setDebugCheckmarkVisible(false);
   };
 
-  // Routine-adherence streak, not a generic "were you active today" one —
-  // a day lights up only when the prescribed routine was actually logged
-  // (FULL or PARTIAL), regardless of any other activity noted on the
-  // evening check-in's separate, unrelated `did_exercises` question.
-  const { logs: exerciseLogs } = useExerciseLogHistory(7);
-  const exercisedDates = useMemo(
-    () =>
-      new Set(
-        exerciseLogs.filter((log) => log.status !== 'SKIPPED').map((log) => toLocalDate(log.logged_at)),
-      ),
-    [exerciseLogs],
+  // Routine-adherence weekly goal, not a generic "were you active today" —
+  // a day counts only when the prescribed routine was actually logged (FULL
+  // or PARTIAL), regardless of the evening check-in's separate, unrelated
+  // `did_exercises` question. ~12 weeks fetched so weeks-in-a-row can count.
+  const { logs: exerciseLogs } = useExerciseLogHistory(84);
+  const { profile } = useProfile();
+  const updateProfile = useUpdateProfile();
+  const weeklyGoal = profile?.weekly_training_goal ?? 3;
+  const trainingProgress = useMemo(
+    () => weeklyTrainingProgress(exerciseLogs, weeklyGoal, todayLocalDate()),
+    [exerciseLogs, weeklyGoal],
   );
+  const handleChangeGoal = async (goal: number) => {
+    const { error } = await updateProfile.mutateAsync({ weekly_training_goal: goal });
+    if (error) toast.error(error);
+  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -99,7 +106,8 @@ export default function HomeScreen() {
         <View className="gap-3">
 
           <ExerciseWeekCalendar
-            exercisedDates={exercisedDates}
+            progress={trainingProgress}
+            onChangeGoal={handleChangeGoal}
             onSelectDate={(date) => router.push(`/history/day/${date}`)}
           />
         </View>

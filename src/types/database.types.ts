@@ -191,6 +191,10 @@ export interface Profile {
   primary_goal: PrimaryGoal | null;
   checkin_depth_preference: CheckinDepthPreference | null;
   ai_insights_enabled: boolean;
+  // Sessions per week for the Home weekly-goal card (1-7, DB default 3).
+  // Optional so profiles fetched before supabase_training_payoff_migration.sql
+  // ran still type-check — read it as `profile?.weekly_training_goal ?? 3`.
+  weekly_training_goal?: number;
 
   created_at: string;
   updated_at: string;
@@ -213,6 +217,7 @@ export type ProfileUpdate = Partial<
     | 'primary_goal'
     | 'checkin_depth_preference'
     | 'ai_insights_enabled'
+    | 'weekly_training_goal'
   >
 >;
 
@@ -271,6 +276,11 @@ export interface ExerciseLog {
   status: ExerciseLogStatus;
   completed_exercises: CompletedExercise[];
   general_note: string | null;
+  // Optional 0-10 pain right before / after the session (see
+  // supabase_training_payoff_migration.sql) — powers "pain 5 → 3" and the
+  // Insights "Is it working?" card.
+  pain_before: number | null;
+  pain_after: number | null;
 }
 
 export type ExerciseLogInsert = Omit<ExerciseLog, 'id' | 'logged_at'> & {

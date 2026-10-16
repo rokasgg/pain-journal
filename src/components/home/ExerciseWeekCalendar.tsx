@@ -1,11 +1,15 @@
 import { eachDayOfInterval, endOfWeek, format, isToday, startOfWeek } from 'date-fns';
+import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
 
+import { ActionSheet, type ActionSheetAction } from '@/components/ui/ActionSheet';
 import { FULL_FLAME_SVG } from '@/constants/fullFlameSvg';
-import { capitalize, DATE_FNS_LOCALES, WEEKDAY_LABELS_BY_LOCALE } from '@/lib/dates';
+import { WEEKDAY_LABELS_BY_LOCALE } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { colors } from '@/lib/theme';
+import type { WeeklyTrainingProgress } from '@/lib/trainingInsights';
+import { useTrainingStore } from '@/store/useTrainingStore';
+import { haptics } from '@/utils/haptics';
 
 const FLAME_WIDTH = 30;
 const FLAME_HEIGHT = 56;
@@ -25,30 +29,80 @@ function flameHtml(svg: string) {
 }
 
 export interface ExerciseWeekCalendarProps {
-  exercisedDates: Set<string>;
+  progress: WeeklyTrainingProgress;
+  onChangeGoal: (goal: number) => void;
   onSelectDate: (date: string) => void;
   className?: string;
 }
 
-export function ExerciseWeekCalendar({ exercisedDates, onSelectDate, className }: ExerciseWeekCalendarProps) {
-  const { locale } = useTranslation();
-  const dateFnsLocale = DATE_FNS_LOCALES[locale];
+const GOAL_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
+
+// Weekly training goal, deliberately not a daily streak: physios often
+// prescribe rest days, so nothing here ever "breaks" on a day off — no chain
+// connectors between days, and progress is "x of goal this week".
+export function ExerciseWeekCalendar({ progress, onChangeGoal, onSelectDate, className }: ExerciseWeekCalendarProps) {
+  const { t, locale } = useTranslation();
   const weekdayLabels = WEEKDAY_LABELS_BY_LOCALE[locale];
   const today = new Date();
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(today, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
-  const { t } = useTranslation();
+  const exercisedDates = new Set(progress.trainedDays);
+  const [isGoalSheetOpen, setIsGoalSheetOpen] = useState(false);
+
+  // One success buzz the first time the goal is reached in a given week.
+  useEffect(() => {
+    if (!progress.goalMet) return;
+    const { celebratedWeeks, markCelebrated } = useTrainingStore.getState();
+    if (celebratedWeeks.includes(progress.weekStart)) return;
+    markCelebrated(progress.weekStart);
+    haptics.success();
+  }, [progress.goalMet, progress.weekStart]);
+
+  const remaining = Math.max(progress.goal - progress.count, 0);
+  const footer =
+    progress.weeksInARow >= 2
+      ? t('training.weeksInARow', { count: progress.weeksInARow })
+      : progress.goalMet
+        ? t('training.goalReached')
+        : t('training.remaining', { count: remaining });
+  const fillPct = Math.min(progress.count / progress.goal, 1) * 100;
+
+  const goalActions: ActionSheetAction[] = GOAL_OPTIONS.map((goal) => ({
+    label: t('training.goalOption', { count: goal }),
+    onPress: () => {
+      setIsGoalSheetOpen(false);
+      if (goal !== progress.goal) {
+        haptics.tick();
+        onChangeGoal(goal);
+      }
+    },
+  }));
+
   return (
     <View className={`gap-3 border-primary dark:border-primaryDark  rounded-2xl bg-white p-2 dark:bg-surfaceDark ${className ?? ''}`}>
 
-      <View className="flex-row items-center justify-between p-2">
-        <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">
-          {t('home.exerciseWeekTitle')}
-        </Text>
-        <Text className="text-base font-semibold text-gray dark:text-white">
-          {capitalize(format(today, 'MMMM yyyy', { locale: dateFnsLocale }))}
-        </Text>
+      <View className="gap-2 p-2">
+        <View className="flex-row items-center justify-between">
+          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">
+            {t('home.exerciseWeekTitle')}
+          </Text>
+          <Pressable
+            onPress={() => setIsGoalSheetOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={t('training.changeGoal')}
+            hitSlop={8}
+            className="flex-row items-baseline gap-1 rounded-full bg-primaryMuted px-3 py-1 active:opacity-70 dark:bg-primaryMutedDark"
+          >
+            <Text className="text-base font-bold text-black dark:text-white">
+              {progress.count} / {progress.goal}
+            </Text>
+            <Text className="text-xs text-gray-500 dark:text-gray">{t('training.thisWeek')}</Text>
+          </Pressable>
+        </View>
+        <View className="h-1.5 overflow-hidden rounded-full bg-primaryMuted dark:bg-primaryMutedDark">
+          <View className="h-full rounded-full bg-primary dark:bg-primaryDark" style={{ width: `${fillPct}%` }} />
+        </View>
       </View>
 
       <View className="flex-row">
@@ -65,30 +119,12 @@ export function ExerciseWeekCalendar({ exercisedDates, onSelectDate, className }
           const isCurrentDay = isToday(day);
           const exercised = exercisedDates.has(dateStr);
 
-          const prevDateStr = index > 0 ? format(days[index - 1], 'yyyy-MM-dd') : null;
-          const nextDateStr = index < days.length - 1 ? format(days[index + 1], 'yyyy-MM-dd') : null;
-          const connectLeft = exercised && !!prevDateStr && exercisedDates.has(prevDateStr);
-          const connectRight = exercised && !!nextDateStr && exercisedDates.has(nextDateStr);
-
           return (
             <Pressable
               key={dateStr}
               // onPress={() => onSelectDate(dateStr)}
               className="relative flex-1 items-center gap-0.5 py-1.5"
             >
-              {(connectLeft || connectRight) && (
-                <View
-                  pointerEvents="none"
-                  style={{
-                    position: 'absolute',
-                    top: 21,
-                    height: 5,
-                    left: connectLeft ? 0 : '50%',
-                    right: connectRight ? 0 : '50%',
-                    backgroundColor: colors.flameBlue,
-                  }}
-                />
-              )}
               <View
                 style={{ zIndex: 1 }}
                 className={`h-8 w-8 items-center justify-center rounded-full ${isCurrentDay ? 'dark:bg-primaryDark' : ''
@@ -132,6 +168,10 @@ export function ExerciseWeekCalendar({ exercisedDates, onSelectDate, className }
           );
         })}
       </View>
+
+      <Text className="px-2 pb-1 text-sm font-medium text-strongGray dark:text-white">{footer}</Text>
+
+      <ActionSheet visible={isGoalSheetOpen} actions={goalActions} onCancel={() => setIsGoalSheetOpen(false)} />
     </View>
   );
 }

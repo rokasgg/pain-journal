@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ExerciseLogChecklist } from '@/components/checkin/ExerciseLogChecklist';
+import { PainSlider } from '@/components/checkin/PainSlider';
 import { YesNoField } from '@/components/checkin/YesNoField';
 import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
 import { Input } from '@/components/ui/Input';
@@ -16,6 +17,7 @@ import {
 } from '@/lib/exerciseLog';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { trainingSavedToastKey } from '@/lib/trainingInsights';
 import { toast } from '@/utils/toast';
 
 export interface RoutineTrainingStepProps {
@@ -61,6 +63,8 @@ export function RoutineTrainingStep({ onDone }: RoutineTrainingStepProps) {
   const [didExercisesToday, setDidExercisesToday] = useState<boolean | null>(null);
   const [draft, setDraft] = useState<ExerciseLogDraft>({});
   const [generalNote, setGeneralNote] = useState('');
+  const [painBefore, setPainBefore] = useState<number | null>(null);
+  const [painAfter, setPainAfter] = useState<number | null>(null);
 
   const [isContinuing, setIsContinuing] = useState(false);
 
@@ -115,6 +119,8 @@ export function RoutineTrainingStep({ onDone }: RoutineTrainingStepProps) {
       status,
       completed_exercises: completedExercises,
       general_note: generalNote.trim() || null,
+      pain_before: painBefore,
+      pain_after: painAfter,
     });
     setIsContinuing(false);
 
@@ -123,7 +129,7 @@ export function RoutineTrainingStep({ onDone }: RoutineTrainingStepProps) {
       return;
     }
 
-    toast.success(t('routine.logSavedToast'));
+    toast.success(t(trainingSavedToastKey(painBefore, painAfter), { before: painBefore ?? '', after: painAfter ?? '' }));
     onDone();
   };
 
@@ -182,6 +188,10 @@ export function RoutineTrainingStep({ onDone }: RoutineTrainingStepProps) {
             {didExercisesToday && (
               <>
                 <ExerciseLogChecklist exercises={routine.exercises} draft={resolvedDraft} onChange={setDraft} />
+
+                {/* Optional — logged after the fact here, so both sit together. */}
+                <PainSlider label={t('routine.painBefore')} value={painBefore} onChange={setPainBefore} restAtMidpoint />
+                <PainSlider label={t('routine.painAfter')} value={painAfter} onChange={setPainAfter} restAtMidpoint />
 
                 <Input
                   label={t('routine.generalNoteLabel')}

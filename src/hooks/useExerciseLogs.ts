@@ -107,6 +107,8 @@ export function useCreateExerciseLog() {
       status: ExerciseLogStatus;
       completed_exercises: CompletedExercise[];
       general_note: string | null;
+      pain_before?: number | null;
+      pain_after?: number | null;
     }): Promise<{ error: string | null }> => {
       if (!user) return { error: t('common.notSignedIn') };
 

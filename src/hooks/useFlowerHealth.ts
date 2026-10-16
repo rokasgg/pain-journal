@@ -1,13 +1,18 @@
 import { format, parseISO, subDays } from 'date-fns';
 
 import { useCheckinHistory } from '@/hooks/useCheckins';
+import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
 import { todayLocalDate } from '@/lib/dates';
 import { getFlowerHealthStage, type FlowerHealthStage } from '@/constants/flowerHealthStages';
+import { trainedDaySet } from '@/lib/trainingInsights';
 
 const HEALTH_WINDOW_DAYS = 14;
 const HEALTH_MIN = 0;
 const HEALTH_MAX = 10;
 const HEALTH_BASELINE = 5;
+// Training waters the flower too — a bonus on top of the check-in delta, so
+// training weeks grow it faster while check-in consistency still dominates.
+const TRAINING_BONUS = 0.5;
 
 export interface FlowerHealth {
   score: number;
@@ -17,6 +22,8 @@ export interface FlowerHealth {
 
 export function useFlowerHealth(): FlowerHealth {
   const { checkins, isLoading } = useCheckinHistory(30);
+  const { logs } = useExerciseLogHistory(30);
+  const trainedDays = trainedDaySet(logs);
 
   const countsByDate = new Map<string, number>();
   for (const checkin of checkins) {
@@ -35,7 +42,7 @@ export function useFlowerHealth(): FlowerHealth {
   for (let daysAgo = HEALTH_WINDOW_DAYS; daysAgo >= 1; daysAgo--) {
     const date = format(subDays(parseISO(today), daysAgo), 'yyyy-MM-dd');
     const count = countsByDate.get(date) ?? 0;
-    const delta = count >= 2 ? 1 : count === 1 ? 0 : -1;
+    const delta = (count >= 2 ? 1 : count === 1 ? 0 : -1) + (trainedDays.has(date) ? TRAINING_BONUS : 0);
     score = Math.min(HEALTH_MAX, Math.max(HEALTH_MIN, score + delta));
   }
 

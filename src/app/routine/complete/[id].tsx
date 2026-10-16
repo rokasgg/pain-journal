@@ -3,12 +3,14 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { ExerciseLogChecklist } from '@/components/checkin/ExerciseLogChecklist';
+import { PainSlider } from '@/components/checkin/PainSlider';
 import { Input } from '@/components/ui/Input';
 import { useCreateExerciseLog } from '@/hooks/useExerciseLogs';
 import { useRoutine } from '@/hooks/useRoutines';
 import { buildCompletedExercises, computeExerciseLogStatus, initExerciseLogDraft } from '@/lib/exerciseLog';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { trainingSavedToastKey } from '@/lib/trainingInsights';
 import { toast } from '@/utils/toast';
 
 // Trains one specific routine — reached from that routine's own
@@ -25,6 +27,8 @@ export default function CompleteRoutineScreen() {
 
   const [draft, setDraft] = useState(() => initExerciseLogDraft(routine?.exercises ?? []));
   const [generalNote, setGeneralNote] = useState('');
+  const [painBefore, setPainBefore] = useState<number | null>(null);
+  const [painAfter, setPainAfter] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (isLoading) {
@@ -59,6 +63,8 @@ export default function CompleteRoutineScreen() {
       status,
       completed_exercises: completedExercises,
       general_note: generalNote.trim() || null,
+      pain_before: painBefore,
+      pain_after: painAfter,
     });
     setIsSubmitting(false);
 
@@ -67,7 +73,7 @@ export default function CompleteRoutineScreen() {
       return;
     }
 
-    toast.success(t('routine.logSavedToast'));
+    toast.success(t(trainingSavedToastKey(painBefore, painAfter), { before: painBefore ?? '', after: painAfter ?? '' }));
     router.back();
   };
 
@@ -81,7 +87,13 @@ export default function CompleteRoutineScreen() {
       >
         <Text className="text-xl font-bold text-black dark:text-white">{routine.title}</Text>
 
+        {/* Optional before/after pain — the "is it working?" payoff. Rests at
+            the middle untouched and saves null unless actually set. */}
+        <PainSlider label={t('routine.painBefore')} value={painBefore} onChange={setPainBefore} restAtMidpoint />
+
         <ExerciseLogChecklist exercises={exercises} draft={resolvedDraft} onChange={setDraft} />
+
+        <PainSlider label={t('routine.painAfter')} value={painAfter} onChange={setPainAfter} restAtMidpoint />
 
         <Input
           label={t('routine.generalNoteLabel')}

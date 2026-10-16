@@ -7,6 +7,7 @@ import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
 import { AskAiCta } from '@/components/insights/AskAiCta';
 import { ExerciseFocusCard } from '@/components/insights/ExerciseFocusCard';
 import { PhysioFocusCard } from '@/components/insights/PhysioFocusCard';
+import { TrainingPayoffCard } from '@/components/insights/TrainingPayoffCard';
 import { useProfile } from '@/hooks/useProfile';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -48,6 +49,7 @@ export default function InsightsScreen() {
 
         <View className="gap-3">
           <TodaysRoutineCard />
+          <TrainingPayoffCard />
           <ExerciseFocusCard />
           {physioFocusFirst && aiInsightsEnabled && <PhysioFocusCard />}
           {aiInsightsEnabled && <AskAiCta />}
