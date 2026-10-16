@@ -15,19 +15,23 @@ import type { Checkin } from '@/types/database.types';
 
 export type TrendRange = 'week' | 'month' | 'all';
 export type TrendGranularity = 'day' | 'week' | 'month';
+// The three 0–10 body metrics every check-in collects. Note range_of_motion
+// is "higher is better" — the opposite direction of the other two.
+export type TrendMetric = 'pain_level' | 'stiffness_level' | 'range_of_motion';
 
-export interface PainTrendPoint extends Record<string, unknown> {
+export interface TrendPoint extends Record<string, unknown> {
   // Bucket index across the whole range (including empty buckets), so gaps
   // with no check-ins still take up horizontal space on the chart.
   x: number;
-  // Mean of the bucket's daily averages; null when nothing was logged.
-  pain: number | null;
+  // Mean of the bucket's daily averages; null when nothing was logged for
+  // the metric.
+  value: number | null;
   // First day of the bucket, yyyy-MM-dd.
   date: string;
 }
 
-export interface PainTrend {
-  points: PainTrendPoint[];
+export interface Trend {
+  points: TrendPoint[];
   granularity: TrendGranularity;
 }
 
@@ -38,15 +42,20 @@ const FIXED_RANGE_DAYS: Record<Exclude<TrendRange, 'all'>, number> = { week: 7, 
 const DAILY_MAX_SPAN_DAYS = 45;
 const WEEKLY_MAX_SPAN_DAYS = 180;
 
-type PainSample = Pick<Checkin, 'checkin_date' | 'pain_level'>;
+type TrendSample = Pick<Checkin, 'checkin_date' | 'pain_level'> &
+  Partial<Pick<Checkin, 'stiffness_level' | 'range_of_motion'>>;
 
 // One value per day — morning and evening averaged together — so a day with
-// both check-ins never counts twice in any later average.
-export function dailyPainAverages(checkins: PainSample[]): Map<string, number> {
+// both check-ins never counts twice in any later average. Null values are
+// skipped (stiffness/range of motion are nullable, and older rows may lack
+// them), so a day with only nulls gets no entry at all.
+export function dailyAverages(checkins: TrendSample[], metric: TrendMetric = 'pain_level'): Map<string, number> {
   const byDate = new Map<string, number[]>();
   for (const checkin of checkins) {
+    const level = checkin[metric];
+    if (level == null) continue;
     const levels = byDate.get(checkin.checkin_date) ?? [];
-    levels.push(checkin.pain_level);
+    levels.push(level);
     byDate.set(checkin.checkin_date, levels);
   }
 
@@ -59,7 +68,7 @@ export function dailyPainAverages(checkins: PainSample[]): Map<string, number> {
 
 // First local day (yyyy-MM-dd) included in a range. `today` is injected so
 // callers derive it via todayLocalDate() and tests stay deterministic.
-export function rangeStartDate(range: TrendRange, today: string, checkins: PainSample[]): string {
+export function rangeStartDate(range: TrendRange, today: string, checkins: Pick<Checkin, 'checkin_date'>[]): string {
   if (range !== 'all') {
     return format(subDays(parseISO(today), FIXED_RANGE_DAYS[range] - 1), 'yyyy-MM-dd');
   }
@@ -92,12 +101,20 @@ function nextBucket(date: Date, granularity: TrendGranularity): Date {
   return addDays(date, 1);
 }
 
-export function buildPainTrend(checkins: PainSample[], range: TrendRange, today: string): PainTrend {
+// Bucket boundaries depend only on range + check-in dates, never on which
+// metric is selected — so switching metric keeps an identical x axis and the
+// chart can morph the line as a pure y change.
+export function buildTrend(
+  checkins: TrendSample[],
+  range: TrendRange,
+  today: string,
+  metric: TrendMetric = 'pain_level',
+): Trend {
   const start = rangeStartDate(range, today, checkins);
   const granularity = pickGranularity(range, start, today);
 
   const valuesByBucket = new Map<string, number[]>();
-  for (const [date, average] of dailyPainAverages(checkins)) {
+  for (const [date, average] of dailyAverages(checkins, metric)) {
     if (date < start || date > today) continue;
     const key = format(bucketStart(parseISO(date), granularity), 'yyyy-MM-dd');
     const values = valuesByBucket.get(key) ?? [];
@@ -105,14 +122,14 @@ export function buildPainTrend(checkins: PainSample[], range: TrendRange, today:
     valuesByBucket.set(key, values);
   }
 
-  const points: PainTrendPoint[] = [];
+  const points: TrendPoint[] = [];
   const end = parseISO(today);
   for (let cursor = bucketStart(parseISO(start), granularity); cursor <= end; cursor = nextBucket(cursor, granularity)) {
     const date = format(cursor, 'yyyy-MM-dd');
     const values = valuesByBucket.get(date);
     points.push({
       x: points.length,
-      pain: values ? values.reduce((sum, value) => sum + value, 0) / values.length : null,
+      value: values ? values.reduce((sum, value) => sum + value, 0) / values.length : null,
       date,
     });
   }

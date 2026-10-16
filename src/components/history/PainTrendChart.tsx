@@ -2,7 +2,7 @@ import { Circle, Group, LinearGradient, Line as SkiaLine, matchFont, vec } from 
 import { format, parseISO } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Platform, Text, useColorScheme, View } from 'react-native';
+import { Platform, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -25,7 +25,13 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { capitalize, currentDateFnsLocale, todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { buildPainTrend, formatBucketDate, type TrendGranularity, type TrendRange } from '@/lib/painTrend';
+import {
+  buildTrend,
+  formatBucketDate,
+  type TrendGranularity,
+  type TrendMetric,
+  type TrendRange,
+} from '@/lib/painTrend';
 import { colors } from '@/lib/theme';
 import type { Checkin } from '@/types/database.types';
 
@@ -38,12 +44,33 @@ export interface PainTrendChartProps {
   className?: string;
 }
 
-type PressState = ChartPressState<{ x: number; y: { pain: number } }>;
+type PressState = ChartPressState<{ x: number; y: { value: number } }>;
 
 const font = matchFont({
   fontFamily: Platform.select({ ios: 'Helvetica', default: 'sans-serif' }),
   fontSize: 11,
 });
+
+// i18n key paths per metric. Range of motion's subtitle matters most: it's
+// the one "higher is better" scale, opposite to pain/stiffness.
+const METRIC_CONFIG: Record<TrendMetric, { chip: string; title: string; subtitle: string }> = {
+  pain_level: {
+    chip: 'detail.metricPain',
+    title: 'detail.painIntensityChartTitle',
+    subtitle: 'detail.painIntensityChartSubtitle',
+  },
+  stiffness_level: {
+    chip: 'detail.metricStiffness',
+    title: 'detail.stiffnessChartTitle',
+    subtitle: 'detail.stiffnessChartSubtitle',
+  },
+  range_of_motion: {
+    chip: 'detail.metricMobility',
+    title: 'detail.mobilityChartTitle',
+    subtitle: 'detail.mobilityChartSubtitle',
+  },
+};
+const METRICS = Object.keys(METRIC_CONFIG) as TrendMetric[];
 
 const PATH_ANIMATION = { type: 'timing', duration: 350 } as const;
 const READOUT_FADE_MS = 120;
@@ -60,7 +87,7 @@ function labelIndices(count: number, max: number): number[] {
   return Array.from({ length: max }, (_, i) => Math.round((i * (count - 1)) / (max - 1)));
 }
 
-function formatPain(value: number): string {
+function formatValue(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
@@ -117,8 +144,8 @@ function ScrubIndicator({ state, top, bottom, showDot, color, ringColor }: Scrub
       <SkiaLine p1={lineStart} p2={lineEnd} color={colors.gray} opacity={0.6} strokeWidth={1} />
       {showDot && (
         <>
-          <Circle cx={state.x.position} cy={state.y.pain.position} r={7} color={ringColor} />
-          <Circle cx={state.x.position} cy={state.y.pain.position} r={4.5} color={color} />
+          <Circle cx={state.x.position} cy={state.y.value.position} r={7} color={ringColor} />
+          <Circle cx={state.x.position} cy={state.y.value.position} r={4.5} color={color} />
         </>
       )}
     </>
@@ -133,10 +160,15 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
   const gridColor = isDark ? colors.borderDark : colors.borderLight;
   const [xScale, setXScale] = useState<((value: number) => number) | null>(null);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const { state: pressState, isActive: isScrubbing } = useChartPressState({ x: 0, y: { pain: 0 } });
+  const [metric, setMetric] = useState<TrendMetric>('pain_level');
+  const { state: pressState, isActive: isScrubbing } = useChartPressState({ x: 0, y: { value: 0 } });
+  const metricConfig = METRIC_CONFIG[metric];
 
-  const { points, granularity } = useMemo(() => buildPainTrend(checkins, range, todayLocalDate()), [checkins, range]);
-  const hasEnoughData = points.filter((point) => point.pain !== null).length >= 2;
+  const { points, granularity } = useMemo(
+    () => buildTrend(checkins, range, todayLocalDate(), metric),
+    [checkins, range, metric],
+  );
+  const hasEnoughData = points.filter((point) => point.value !== null).length >= 2;
   const activePoint = activeIndex !== null ? points[activeIndex] : undefined;
 
   const handleScrub = useCallback((index: number) => {
@@ -185,7 +217,7 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
           chart never shifts when the readout appears. */}
       <View className="h-12 flex-row justify-between">
         <View className="flex-1">
-          <Text className="text-base font-semibold text-black dark:text-white">{t('detail.painIntensityChartTitle')}</Text>
+          <Text className="text-base font-semibold text-black dark:text-white">{t(metricConfig.title)}</Text>
           <View className="h-5">
             {readoutDate ? (
               <Animated.View
@@ -195,17 +227,17 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
                 className="absolute inset-0"
               >
                 <Text className="text-sm font-medium text-black dark:text-white">
-                  {activePoint?.pain === null ? `${readoutDate} · ${t('detail.trendNoCheckin')}` : readoutDate}
+                  {activePoint?.value === null ? `${readoutDate} · ${t('detail.trendNoCheckin')}` : readoutDate}
                 </Text>
               </Animated.View>
             ) : (
               <Animated.View
-                key="subtitle"
+                key={`subtitle-${metric}`}
                 entering={FadeIn.duration(READOUT_FADE_MS)}
                 exiting={FadeOut.duration(READOUT_FADE_MS)}
                 className="absolute inset-0"
               >
-                <Text className="text-sm text-gray-500 dark:text-gray">{t('detail.painIntensityChartSubtitle')}</Text>
+                <Text className="text-sm text-gray-500 dark:text-gray">{t(metricConfig.subtitle)}</Text>
               </Animated.View>
             )}
           </View>
@@ -217,15 +249,36 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
             exiting={FadeOut.duration(READOUT_FADE_MS)}
             className="flex-row items-baseline gap-1"
           >
-            {granularity !== 'day' && activePoint.pain !== null && (
+            {granularity !== 'day' && activePoint.value !== null && (
               <Text className="text-xs text-gray-500 dark:text-gray">{t('detail.trendAvg')}</Text>
             )}
             <Text className="text-3xl font-bold text-primary dark:text-primaryDark">
-              {activePoint.pain !== null ? formatPain(activePoint.pain) : '—'}
+              {activePoint.value !== null ? formatValue(activePoint.value) : '—'}
             </Text>
             <Text className="text-sm text-gray-500 dark:text-gray">/10</Text>
           </Animated.View>
         )}
+      </View>
+
+      <View className="flex-row rounded-lg bg-primaryMuted p-0.5 dark:bg-primaryMutedDark">
+        {METRICS.map((option) => {
+          const isActive = option === metric;
+          return (
+            <Pressable
+              key={option}
+              onPress={() => setMetric(option)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: isActive }}
+              className={`flex-1 items-center rounded-md py-1 ${isActive ? 'bg-background dark:bg-backgroundDark' : ''}`}
+            >
+              <Text
+                className={`text-xs font-medium ${isActive ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray'}`}
+              >
+                {t(METRIC_CONFIG[option].chip)}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       {/* Fixed height whether or not there's data, so the card never jumps. */}
@@ -236,7 +289,7 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
               <CartesianChart
                 data={points}
                 xKey="x"
-                yKeys={['pain']}
+                yKeys={['value']}
                 domain={{ x: [0, Math.max(points.length - 1, 1)], y: [0, 10] }}
                 domainPadding={{ left: 10, right: 10, top: 10, bottom: 4 }}
                 chartPressState={pressState}
@@ -257,7 +310,7 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
                 {({ points: chartPoints, chartBounds }) => (
                   <>
                     <Area
-                      points={chartPoints.pain}
+                      points={chartPoints.value}
                       y0={chartBounds.bottom}
                       curveType="monotoneX"
                       connectMissingData
@@ -270,7 +323,7 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
                       />
                     </Area>
                     <Line
-                      points={chartPoints.pain}
+                      points={chartPoints.value}
                       color={lineColor}
                       strokeWidth={2.5}
                       curveType="monotoneX"
@@ -279,8 +332,8 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
                     />
                     <Group opacity={isScrubbing ? 0.4 : 1}>
                       <FadingDots
-                        key={range}
-                        points={chartPoints.pain}
+                        key={`${range}-${metric}`}
+                        points={chartPoints.value}
                         showAll={range === 'week'}
                         color={lineColor}
                         ringColor={ringColor}
@@ -291,7 +344,7 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
                         state={pressState}
                         top={chartBounds.top}
                         bottom={chartBounds.bottom}
-                        showDot={activePoint?.pain != null}
+                        showDot={activePoint?.value != null}
                         color={lineColor}
                         ringColor={ringColor}
                       />

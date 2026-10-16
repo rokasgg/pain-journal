@@ -13,7 +13,7 @@ import { useFlareUps } from '@/hooks/useFlareUps';
 import { formatCheckinDate, toLocalDate, todayLocalDate } from '@/lib/dates';
 import { buildCalendarMarkers } from '@/lib/historyEntries';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { dailyPainAverages, rangeStartDate, type TrendRange } from '@/lib/painTrend';
+import { dailyAverages, rangeStartDate, type TrendRange } from '@/lib/painTrend';
 import { colors } from '@/lib/theme';
 
 const CALENDAR_LOOKBACK_DAYS = 365;
@@ -61,9 +61,9 @@ export default function HistoryScreen() {
   const avgPain = useMemo(() => {
     // Average per day first, then average those — otherwise a day with both
     // a morning and evening entry counts twice and skews the result.
-    const dailyAverages = [...dailyPainAverages(checkins).values()];
-    if (dailyAverages.length === 0) return null;
-    return dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
+    const perDay = [...dailyAverages(checkins).values()];
+    if (perDay.length === 0) return null;
+    return perDay.reduce((sum, avg) => sum + avg, 0) / perDay.length;
   }, [checkins]);
 
   const avgPainTrend = useMemo(() => {
