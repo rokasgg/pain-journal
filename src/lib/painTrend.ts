@@ -8,6 +8,7 @@ import {
   startOfMonth,
   startOfWeek,
   subDays,
+  type Locale,
 } from 'date-fns';
 
 import type { Checkin } from '@/types/database.types';
@@ -117,4 +118,17 @@ export function buildPainTrend(checkins: PainSample[], range: TrendRange, today:
   }
 
   return { points, granularity };
+}
+
+const BUCKET_DATE_FORMATS: Record<TrendGranularity, string> = {
+  day: 'EEE, MMM d',
+  week: 'MMM d',
+  month: 'LLLL',
+};
+
+// Date part of the scrubber readout. Week buckets return just the start date —
+// the caller wraps it in the translated "Week of …".
+export function formatBucketDate(date: string, granularity: TrendGranularity, locale: Locale): string {
+  const text = format(parseISO(date), BUCKET_DATE_FORMATS[granularity], { locale });
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }

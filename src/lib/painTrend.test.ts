@@ -1,4 +1,6 @@
-import { buildPainTrend, dailyPainAverages, rangeStartDate } from './painTrend';
+import { enUS, lt } from 'date-fns/locale';
+
+import { buildPainTrend, dailyPainAverages, formatBucketDate, rangeStartDate } from './painTrend';
 
 const TODAY = '2026-10-16'; // a Friday
 
@@ -68,5 +70,17 @@ describe('buildPainTrend', () => {
     expect(points[0]).toMatchObject({ date: '2025-11-01', pain: 8 });
     expect(points).toHaveLength(12);
     expect(points[points.length - 1]).toMatchObject({ date: '2026-10-01', pain: 2 });
+  });
+});
+
+describe('formatBucketDate', () => {
+  it('formats each granularity', () => {
+    expect(formatBucketDate('2026-10-16', 'day', enUS)).toBe('Fri, Oct 16');
+    expect(formatBucketDate('2026-10-12', 'week', enUS)).toBe('Oct 12');
+    expect(formatBucketDate('2026-10-01', 'month', enUS)).toBe('October');
+  });
+
+  it('capitalizes Lithuanian names', () => {
+    expect(formatBucketDate('2026-10-01', 'month', lt)).toBe('Spalis');
   });
 });
