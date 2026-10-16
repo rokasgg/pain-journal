@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { format, parseISO } from 'date-fns';
+import { Link, useRouter, type Href } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,8 +10,9 @@ import { MonthCalendar } from '@/components/history/MonthCalendar';
 import { PainTrendChart } from '@/components/history/PainTrendChart';
 import { StatTile } from '@/components/history/StatTile';
 import { useCheckinHistory } from '@/hooks/useCheckins';
+import { useAvailableWraps } from '@/hooks/useMonthlyWrap';
 import { useFlareUps } from '@/hooks/useFlareUps';
-import { formatCheckinDate, toLocalDate, todayLocalDate } from '@/lib/dates';
+import { capitalize, currentDateFnsLocale, formatCheckinDate, toLocalDate, todayLocalDate } from '@/lib/dates';
 import { buildCalendarMarkers } from '@/lib/historyEntries';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import {
@@ -85,6 +87,7 @@ export default function HistoryScreen() {
   }, [allCheckins, range, t]);
 
   const painFree = useMemo(() => countPainFreeDays(checkins), [checkins]);
+  const availableWraps = useAvailableWraps();
 
   const calendarMarkers = useMemo(
     () => buildCalendarMarkers(allCheckins, allFlareUps),
@@ -202,6 +205,24 @@ export default function HistoryScreen() {
             </View>
 
             <PainTrendChart checkins={allCheckins} range={range} />
+
+            {availableWraps.length > 0 && (
+              <View className="gap-3">
+                <Text className="text-base font-semibold text-black dark:text-white">{t('wrap.archiveTitle')}</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
+                  {availableWraps.map((month) => (
+                    <Link key={month} href={`/wrap/${month}` as Href} asChild>
+                      <Pressable className="flex-row items-center gap-1.5 rounded-full bg-primaryMuted px-4 py-2 active:opacity-80 dark:bg-primaryMutedDark">
+                        <Ionicons name="sparkles" size={14} color={colors.primary} />
+                        <Text className="text-sm font-medium text-black dark:text-white">
+                          {capitalize(format(parseISO(`${month}-01`), 'LLL yyyy', { locale: currentDateFnsLocale() }))}
+                        </Text>
+                      </Pressable>
+                    </Link>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
           </>
         )}
 

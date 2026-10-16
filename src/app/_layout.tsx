@@ -219,6 +219,12 @@ function RootLayoutNav() {
             headerShadowVisible: false,
           }}
         />
+        {/* Immersive story takeover, not a form sheet — fullScreenModal (no
+            swipe-to-dismiss sheet chrome) + fade, closed via its own ✕. */}
+        <Stack.Screen
+          name="wrap/[month]"
+          options={{ presentation: 'fullScreenModal', animation: 'fade', headerShown: false }}
+        />
         <Stack.Screen
           name="routine/complete/[id]"
           options={{

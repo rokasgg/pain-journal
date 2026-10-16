@@ -3,6 +3,7 @@ import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
 import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
 import { FlowerHealthCard } from '@/components/home/FlowerHealthCard';
 import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
+import { WrapReadyCard } from '@/components/home/WrapReadyCard';
 import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
 import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
 import { toLocalDate } from '@/lib/dates';
@@ -76,6 +77,8 @@ export default function HomeScreen() {
             <DaysSinceHealing />
           </View>
         </View>
+
+        <WrapReadyCard />
 
         <FlowerHealthCard />
 

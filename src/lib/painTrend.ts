@@ -160,7 +160,7 @@ export interface PeriodComparison {
 
 const MIN_DAYS_PER_PERIOD = 3;
 
-function meanOfDays(averages: Map<string, number>, from: string, to: string): { mean: number; days: number } {
+export function meanOfDays(averages: Map<string, number>, from: string, to: string): { mean: number; days: number } {
   let sum = 0;
   let days = 0;
   for (const [date, value] of averages) {
