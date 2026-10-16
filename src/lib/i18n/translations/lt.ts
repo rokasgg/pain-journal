@@ -119,6 +119,11 @@ export const lt: typeof en = {
     metricTight: 'Įsitempę',
   },
   checkin: {
+    requiredPainQuestion: 'Atsakykite, kad galėtumėte tęsti',
+    requiredPainLevel: 'Nurodykite, kiek skauda, kad galėtumėte tęsti',
+    requiredOneAnswer: 'Atsakykite bent į vieną klausimą, kad galėtumėte tęsti',
+    requiredSymptoms: 'Pasirinkite simptomus arba „Simptomų nėra“',
+    noSymptomsToday: 'Simptomų nėra',
     painLevel: 'Skausmo lygis',
     painLevelInfo: 'Kiek skausmo jaučiate dabar, nuo 0 (jokio) iki 10 (stipriausias įsivaizduojamas skausmas).',
     flareUpPainLevelInfo:
@@ -133,7 +138,8 @@ export const lt: typeof en = {
     limited: 'Ribota',
     full: 'Pilna',
     none: 'Nėra',
-    moderate: 'Neutralus',
+    somewhatStiff: 'Šiek tiek sustingęs',
+    somewhatLimited: 'Šiek tiek ribota',
     severe: 'Stiprus',
     sleepQuality: 'Miego kokybė',
     sleepQualityInfo: 'Kaip gerai miegojote praėjusią naktį, nuo 0 (labai prastai) iki 10 (puikiai).',

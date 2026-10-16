@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Stack } from 'expo-router';
 import { useState, type ReactNode } from 'react';
@@ -17,6 +18,7 @@ import { YesNoField } from '@/components/checkin/YesNoField';
 import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
 import { useProfile } from '@/hooks/useProfile';
 import { useStepHaptic } from '@/hooks/useStepHaptic';
+import { firstIncompleteStep, getStepIssue, type CheckinStepIssue } from '@/lib/checkinCompleteness';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import {
@@ -26,11 +28,36 @@ import {
   type MorningCheckinFormData,
 } from '@/lib/validations/checkin';
 import type { CheckinType, FlareUp } from '@/types/database.types';
+import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 
 export type CheckinFormData = MorningCheckinFormData | EveningCheckinFormData;
 
 const TOTAL_STEPS = 3;
+
+const STEP_ISSUE_MESSAGES: Record<CheckinStepIssue, string> = {
+  answerPainQuestion: 'checkin.requiredPainQuestion',
+  setPainLevel: 'checkin.requiredPainLevel',
+  answerOneQuestion: 'checkin.requiredOneAnswer',
+  answerSymptoms: 'checkin.requiredSymptoms',
+};
+
+// Editing an existing row means its pain question was already answered,
+// even on old rows saved before `woke_up_with_pain` was asked — derive it
+// from pain_level so editing those isn't blocked by the required-answer rule.
+function seedFormDefaults(isMorning: boolean, defaultValues: CheckinFormData | undefined): CheckinFormData {
+  if (!defaultValues) return isMorning ? morningDefaults : eveningDefaults;
+  if (isMorning && (defaultValues as MorningCheckinFormData).woke_up_with_pain == null) {
+    return { ...defaultValues, woke_up_with_pain: defaultValues.pain_level > 0 };
+  }
+  return defaultValues;
+}
+
+function hasNoSymptoms(values: CheckinFormData | undefined): boolean {
+  if (!values) return false;
+  const { tingling, numbness, headache, radiating_to, custom } = values.symptoms;
+  return !tingling && !numbness && !headache && !radiating_to && (custom ?? []).length === 0 && values.triggers.length === 0;
+}
 
 export const morningDefaults: MorningCheckinFormData = {
   pain_level: 0,
@@ -85,6 +112,16 @@ export interface CheckinFormProps {
   hasRoutinesInRotation?: boolean;
 }
 
+function RequiredMessage({ text }: { text?: string }) {
+  if (!text) return null;
+  return (
+    <View className="flex-row items-center gap-2">
+      <Ionicons name="alert-circle-outline" size={16} color="#dc2626" />
+      <Text className="flex-1 text-sm text-red-600 dark:text-red-500">{text}</Text>
+    </View>
+  );
+}
+
 export function CheckinForm({
   type,
   defaultValues,
@@ -113,20 +150,73 @@ export function CheckinForm({
   const totalSteps = isQuickMode ? 2 : TOTAL_STEPS;
   const [showMoreDetails, setShowMoreDetails] = useState(false);
 
-  const { control, handleSubmit } = useForm<CheckinFormData>({
+  const { control, handleSubmit, setValue } = useForm<CheckinFormData>({
     resolver: zodResolver(isMorning ? morningCheckinSchema : eveningCheckinSchema),
-    defaultValues: defaultValues ?? (isMorning ? morningDefaults : eveningDefaults),
+    defaultValues: seedFormDefaults(isMorning, defaultValues),
   });
+  const values = useWatch({ control }) as CheckinFormData;
 
   // Morning has a real persisted gate (`woke_up_with_pain`); evening has no DB
-  // equivalent, so its gate is local UI state derived from whether pain_level
-  // was already > 0 (fully reconstructable — no schema/DB change needed).
+  // equivalent, so its gate is local UI state. Both are tri-state: null means
+  // "not answered yet" and blocks Next — never treat it as No (that used to
+  // save untouched check-ins as pain-free days). An existing row being edited
+  // was answered, so evening seeds from pain_level > 0 there.
   const wokeUpWithPain = useWatch({
     control: control as Control<MorningCheckinFormData>,
     name: 'woke_up_with_pain',
   });
-  const [eveningInPain, setEveningInPain] = useState(() => (defaultValues?.pain_level ?? 0) > 0);
-  const isInPain = isMorning ? !!wokeUpWithPain : eveningInPain;
+  const [eveningInPain, setEveningInPain] = useState<boolean | null>(() =>
+    defaultValues ? defaultValues.pain_level > 0 : null,
+  );
+  const inPainAnswer: boolean | null = isMorning ? (wokeUpWithPain ?? null) : eveningInPain;
+  const isInPain = inPainAnswer === true;
+
+  // "No symptoms today" on the symptoms step — a real answer, unlike leaving it
+  // blank. Pre-set when editing a row that was saved with no symptoms.
+  const [noSymptomsConfirmed, setNoSymptomsConfirmed] = useState(() => hasNoSymptoms(defaultValues));
+  // Which step the user tried to leave with a missing answer — the inline
+  // message only shows after that attempt, and updates live as they answer.
+  const [attemptedStep, setAttemptedStep] = useState<number | null>(null);
+
+  const completenessInput = { type, isQuickMode, values, inPain: inPainAnswer, noSymptomsConfirmed };
+  const currentIssue = attemptedStep === step ? getStepIssue({ ...completenessInput, step }) : null;
+  const issueMessage = currentIssue ? t(STEP_ISSUE_MESSAGES[currentIssue]) : undefined;
+
+  const goToStep = (next: 1 | 2 | 3) => {
+    setAttemptedStep(null);
+    setStep(next);
+  };
+
+  const handleNext = () => {
+    if (getStepIssue({ ...completenessInput, step })) {
+      setAttemptedStep(step);
+      haptics.error();
+      return;
+    }
+    goToStep((step + 1) as 2 | 3);
+  };
+
+  const selectNoSymptoms = () => {
+    if (noSymptomsConfirmed) return;
+    haptics.tick();
+    setNoSymptomsConfirmed(true);
+    // Clears step-3 answers only — pain_areas belongs to step 1.
+    setValue('symptoms', { pain_areas: values.symptoms.pain_areas ?? [] });
+    setValue('triggers', []);
+  };
+
+  // Re-checks every step, not just the current one, so no path (e.g. a
+  // future jump-to-step) can save an incomplete check-in.
+  const handleSavePress = () => {
+    const incomplete = firstIncompleteStep(completenessInput, totalSteps);
+    if (incomplete !== null) {
+      setStep(incomplete as 1 | 2 | 3);
+      setAttemptedStep(incomplete);
+      haptics.error();
+      return;
+    }
+    handleSubmit(handleSave)();
+  };
 
   const handleSave = async (data: CheckinFormData) => {
     const finalData: CheckinFormData = isInPain
@@ -197,6 +287,7 @@ export function CheckinForm({
                     value={value}
                     onChange={onChange}
                     info={t('checkin.wokeUpWithPainInfo')}
+                    error={currentIssue === 'answerPainQuestion' ? issueMessage : undefined}
                   />
                 )}
               />
@@ -206,6 +297,7 @@ export function CheckinForm({
                 value={eveningInPain}
                 onChange={setEveningInPain}
                 info={t('checkin.inPainNowInfo')}
+                error={currentIssue === 'answerPainQuestion' ? issueMessage : undefined}
               />
             )}
 
@@ -223,6 +315,7 @@ export function CheckinForm({
                     />
                   )}
                 />
+                {currentIssue === 'setPainLevel' && <RequiredMessage text={issueMessage} />}
 
                 <Controller
                   control={control}
@@ -243,7 +336,9 @@ export function CheckinForm({
                   value={value}
                   onChange={onChange}
                   minLabel={t('checkin.flexible')}
+                  midLabel={t('checkin.somewhatStiff')}
                   maxLabel={t('checkin.rigid')}
+                  restAtMidpoint
                   info={t('checkin.stiffnessInfo')}
                 />
               )}
@@ -258,7 +353,9 @@ export function CheckinForm({
                   value={value}
                   onChange={onChange}
                   minLabel={t('checkin.limited')}
+                  midLabel={t('checkin.somewhatLimited')}
                   maxLabel={t('checkin.full')}
+                  restAtMidpoint
                   info={t('checkin.rangeOfMotionInfo')}
                 />
               )}
@@ -268,6 +365,7 @@ export function CheckinForm({
 
         {step === 2 && (
           <>
+            {currentIssue === 'answerOneQuestion' && <RequiredMessage text={issueMessage} />}
             {isMorning ? (
               <MorningFields control={control as Control<MorningCheckinFormData>} />
             ) : (
@@ -311,11 +409,39 @@ export function CheckinForm({
 
         {!isQuickMode && step === 3 && (
           <>
+            {currentIssue === 'answerSymptoms' && <RequiredMessage text={issueMessage} />}
+
+            <Pressable
+              onPress={selectNoSymptoms}
+              accessibilityRole="button"
+              accessibilityState={{ selected: noSymptomsConfirmed }}
+              className={`flex-row items-center justify-center gap-2 self-start rounded-full px-4 py-2 ${
+                noSymptomsConfirmed ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+              }`}
+            >
+              <Ionicons
+                name={noSymptomsConfirmed ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                size={16}
+                color={noSymptomsConfirmed ? colors.white : colors.strongGray}
+              />
+              <Text
+                className={`text-sm font-medium ${noSymptomsConfirmed ? 'text-white' : 'text-strongGray dark:text-white'}`}
+              >
+                {t('checkin.noSymptomsToday')}
+              </Text>
+            </Pressable>
+
             <Controller
               control={control}
               name="symptoms"
               render={({ field: { value, onChange } }) => (
-                <SymptomCheckboxes value={value} onChange={onChange} />
+                <SymptomCheckboxes
+                  value={value}
+                  onChange={(next) => {
+                    setNoSymptomsConfirmed(false);
+                    onChange(next);
+                  }}
+                />
               )}
             />
 
@@ -323,7 +449,15 @@ export function CheckinForm({
               <Controller
                 control={control}
                 name="triggers"
-                render={({ field: { value, onChange } }) => <TriggerChips value={value} onChange={onChange} />}
+                render={({ field: { value, onChange } }) => (
+                  <TriggerChips
+                    value={value}
+                    onChange={(next) => {
+                      setNoSymptomsConfirmed(false);
+                      onChange(next);
+                    }}
+                  />
+                )}
               />
             )}
           </>
@@ -333,7 +467,7 @@ export function CheckinForm({
       <WizardFooter>
         {step > 1 && (
           <Pressable
-            onPress={() => setStep((current) => (current - 1) as 1 | 2)}
+            onPress={() => goToStep((step - 1) as 1 | 2)}
             className="flex-1 items-center rounded-lg border border-gray-300 py-3 dark:border-gray-700"
           >
             <Text className="font-semibold text-black dark:text-white">{t('common.back')}</Text>
@@ -342,14 +476,14 @@ export function CheckinForm({
 
         {step < totalSteps ? (
           <Pressable
-            onPress={() => setStep((current) => (current + 1) as 2 | 3)}
+            onPress={handleNext}
             className="flex-1 items-center rounded-lg bg-primary py-3 dark:bg-primaryDark"
           >
             <Text className="font-semibold text-white">{t('common.next')}</Text>
           </Pressable>
         ) : (
           <Pressable
-            onPress={handleSubmit(handleSave)}
+            onPress={handleSavePress}
             disabled={isSubmitting}
             className="flex-1 items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
           >
