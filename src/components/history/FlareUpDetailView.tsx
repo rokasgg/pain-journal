@@ -2,7 +2,7 @@ import { format, parseISO } from 'date-fns';
 import { Text, View } from 'react-native';
 
 import { FlareUpMarker } from '@/components/history/FlareUpMarker';
-import { formatCheckinDate } from '@/lib/dates';
+import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { FlareUp } from '@/types/database.types';
 
@@ -18,7 +18,7 @@ export function FlareUpDetailView({ flareUp, showDate = true }: FlareUpDetailVie
     <View className="gap-4">
       <View className="flex-row items-center justify-between">
         <Text className="text-xl font-bold text-black dark:text-white">
-          {showDate ? formatCheckinDate(flareUp.occurred_at.slice(0, 10)) : t('flareUp.flareUp')}
+          {showDate ? formatCheckinDate(toLocalDate(flareUp.occurred_at)) : t('flareUp.flareUp')}
         </Text>
         <FlareUpMarker painLevel={flareUp.pain_level} />
       </View>

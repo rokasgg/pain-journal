@@ -3,7 +3,7 @@ import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { useProfile } from '@/hooks/useProfile';
-import { formatCheckinDate } from '@/lib/dates';
+import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
@@ -22,7 +22,7 @@ export function PhysioSummaryCard() {
           </Text>
           <Text className="text-sm text-gray-500 dark:text-gray">
             {generatedAt
-              ? t('home.physioSummaryGeneratedOn', { date: formatCheckinDate(generatedAt.slice(0, 10)) })
+              ? t('home.physioSummaryGeneratedOn', { date: formatCheckinDate(toLocalDate(generatedAt)) })
               : t('home.physioSummarySubtitle')}
           </Text>
         </View>

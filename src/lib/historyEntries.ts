@@ -1,4 +1,5 @@
 import { type DayMarker } from '@/components/history/WeekCalendar';
+import { toLocalDate } from '@/lib/dates';
 import type { Checkin, FlareUp } from '@/types/database.types';
 
 export function buildCalendarMarkers(checkins: Checkin[], flareUps: FlareUp[]): Record<string, DayMarker> {
@@ -25,7 +26,9 @@ export function buildCalendarMarkers(checkins: Checkin[], flareUps: FlareUp[]): 
   }
 
   for (const flareUp of flareUps) {
-    const dateStr = flareUp.occurred_at.slice(0, 10);
+    // occurred_at is a timestamptz — slicing its ISO string gives the UTC
+    // day, which puts late-night flare-ups on the previous local day.
+    const dateStr = toLocalDate(flareUp.occurred_at);
     const marker = (markers[dateStr] ??= {
       hasMorning: false,
       hasEvening: false,

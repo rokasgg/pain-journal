@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 
 import { RoutineExerciseList } from '@/components/routine/RoutineExerciseList';
 import { useRoutine } from '@/hooks/useRoutines';
-import { formatCheckinDate } from '@/lib/dates';
+import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
 // Full review of one routine — expandable exercise list, reached from
@@ -40,7 +40,7 @@ export default function RoutineDetailScreen() {
       <ScrollView className="flex-1" contentContainerClassName="gap-4 px-6 py-6">
         <Text className="text-xl font-bold text-black dark:text-white">{routine.title}</Text>
         <Text className="text-sm text-gray-500 dark:text-gray">
-          {formatCheckinDate(routine.created_at.slice(0, 10))} ·{' '}
+          {formatCheckinDate(toLocalDate(routine.created_at))} ·{' '}
           {t('routine.exerciseCount', { count: routine.exercises.length })}
         </Text>
 

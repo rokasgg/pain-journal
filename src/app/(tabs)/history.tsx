@@ -13,7 +13,13 @@ import { useFlareUps } from '@/hooks/useFlareUps';
 import { formatCheckinDate, toLocalDate, todayLocalDate } from '@/lib/dates';
 import { buildCalendarMarkers } from '@/lib/historyEntries';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { dailyAverages, rangeStartDate, type TrendRange } from '@/lib/painTrend';
+import {
+  comparePeriods,
+  countPainFreeDays,
+  dailyAverages,
+  rangeStartDate,
+  type TrendRange,
+} from '@/lib/painTrend';
 import { colors } from '@/lib/theme';
 
 const CALENDAR_LOOKBACK_DAYS = 365;
@@ -40,8 +46,6 @@ export default function HistoryScreen() {
     { key: 'all', label: t('history.all') },
   ];
 
-  const activeRange = RANGE_OPTIONS.find((option) => option.key === range) ?? RANGE_OPTIONS[0];
-
   // One 365-day fetch (shared with the calendar) filtered client-side per
   // range — a per-range query briefly returned [] on every switch, which
   // blanked the stat tiles and unmounted the chart (the flicker).
@@ -66,21 +70,21 @@ export default function HistoryScreen() {
     return perDay.reduce((sum, avg) => sum + avg, 0) / perDay.length;
   }, [checkins]);
 
+  // Compared against the same-length window just before this one, in points
+  // (not percent — on a 0–10 scale 1 → 2 would read as "+100%"). Uses
+  // allCheckins since the previous window sits outside the current range.
   const avgPainTrend = useMemo(() => {
-    if (checkins.length < 4) return undefined;
-    const sorted = [...checkins].sort((a, b) => a.checkin_date.localeCompare(b.checkin_date));
-    const mid = Math.floor(sorted.length / 2);
-    const firstHalfAvg = sorted.slice(0, mid).reduce((s, c) => s + c.pain_level, 0) / mid;
-    const secondHalfAvg =
-      sorted.slice(mid).reduce((s, c) => s + c.pain_level, 0) / (sorted.length - mid);
-    if (firstHalfAvg === 0) return undefined;
-    const percent = Math.round(((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100);
+    const comparison = comparePeriods(allCheckins, range, todayLocalDate());
+    if (!comparison) return undefined;
+    const delta = Math.abs(comparison.delta).toFixed(1);
     return {
-      direction: percent >= 0 ? ('up' as const) : ('down' as const),
-      label: `${Math.abs(percent)}%`,
-      isGood: percent <= 0,
+      direction: comparison.delta > 0 ? ('up' as const) : ('down' as const),
+      label: t(range === 'week' ? 'history.trendVsPrevWeek' : 'history.trendVsPrevMonth', { delta }),
+      isGood: comparison.delta < 0,
     };
-  }, [checkins]);
+  }, [allCheckins, range, t]);
+
+  const painFree = useMemo(() => countPainFreeDays(checkins), [checkins]);
 
   const calendarMarkers = useMemo(
     () => buildCalendarMarkers(allCheckins, allFlareUps),
@@ -89,7 +93,7 @@ export default function HistoryScreen() {
 
   const dayCheckins = selectedDate ? allCheckins.filter((c) => c.checkin_date === selectedDate) : [];
   const dayFlareUps = selectedDate
-    ? allFlareUps.filter((f) => f.occurred_at.slice(0, 10) === selectedDate)
+    ? allFlareUps.filter((f) => toLocalDate(f.occurred_at) === selectedDate)
     : [];
 
   return (
@@ -186,11 +190,15 @@ export default function HistoryScreen() {
 
             <View className="flex-row gap-3">
               <StatTile
-                label={t('history.avgDailyPain', { range: activeRange.label })}
+                label={t('history.avgDailyPain')}
                 value={avgPain !== null ? avgPain.toFixed(1) : '—'}
                 trend={avgPainTrend}
               />
-              <StatTile label={t('history.flares', { range: activeRange.label })} value={String(flareUps.length)} />
+              <StatTile label={t('history.flares')} value={String(flareUps.length)} />
+              <StatTile
+                label={t('history.painFreeDays')}
+                value={painFree.logged > 0 ? `${painFree.painFree}/${painFree.logged}` : '—'}
+              />
             </View>
 
             <PainTrendChart checkins={allCheckins} range={range} />

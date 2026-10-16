@@ -2,7 +2,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 
 import { useAnalyzePatterns } from '@/hooks/useAnalyzePatterns';
 import { useProfile } from '@/hooks/useProfile';
-import { formatCheckinDate } from '@/lib/dates';
+import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { toast } from '@/utils/toast';
@@ -35,7 +35,7 @@ export default function PatternsModal() {
         <View className="gap-2">
           {analyzedAt && (
             <Text className="text-xs uppercase text-gray-500 dark:text-gray">
-              {t('patterns.lastRun', { date: formatCheckinDate(analyzedAt.slice(0, 10)) })}
+              {t('patterns.lastRun', { date: formatCheckinDate(toLocalDate(analyzedAt)) })}
             </Text>
           )}
           <Text className="text-base leading-6 text-black dark:text-white">{analysis}</Text>

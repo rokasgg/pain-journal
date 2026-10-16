@@ -149,3 +149,61 @@ export function formatBucketDate(date: string, granularity: TrendGranularity, lo
   const text = format(parseISO(date), BUCKET_DATE_FORMATS[granularity], { locale });
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
+
+export interface PeriodComparison {
+  current: number;
+  previous: number;
+  // In points on the 0–10 scale, not percent — percent change on a 0–10
+  // scale is misleading (1 → 2 reads as "+100%").
+  delta: number;
+}
+
+const MIN_DAYS_PER_PERIOD = 3;
+
+function meanOfDays(averages: Map<string, number>, from: string, to: string): { mean: number; days: number } {
+  let sum = 0;
+  let days = 0;
+  for (const [date, value] of averages) {
+    if (date < from || date > to) continue;
+    sum += value;
+    days += 1;
+  }
+  return { mean: days > 0 ? sum / days : 0, days };
+}
+
+// Current range vs the same-length window right before it, both as means of
+// daily averages. null for "all" (no previous period), too little data on
+// either side, or a change that would round to 0.0.
+export function comparePeriods(
+  checkins: TrendSample[],
+  range: TrendRange,
+  today: string,
+  metric: TrendMetric = 'pain_level',
+): PeriodComparison | null {
+  if (range === 'all') return null;
+
+  const length = FIXED_RANGE_DAYS[range];
+  const currentStart = rangeStartDate(range, today, checkins);
+  const previousEnd = format(subDays(parseISO(currentStart), 1), 'yyyy-MM-dd');
+  const previousStart = format(subDays(parseISO(currentStart), length), 'yyyy-MM-dd');
+
+  const averages = dailyAverages(checkins, metric);
+  const current = meanOfDays(averages, currentStart, today);
+  const previous = meanOfDays(averages, previousStart, previousEnd);
+  if (current.days < MIN_DAYS_PER_PERIOD || previous.days < MIN_DAYS_PER_PERIOD) return null;
+
+  const delta = current.mean - previous.mean;
+  if (Math.abs(delta) < 0.05) return null;
+  return { current: current.mean, previous: previous.mean, delta };
+}
+
+// A day counts as pain-free only if its *daily average* is 0 — morning 0 and
+// evening 2 is not a pain-free day.
+export function countPainFreeDays(checkins: TrendSample[]): { painFree: number; logged: number } {
+  const averages = dailyAverages(checkins);
+  let painFree = 0;
+  for (const value of averages.values()) {
+    if (value === 0) painFree += 1;
+  }
+  return { painFree, logged: averages.size };
+}

@@ -2,7 +2,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 
 import { useGeneratePhysioSummary } from '@/hooks/useGeneratePhysioSummary';
 import { useProfile } from '@/hooks/useProfile';
-import { formatCheckinDate } from '@/lib/dates';
+import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { toast } from '@/utils/toast';
@@ -33,7 +33,7 @@ export default function PhysioSummaryModal() {
         <View className="gap-2 rounded-2xl bg-surface p-4 dark:bg-surfaceDark">
           {generatedAt && (
             <Text className="text-xs uppercase text-gray-500 dark:text-gray">
-              {t('physioSummary.generatedOn', { date: formatCheckinDate(generatedAt.slice(0, 10)) })}
+              {t('physioSummary.generatedOn', { date: formatCheckinDate(toLocalDate(generatedAt)) })}
             </Text>
           )}
           <Text className="text-base leading-6 text-black dark:text-white">{summary}</Text>

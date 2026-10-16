@@ -1,6 +1,13 @@
 import { enUS, lt } from 'date-fns/locale';
 
-import { buildTrend, dailyAverages, formatBucketDate, rangeStartDate } from './painTrend';
+import {
+  buildTrend,
+  comparePeriods,
+  countPainFreeDays,
+  dailyAverages,
+  formatBucketDate,
+  rangeStartDate,
+} from './painTrend';
 
 const TODAY = '2026-10-16'; // a Friday
 
@@ -113,5 +120,63 @@ describe('formatBucketDate', () => {
 
   it('capitalizes Lithuanian names', () => {
     expect(formatBucketDate('2026-10-01', 'month', lt)).toBe('Spalis');
+  });
+});
+
+describe('comparePeriods', () => {
+  // Current week = Oct 10–16, previous week = Oct 3–9.
+  const weekData = [
+    checkin('2026-10-03', 4),
+    checkin('2026-10-05', 4),
+    checkin('2026-10-09', 4),
+    checkin('2026-10-10', 2),
+    checkin('2026-10-12', 3),
+    checkin('2026-10-16', 1),
+    checkin('2026-10-16', 3),
+  ];
+
+  it('compares the week against the previous 7 days, in points', () => {
+    const result = comparePeriods(weekData, 'week', TODAY);
+    expect(result?.previous).toBe(4);
+    expect(result?.current).toBeCloseTo(7 / 3); // days: 2, 3, avg(1, 3)=2
+    expect(result?.delta).toBeCloseTo(7 / 3 - 4);
+  });
+
+  it('ignores days outside both windows', () => {
+    const result = comparePeriods([...weekData, checkin('2026-10-02', 10)], 'week', TODAY);
+    expect(result?.previous).toBe(4);
+  });
+
+  it('uses a 30-day previous window for month', () => {
+    const data = [
+      checkin('2026-08-18', 6),
+      checkin('2026-08-20', 6),
+      checkin('2026-09-16', 6), // last day of the previous window
+      checkin('2026-09-17', 2), // first day of the current window
+      checkin('2026-10-01', 2),
+      checkin('2026-10-16', 2),
+    ];
+    expect(comparePeriods(data, 'month', TODAY)).toEqual({ current: 2, previous: 6, delta: -4 });
+  });
+
+  it('returns null for "all", sparse data, or no change', () => {
+    expect(comparePeriods(weekData, 'all', TODAY)).toBeNull();
+    expect(comparePeriods(weekData.slice(1), 'week', TODAY)).toBeNull();
+    const flat = ['03', '04', '05', '10', '11', '12'].map((d) => checkin(`2026-10-${d}`, 3));
+    expect(comparePeriods(flat, 'week', TODAY)).toBeNull();
+  });
+});
+
+describe('countPainFreeDays', () => {
+  it('only counts days whose daily average is 0', () => {
+    expect(
+      countPainFreeDays([
+        checkin('2026-10-14', 0),
+        checkin('2026-10-14', 0),
+        checkin('2026-10-15', 0),
+        checkin('2026-10-15', 2),
+        checkin('2026-10-16', 0),
+      ]),
+    ).toEqual({ painFree: 2, logged: 3 });
   });
 });

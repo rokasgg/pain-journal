@@ -7,7 +7,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { ActionSheet, type ActionSheetAction } from '@/components/ui/ActionSheet';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useDeleteRoutine, useRoutineHistory, useSetRoutineRotation } from '@/hooks/useRoutines';
-import { formatCheckinDate } from '@/lib/dates';
+import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { toast } from '@/utils/toast';
@@ -140,7 +140,7 @@ export default function ViewRoutinesScreen() {
 
               <View className="flex-row items-end justify-between">
                 <Text className="text-xs text-gray-500 dark:text-gray">
-                  {formatCheckinDate(routine.created_at.slice(0, 10))} ·{' '}
+                  {formatCheckinDate(toLocalDate(routine.created_at))} ·{' '}
                   {t('routine.exerciseCount', { count: routine.exercises.length })}
                 </Text>
 

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { subDays } from 'date-fns';
+import { format, subDays } from 'date-fns';
 
 import { useSession } from '@/hooks/useSession';
 import { todayLocalDate } from '@/lib/dates';
@@ -52,7 +52,7 @@ export function useCheckinsForDate(date: string) {
 
 export function useCheckinHistory(days = 30) {
   const { user } = useSession();
-  const since = subDays(new Date(), days).toISOString().slice(0, 10);
+  const since = format(subDays(new Date(), days), 'yyyy-MM-dd');
 
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', 'history', user?.id, days],
