@@ -10,9 +10,10 @@ import { PainTrendChart } from '@/components/history/PainTrendChart';
 import { StatTile } from '@/components/history/StatTile';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useFlareUps } from '@/hooks/useFlareUps';
-import { formatCheckinDate } from '@/lib/dates';
+import { formatCheckinDate, toLocalDate, todayLocalDate } from '@/lib/dates';
 import { buildCalendarMarkers } from '@/lib/historyEntries';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { dailyPainAverages, rangeStartDate, type TrendRange } from '@/lib/painTrend';
 import { colors } from '@/lib/theme';
 
 const CALENDAR_LOOKBACK_DAYS = 365;
@@ -24,7 +25,7 @@ export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const [section, setSection] = useState<Section>('overview');
-  const [rangeDays, setRangeDays] = useState<number>(7);
+  const [range, setRange] = useState<TrendRange>('week');
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
 
@@ -33,32 +34,35 @@ export default function HistoryScreen() {
     { key: 'calendar', label: t('history.calendar') },
   ];
 
-  const RANGE_OPTIONS = [
-    { label: t('history.week'), days: 7 },
-    { label: t('history.month'), days: 30 },
-    { label: t('history.all'), days: 365 },
-  ] as const;
+  const RANGE_OPTIONS: { key: TrendRange; label: string }[] = [
+    { key: 'week', label: t('history.week') },
+    { key: 'month', label: t('history.month') },
+    { key: 'all', label: t('history.all') },
+  ];
 
-  const activeRange = RANGE_OPTIONS.find((option) => option.days === rangeDays) ?? RANGE_OPTIONS[0];
+  const activeRange = RANGE_OPTIONS.find((option) => option.key === range) ?? RANGE_OPTIONS[0];
 
-  const { checkins } = useCheckinHistory(rangeDays);
-  const { flareUps } = useFlareUps(rangeDays);
+  // One 365-day fetch (shared with the calendar) filtered client-side per
+  // range — a per-range query briefly returned [] on every switch, which
+  // blanked the stat tiles and unmounted the chart (the flicker).
   const { checkins: allCheckins } = useCheckinHistory(CALENDAR_LOOKBACK_DAYS);
   const { flareUps: allFlareUps } = useFlareUps(CALENDAR_LOOKBACK_DAYS);
 
+  const rangeStart = useMemo(() => rangeStartDate(range, todayLocalDate(), allCheckins), [range, allCheckins]);
+  const checkins = useMemo(
+    () => allCheckins.filter((checkin) => checkin.checkin_date >= rangeStart),
+    [allCheckins, rangeStart],
+  );
+  const flareUps = useMemo(
+    () => allFlareUps.filter((flareUp) => toLocalDate(flareUp.occurred_at) >= rangeStart),
+    [allFlareUps, rangeStart],
+  );
+
   const avgPain = useMemo(() => {
-    if (checkins.length === 0) return null;
     // Average per day first, then average those — otherwise a day with both
     // a morning and evening entry counts twice and skews the result.
-    const byDate = new Map<string, number[]>();
-    for (const checkin of checkins) {
-      const levels = byDate.get(checkin.checkin_date) ?? [];
-      levels.push(checkin.pain_level);
-      byDate.set(checkin.checkin_date, levels);
-    }
-    const dailyAverages = [...byDate.values()].map(
-      (levels) => levels.reduce((sum, level) => sum + level, 0) / levels.length,
-    );
+    const dailyAverages = [...dailyPainAverages(checkins).values()];
+    if (dailyAverages.length === 0) return null;
     return dailyAverages.reduce((sum, avg) => sum + avg, 0) / dailyAverages.length;
   }, [checkins]);
 
@@ -161,11 +165,11 @@ export default function HistoryScreen() {
           <>
             <View className="flex-row rounded-xl bg-primaryMuted p-1 dark:bg-primaryMutedDark ">
               {RANGE_OPTIONS.map((option) => {
-                const isActive = rangeDays === option.days;
+                const isActive = range === option.key;
                 return (
                   <Pressable
-                    key={option.label}
-                    onPress={() => setRangeDays(option.days)}
+                    key={option.key}
+                    onPress={() => setRange(option.key)}
                     className={`flex-1 items-center rounded-xl py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
                       }`}
                   >
@@ -189,7 +193,7 @@ export default function HistoryScreen() {
               <StatTile label={t('history.flares', { range: activeRange.label })} value={String(flareUps.length)} />
             </View>
 
-            <PainTrendChart checkins={checkins} />
+            <PainTrendChart checkins={allCheckins} range={range} />
           </>
         )}
 

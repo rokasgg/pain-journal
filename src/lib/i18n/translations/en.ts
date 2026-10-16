@@ -256,6 +256,7 @@ export const en = {
     radiatingTo: 'Radiating to: {{location}}',
     painIntensityChartTitle: 'Pain Intensity',
     painIntensityChartSubtitle: 'Reported pain level, 0–10',
+    painIntensityChartEmpty: 'Log a few more check-ins to see your trend.',
     painAndMovementSection: 'Pain & Movement',
     lifestyleSection: 'Lifestyle',
     exercisesSection: 'Exercises',

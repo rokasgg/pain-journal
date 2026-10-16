@@ -261,6 +261,7 @@ export const lt: typeof en = {
     radiatingTo: 'Skauda iki: {{location}}',
     painIntensityChartTitle: 'Skausmo intensyvumas',
     painIntensityChartSubtitle: 'Nurodytas skausmo lygis, 0–10',
+    painIntensityChartEmpty: 'Užpildykite dar kelias registracijas, kad matytumėte tendenciją.',
     painAndMovementSection: 'Skausmas ir judėjimas',
     lifestyleSection: 'Gyvensena',
     exercisesSection: 'Pratimai',
