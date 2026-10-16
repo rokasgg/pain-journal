@@ -16,6 +16,7 @@ import { TriggerChips } from '@/components/checkin/TriggerChips';
 import { YesNoField } from '@/components/checkin/YesNoField';
 import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
 import { useProfile } from '@/hooks/useProfile';
+import { useStepHaptic } from '@/hooks/useStepHaptic';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import {
@@ -101,6 +102,8 @@ export function CheckinForm({
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [flareUpStepDone, setFlareUpStepDone] = useState(false);
   const [routineStepDone, setRoutineStepDone] = useState(false);
+  // Pre-steps (flare-up follow-up, routine training) count as pages too.
+  useStepHaptic(`${step}-${flareUpStepDone}-${routineStepDone}`);
 
   // Onboarding's "how much time per check-in" answer: 'quick' collapses the
   // Symptoms/Triggers step into an optional expandable section on step 2

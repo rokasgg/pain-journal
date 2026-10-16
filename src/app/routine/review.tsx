@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -10,10 +9,12 @@ import { ActionSheet, type ActionSheetAction } from '@/components/ui/ActionSheet
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Input } from '@/components/ui/Input';
 import { useCreateRoutine } from '@/hooks/useRoutines';
+import { useStepHaptic } from '@/hooks/useStepHaptic';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { usePendingRoutineDraftStore } from '@/store/usePendingRoutineDraftStore';
 import type { RoutineExercise } from '@/types/database.types';
+import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 
 // The one editable confirmation step between generating a routine
@@ -42,6 +43,7 @@ export default function ReviewRoutineScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(1);
+  useStepHaptic(currentStep);
   // Set when "Edit" is tapped on a summary card — while true, the exercise
   // step's button reads "Done" and returns straight to the summary instead
   // of advancing to the next exercise.
@@ -95,7 +97,7 @@ export default function ReviewRoutineScreen() {
   };
 
   const handleLongPressExercise = (exercise: RoutineExercise) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     setActionSheetExerciseId(exercise.id);
   };
 

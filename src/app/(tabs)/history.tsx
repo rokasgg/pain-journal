@@ -23,6 +23,7 @@ import {
   type TrendRange,
 } from '@/lib/painTrend';
 import { colors } from '@/lib/theme';
+import { haptics } from '@/utils/haptics';
 
 const CALENDAR_LOOKBACK_DAYS = 365;
 
@@ -153,7 +154,10 @@ export default function HistoryScreen() {
             return (
               <Pressable
                 key={option.key}
-                onPress={() => setSection(option.key)}
+                onPress={() => {
+                  if (!isActive) haptics.tick();
+                  setSection(option.key);
+                }}
                 className={`flex-1 items-center rounded-xl py-2 active:bg-surface/20 dark:active:bg-surfaceDark ${isActive ? 'bg-surface dark:bg-primary/80' : ''
                   }`}
               >
@@ -176,7 +180,10 @@ export default function HistoryScreen() {
                 return (
                   <Pressable
                     key={option.key}
-                    onPress={() => setRange(option.key)}
+                    onPress={() => {
+                      if (!isActive) haptics.tick();
+                      setRange(option.key);
+                    }}
                     className={`flex-1 items-center rounded-xl py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
                       }`}
                   >

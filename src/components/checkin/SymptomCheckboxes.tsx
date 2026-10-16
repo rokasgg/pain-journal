@@ -8,6 +8,7 @@ import { SYMPTOM_OPTIONS } from '@/constants/symptoms';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import type { CheckinSymptoms } from '@/types/database.types';
+import { haptics } from '@/utils/haptics';
 
 export interface SymptomCheckboxesProps {
   value: CheckinSymptoms;
@@ -24,10 +25,12 @@ export function SymptomCheckboxes({ value, onChange, className }: SymptomCheckbo
   const anySymptomChecked = SYMPTOM_OPTIONS.some((option) => value[option.value]) || customSymptoms.length > 0;
 
   const toggle = (key: (typeof SYMPTOM_OPTIONS)[number]['value']) => {
+    haptics.tick();
     onChange({ ...value, [key]: !value[key] });
   };
 
   const removeCustom = (symptom: string) => {
+    haptics.tick();
     onChange({ ...value, custom: customSymptoms.filter((s) => s !== symptom) });
   };
 

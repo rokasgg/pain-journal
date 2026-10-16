@@ -19,6 +19,7 @@ import {
   WORST_TIME_OF_DAY_OPTIONS,
 } from '@/constants/onboarding';
 import { useUpdateProfile } from '@/hooks/useProfile';
+import { useStepHaptic } from '@/hooks/useStepHaptic';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useOnboardingCompleteStore } from '@/store/useOnboardingCompleteStore';
@@ -62,6 +63,7 @@ export default function OnboardingScreen() {
   const { t } = useTranslation();
   const updateProfile = useUpdateProfile();
   const [step, setStep] = useState<OnboardingStep>(1);
+  useStepHaptic(step);
   const [answers, setAnswers] = useState<OnboardingAnswers>(initialAnswers);
   const [isSaving, setIsSaving] = useState(false);
 

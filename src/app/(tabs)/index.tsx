@@ -10,9 +10,10 @@ import { toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useOnboardingCompleteStore } from '@/store/useOnboardingCompleteStore';
+import { haptics } from '@/utils/haptics';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -31,6 +32,9 @@ export default function HomeScreen() {
   const [debugCheckmarkVisible, setDebugCheckmarkVisible] = useState(false);
 
   const checkmarkVisible = onboardingJustCompleted || debugCheckmarkVisible;
+  useEffect(() => {
+    if (checkmarkVisible) haptics.success();
+  }, [checkmarkVisible]);
   const closeCheckmark = () => {
     if (onboardingJustCompleted) consumeOnboardingCompletion();
     setDebugCheckmarkVisible(false);

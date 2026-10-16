@@ -1,6 +1,5 @@
 import { Circle, Group, LinearGradient, Line as SkiaLine, matchFont, vec } from '@shopify/react-native-skia';
 import { format, parseISO } from 'date-fns';
-import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, {
@@ -34,6 +33,7 @@ import {
 } from '@/lib/painTrend';
 import { colors } from '@/lib/theme';
 import type { Checkin } from '@/types/database.types';
+import { haptics } from '@/utils/haptics';
 
 export interface PainTrendChartProps {
   // Full history — the chart filters and buckets it for `range` itself, so
@@ -177,7 +177,7 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
       return;
     }
     setActiveIndex(index);
-    Haptics.selectionAsync().catch(() => {});
+    haptics.tick();
   }, []);
 
   // Only crosses to JS when the snapped bucket changes (or on release), not
@@ -266,7 +266,10 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
           return (
             <Pressable
               key={option}
-              onPress={() => setMetric(option)}
+              onPress={() => {
+                if (!isActive) haptics.tick();
+                setMetric(option);
+              }}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
               className={`flex-1 items-center rounded-md py-1 ${isActive ? 'bg-background dark:bg-backgroundDark' : ''}`}

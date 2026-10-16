@@ -7,6 +7,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import type { ReminderSettings } from '@/types/database.types';
 import { requestNotificationPermission } from '@/utils/notifications';
+import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 
 interface NotificationsFormProps {
@@ -52,7 +53,10 @@ function NotificationsForm({ settings }: NotificationsFormProps) {
         <Text className="text-base text-black dark:text-white">{t('settings.pushNotifications')}</Text>
         <Switch
           value={pushEnabled}
-          onValueChange={setPushEnabled}
+          onValueChange={(value) => {
+            haptics.tick();
+            setPushEnabled(value);
+          }}
           trackColor={{ true: colors.primary }}
         />
       </View>

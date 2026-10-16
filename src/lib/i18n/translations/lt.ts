@@ -390,6 +390,8 @@ export const lt: typeof en = {
     notificationPermissionDenied:
       'Įjunkite pranešimus įrenginio nustatymuose, kad galėtumėte įjungti priminimus.',
     aiInsights: 'AI įžvalgos',
+    vibration: 'Vibracija',
+    vibrationInfo: 'Švelnus atsakas paspaudus, slenkant ir išsaugant',
   },
   notifications: {
     morningTitle: 'Ryto patikrinimas',

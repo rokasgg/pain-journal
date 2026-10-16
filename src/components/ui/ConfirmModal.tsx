@@ -1,6 +1,8 @@
+import { useEffect } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { haptics } from '@/utils/haptics';
 
 type ConfirmModalVariant = 'default' | 'destructive';
 
@@ -32,6 +34,12 @@ export function ConfirmModal({
   variant = 'default',
 }: ConfirmModalProps) {
   const { t } = useTranslation();
+
+  // A destructive question (delete, sign out) should feel different from a
+  // routine one before the user reads a word of it.
+  useEffect(() => {
+    if (visible && variant === 'destructive') haptics.warning();
+  }, [visible, variant]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel ?? onConfirm}>

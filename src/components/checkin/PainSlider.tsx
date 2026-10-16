@@ -1,9 +1,11 @@
 import Slider from '@react-native-community/slider';
+import { useRef } from 'react';
 import { Text, View, useColorScheme } from 'react-native';
 
 import { InfoButton } from '@/components/ui/InfoButton';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { haptics } from '@/utils/haptics';
 
 export interface PainSliderProps {
   label: string;
@@ -30,6 +32,17 @@ export function PainSlider({
   const resolvedMaxLabel = maxLabel ?? t('checkin.severe');
   const isDark = useColorScheme() === 'dark';
   const trackColor = isDark ? colors.primaryDark : colors.primary;
+  // onValueChange can fire repeatedly for the same step while dragging —
+  // only tick when the number actually changes, so 3→7 is exactly 4 ticks.
+  const lastValueRef = useRef(value ?? 0);
+
+  const handleChange = (next: number) => {
+    if (next !== lastValueRef.current) {
+      lastValueRef.current = next;
+      haptics.tick();
+    }
+    onChange(next);
+  };
 
   return (
     <View className={`gap-2 ${className ?? ''}`}>
@@ -46,7 +59,7 @@ export function PainSlider({
         maximumValue={10}
         step={1}
         value={value ?? 0}
-        onValueChange={onChange}
+        onValueChange={handleChange}
         minimumTrackTintColor={colors.strongGray}
         maximumTrackTintColor={isDark ? colors.primary : colors.borderLight}
         thumbTintColor={trackColor}

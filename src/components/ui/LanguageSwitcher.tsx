@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { useLocaleStore, type Locale } from '@/store/useLocaleStore';
+import { haptics } from '@/utils/haptics';
 
 export function LanguageSwitcher() {
   const locale = useLocaleStore((state) => state.locale);
@@ -21,7 +22,10 @@ export function LanguageSwitcher() {
         return (
           <Pressable
             key={option.value}
-            onPress={() => setLocale(option.value)}
+            onPress={() => {
+              if (option.value !== locale) haptics.tick();
+              setLocale(option.value);
+            }}
             className={`flex-1 items-center rounded-md py-2 ${isActive ? 'bg-primary dark:bg-black' : ''
               }`}
           >

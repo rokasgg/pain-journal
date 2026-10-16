@@ -384,6 +384,8 @@ export const en = {
     avatarUpdated: 'Avatar updated!',
     notificationPermissionDenied: 'Enable notifications in your device settings to turn on reminders.',
     aiInsights: 'AI insights',
+    vibration: 'Vibration',
+    vibrationInfo: 'Subtle feedback on taps, sliders and saves',
   },
   notifications: {
     morningTitle: 'Morning check-in',

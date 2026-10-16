@@ -8,6 +8,7 @@ import type { ExerciseLogDraft } from '@/lib/exerciseLog';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import type { RoutineExercise } from '@/types/database.types';
+import { haptics } from '@/utils/haptics';
 
 export interface ExerciseLogChecklistProps {
   exercises: RoutineExercise[];
@@ -53,6 +54,7 @@ export function ExerciseLogChecklist({ exercises, draft, onChange }: ExerciseLog
   const allCompleted = exercises.length > 0 && exercises.every((exercise) => draft[exercise.id]?.completed);
 
   const toggleSelectAll = () => {
+    haptics.tick();
     const next = { ...draft };
     for (const exercise of exercises) {
       next[exercise.id] = { ...next[exercise.id], completed: !allCompleted };
@@ -90,7 +92,10 @@ export function ExerciseLogChecklist({ exercises, draft, onChange }: ExerciseLog
           >
             <View className="flex-row items-center gap-2">
               <Pressable
-                onPress={() => updateEntry(exercise.id, { completed: !entry.completed })}
+                onPress={() => {
+                  haptics.tick();
+                  updateEntry(exercise.id, { completed: !entry.completed });
+                }}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: entry.completed }}
                 className="flex-1 flex-row items-start gap-3"

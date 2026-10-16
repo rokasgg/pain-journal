@@ -7,12 +7,17 @@ import { useFlowerHealth } from '@/hooks/useFlowerHealth';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useCelebrationStore } from '@/store/useCelebrationStore';
+import { haptics } from '@/utils/haptics';
 
 const BOX_WIDTH = 140;
 const BOX_HEIGHT = 440;
 const FLOWER_HEIGHT = 180;
 const DROP_COLOR = '#3B9AE1';
 const DROP_DURATION_MS = 1350;
+// The drop reaches the flower at 80% of its eased (quad-in) travel, i.e. at
+// sqrt(0.8) of the duration — the signature check-in "droplets" haptic fires
+// right then, so the vibration lands with the water instead of with the tap.
+const DROP_LAND_MS = DROP_DURATION_MS * Math.sqrt(0.8);
 const DROP_START_Y = -24;
 const DROP_END_Y = BOX_HEIGHT - FLOWER_HEIGHT - 10;
 
@@ -41,7 +46,9 @@ function WaterDrop() {
       useNativeDriver: true,
     });
     animation.start();
+    const landing = setTimeout(haptics.droplets, DROP_LAND_MS);
     return () => {
+      clearTimeout(landing);
       animation.stop();
       fall.setValue(0);
     };

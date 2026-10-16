@@ -6,6 +6,7 @@ import { InfoButton } from '@/components/ui/InfoButton';
 import { PAIN_AREA_LABEL_KEYS, PAIN_AREA_OPTIONS } from '@/constants/symptoms';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { haptics } from '@/utils/haptics';
 
 export interface PainAreaChipsProps {
   value: string[];
@@ -21,6 +22,7 @@ export function PainAreaChips({ value, onChange, className }: PainAreaChipsProps
   const [customText, setCustomText] = useState('');
 
   const toggle = (area: string) => {
+    haptics.tick();
     onChange(value.includes(area) ? value.filter((a) => a !== area) : [...value, area]);
   };
 

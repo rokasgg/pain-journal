@@ -1,5 +1,6 @@
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { haptics } from '@/utils/haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Text, useColorScheme, View } from 'react-native';
@@ -54,6 +55,13 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      // Tick only when actually switching tabs, not when re-tapping the
+      // current one (`navigation` here is the pressed tab's own navigation).
+      screenListeners={({ navigation }) => ({
+        tabPress: () => {
+          if (!navigation.isFocused()) haptics.tick();
+        },
+      })}
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false, // <-- svarbiausia: išjungiam default label

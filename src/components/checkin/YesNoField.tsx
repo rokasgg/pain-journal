@@ -2,6 +2,7 @@ import { Pressable, Text, View } from 'react-native';
 
 import { InfoButton } from '@/components/ui/InfoButton';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { haptics } from '@/utils/haptics';
 
 export interface YesNoFieldProps {
   label: string;
@@ -16,7 +17,10 @@ export function YesNoField({ label, value, onChange, info, className }: YesNoFie
 
   return (
     <Pressable
-      onPress={() => onChange(!value)}
+      onPress={() => {
+        haptics.tick();
+        onChange(!value);
+      }}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: !!value }}
       className={`flex-row items-center justify-between rounded-lg border border-gray bg-white dark:bg-backgroundDark px-4 py-3 dark:border-gray ${className ?? ''}`}

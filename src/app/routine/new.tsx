@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { useGenerateRoutine, type GenerateRoutineInput } from '@/hooks/useGenerateRoutine';
 import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
 import { useRoutinesInRotation } from '@/hooks/useRoutines';
+import { useStepHaptic } from '@/hooks/useStepHaptic';
 import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -29,6 +30,7 @@ export default function NewRoutineScreen() {
   const setDraft = usePendingRoutineDraftStore((s) => s.setDraft);
 
   const [step, setStep] = useState<1 | 2>(1);
+  useStepHaptic(step);
   const [source, setSource] = useState<Source>('manual_input');
   const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');

@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, useWindowDimensions, View } from 'react-native';
@@ -13,6 +12,7 @@ import { useMonthlyWrap } from '@/hooks/useMonthlyWrap';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useWrapStore } from '@/store/useWrapStore';
+import { haptics } from '@/utils/haptics';
 
 const SLIDE_DURATION_MS = 6000;
 // Taps on the left third go back, anywhere else goes forward (story convention).
@@ -60,7 +60,7 @@ export default function WrapScreen() {
   // (no auto-advance) until the user taps Done or ✕.
   useEffect(() => {
     if (slideCount === 0) return;
-    Haptics.selectionAsync().catch(() => {});
+    haptics.tick();
     if (isLast) {
       cancelAnimation(progress);
       progress.set(1);

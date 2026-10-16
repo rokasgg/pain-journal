@@ -1,5 +1,4 @@
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
 import { Link, Stack, useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -10,6 +9,7 @@ import { useDeleteRoutine, useRoutineHistory, useSetRoutineRotation } from '@/ho
 import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 
 // All of the user's routines, newest first — old ones are never deleted
@@ -33,7 +33,7 @@ export default function ViewRoutinesScreen() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleLongPress = (id: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     setActionSheetId(id);
   };
 

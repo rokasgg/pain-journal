@@ -10,6 +10,7 @@ import { StepVisitNotes } from '@/components/physioVisitWizard/StepVisitNotes';
 import { WizardProgress } from '@/components/physioVisitWizard/WizardProgress';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useCreatePhysioAssessment, usePhysioAssessments } from '@/hooks/usePhysioAssessments';
+import { useStepHaptic } from '@/hooks/useStepHaptic';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { getPreVisitSuggestedQuestions } from '@/lib/physioSuggestedQuestions';
@@ -27,6 +28,7 @@ export default function NewPhysioVisitWizard() {
 
   const [preVisitDismissed, setPreVisitDismissed] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  useStepHaptic(step);
   const [visitDate, setVisitDate] = useState(todayLocalDate());
   const [physioName, setPhysioName] = useState<string | null>(null);
   const [overallNotes, setOverallNotes] = useState<string | null>(null);

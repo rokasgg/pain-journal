@@ -1,6 +1,7 @@
 import { Pressable, Text, View } from 'react-native';
 
 import { useThemeStore, type ThemeMode } from '@/store/useThemeStore';
+import { haptics } from '@/utils/haptics';
 
 const OPTIONS: { label: string; value: ThemeMode }[] = [
   { label: 'System', value: 'system' },
@@ -20,7 +21,10 @@ export function ThemeSwitcher() {
         return (
           <Pressable
             key={option.value}
-            onPress={() => setMode(option.value)}
+            onPress={() => {
+              if (option.value !== mode) haptics.tick();
+              setMode(option.value);
+            }}
             className={`flex-1 items-center rounded-md py-2 ${isActive ? 'bg-primary dark:bg-black' : ' bg-surface dark:bg-surfaceDark'
               }`}
           >

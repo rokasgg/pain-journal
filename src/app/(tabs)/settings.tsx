@@ -12,7 +12,9 @@ import { useSession } from '@/hooks/useSession';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useHapticsStore } from '@/store/useHapticsStore';
 import { pickAvatarImage } from '@/utils/image';
+import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 
 export default function SettingsScreen() {
@@ -23,6 +25,8 @@ export default function SettingsScreen() {
   // Switch's on/off track colors are native props NativeWind can't style
   // (same sanctioned exception as the tab bar in (tabs)/_layout.tsx).
   const isDark = useColorScheme() === 'dark';
+  const hapticsEnabled = useHapticsStore((s) => s.enabled);
+  const setHapticsEnabled = useHapticsStore((s) => s.setEnabled);
   const updateProfileMutation = useUpdateProfile();
   const uploadAvatar = useAuthStore((state) => state.uploadAvatar);
   const updateProfile = useAuthStore((state) => state.updateProfile);
@@ -34,6 +38,7 @@ export default function SettingsScreen() {
   const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
 
   const handleToggleAiInsights = async (value: boolean) => {
+    haptics.tick();
     const { error } = await updateProfileMutation.mutateAsync({ ai_insights_enabled: value });
     if (error) toast.error(error);
   };
@@ -207,6 +212,29 @@ export default function SettingsScreen() {
             {t('settings.appearance')}
           </Text>
           <ThemeSwitcher />
+        </View>
+
+        <View className="overflow-hidden rounded-lg bg-surface dark:bg-surfaceDark">
+          <View className="flex-row items-center justify-between px-4 py-3.5">
+            <View className="flex-1 flex-row items-center gap-3">
+              <Ionicons name="phone-portrait-outline" size={20} color={colors.gray} />
+              <View className="flex-1">
+                <Text className="text-base text-strongGray dark:text-white">{t('settings.vibration')}</Text>
+                <Text className="text-xs text-gray-500 dark:text-gray">{t('settings.vibrationInfo')}</Text>
+              </View>
+            </View>
+            <Switch
+              value={hapticsEnabled}
+              onValueChange={(value) => {
+                setHapticsEnabled(value);
+                // After enabling, so turning it on is itself felt.
+                haptics.tick();
+              }}
+              trackColor={{ false: colors.gray, true: isDark ? colors.primaryDark : colors.primary }}
+              thumbColor={colors.white}
+              ios_backgroundColor={colors.gray}
+            />
+          </View>
         </View>
 
         <View className="gap-3">

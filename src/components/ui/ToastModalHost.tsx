@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { useEffect } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -6,6 +5,7 @@ import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useToastModalStore } from '@/store/useToastModalStore';
+import { haptics } from '@/utils/haptics';
 
 const CONFIRM_BUTTON_STYLES: Record<'success' | 'info' | 'destructive', string> = {
   // Bone-white/outline rather than solid primary — the checkmark above is
@@ -41,12 +41,12 @@ export function ToastModalHost() {
   // layout — only the JSX it returns is conditionally null, unlike
   // AnimatedCheckmark below (which genuinely mounts/unmounts as `visible`
   // toggles). So this needs `visible` in the deps to fire on every new toast
-  // display, not just once ever on app start. No haptic for
-  // 'info'/'destructive', matching the checkmark's success-only scoping.
+  // display, not just once ever on app start. 'info' stays silent — it's
+  // neither a completion nor a failure.
   useEffect(() => {
-    if (visible && variant === 'success') {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
+    if (!visible) return;
+    if (variant === 'success') haptics.success();
+    else if (variant === 'destructive') haptics.error();
   }, [visible, variant]);
 
   if (!visible) return null;

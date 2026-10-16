@@ -6,6 +6,7 @@ import { InfoButton } from '@/components/ui/InfoButton';
 import { TRIGGER_LABEL_KEYS, TRIGGER_OPTIONS } from '@/constants/symptoms';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { haptics } from '@/utils/haptics';
 
 export interface TriggerChipsProps {
   value: string[];
@@ -21,6 +22,7 @@ export function TriggerChips({ value, onChange, className }: TriggerChipsProps) 
   const [customText, setCustomText] = useState('');
 
   const toggle = (trigger: string) => {
+    haptics.tick();
     onChange(value.includes(trigger) ? value.filter((t) => t !== trigger) : [...value, trigger]);
   };
 

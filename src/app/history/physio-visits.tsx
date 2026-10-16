@@ -1,4 +1,3 @@
-import * as Haptics from 'expo-haptics';
 import { Link, useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -9,6 +8,7 @@ import { MUSCLE_SIDE_OPTIONS, MUSCLE_STATUS_OPTIONS } from '@/constants/physio';
 import { useDeletePhysioAssessment, usePhysioAssessments } from '@/hooks/usePhysioAssessments';
 import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 
 export default function PhysioVisitsModal() {
@@ -21,7 +21,7 @@ export default function PhysioVisitsModal() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleLongPress = (id: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    haptics.press();
     setActionSheetId(id);
   };
 
