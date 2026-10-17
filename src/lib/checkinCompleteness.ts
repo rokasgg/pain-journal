@@ -32,14 +32,15 @@ export interface StepIssueInput {
 }
 
 function hasAnyStep2Answer(type: CheckinType, values: CheckinStepValues): boolean {
+  const hasNote = (values.notes ?? '').trim().length > 0;
   if (type === 'morning') {
-    return values.sleep_quality != null || values.sleep_hours != null || values.sleep_position != null;
+    return values.sleep_quality != null || values.sleep_hours != null || values.sleep_position != null || hasNote;
   }
   return (
     values.activity_level != null ||
     values.screen_time_hours != null ||
     values.did_exercises != null ||
-    (values.notes ?? '').trim().length > 0
+    hasNote
   );
 }
 

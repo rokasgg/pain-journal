@@ -16,6 +16,8 @@ export interface PainSliderProps {
   maxLabel?: string;
   // Middle-of-scale description, e.g. "Somewhat stiff". Omit for min/max only.
   midLabel?: string;
+  // Display-only context such as "Yesterday: 6" — never changes the value.
+  hint?: string;
   info?: string;
   // While `value` is null, park the thumb at the middle (muted) instead of 0 —
   // for scales where a far-left start would bias answers toward an extreme.
@@ -33,6 +35,7 @@ export function PainSlider({
   minLabel,
   maxLabel,
   midLabel,
+  hint,
   info,
   restAtMidpoint = false,
 }: PainSliderProps) {
@@ -78,6 +81,8 @@ export function PainSlider({
         {/* "—" until touched, so "not answered" never looks like a real 0. */}
         <Text className="text-base font-bold text-strongGray dark:text-white">{value ?? '—'}</Text>
       </View>
+
+      {hint && <Text className="-mt-1 text-xs text-gray-500 dark:text-gray">{hint}</Text>}
 
       <Slider
         minimumValue={0}

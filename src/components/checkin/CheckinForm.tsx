@@ -16,9 +16,16 @@ import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
 import { TriggerChips } from '@/components/checkin/TriggerChips';
 import { YesNoField } from '@/components/checkin/YesNoField';
 import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
+import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useProfile } from '@/hooks/useProfile';
 import { useStepHaptic } from '@/hooks/useStepHaptic';
 import { firstIncompleteStep, getStepIssue, type CheckinStepIssue } from '@/lib/checkinCompleteness';
+import {
+  findPreviousCheckin,
+  previousHintValues,
+  type CheckinSliderHints,
+  type HintedCheckinField,
+} from '@/lib/checkinHints';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import {
@@ -89,6 +96,9 @@ export const eveningDefaults: EveningCheckinFormData = {
 
 export interface CheckinFormProps {
   type: CheckinType;
+  // The date this check-in is for (today, a backfilled date, or the edited
+  // row's date) — used to find the previous check-in for "Yesterday: 6" hints.
+  checkinDate: string;
   defaultValues?: CheckinFormData;
   submitLabel: string;
   // Performs the actual save and reports the outcome instead of navigating
@@ -124,6 +134,7 @@ function RequiredMessage({ text }: { text?: string }) {
 
 export function CheckinForm({
   type,
+  checkinDate,
   defaultValues,
   submitLabel,
   onSubmit,
@@ -147,6 +158,20 @@ export function CheckinForm({
   // instead of forcing a 3rd required step. 'detailed'/'varies'/unset behave
   // exactly as before (3 full steps).
   const isQuickMode = profile?.checkin_depth_preference === 'quick';
+
+  // Display-only "Yesterday: 6" / "Last time: 6" under each slider, from the
+  // previous same-type check-in within 30 days. Never pre-fills a value.
+  const { checkins: recentCheckins } = useCheckinHistory(30);
+  const previous = findPreviousCheckin(recentCheckins, type, checkinDate);
+  const hints: CheckinSliderHints = {};
+  if (previous) {
+    const values = previousHintValues(previous.checkin);
+    for (const field of Object.keys(values) as HintedCheckinField[]) {
+      hints[field] = t(previous.isYesterday ? 'checkin.hintYesterday' : 'checkin.hintLastTime', {
+        value: values[field] ?? '',
+      });
+    }
+  }
   const totalSteps = isQuickMode ? 2 : TOTAL_STEPS;
   const [showMoreDetails, setShowMoreDetails] = useState(false);
 
@@ -272,6 +297,7 @@ export function CheckinForm({
         contentContainerClassName="gap-6 px-6 py-6"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
       >
         {step === 1 && (
           <>
@@ -312,6 +338,7 @@ export function CheckinForm({
                       value={value}
                       onChange={onChange}
                       info={t('checkin.painLevelInfo')}
+                      hint={hints.pain_level}
                     />
                   )}
                 />
@@ -339,6 +366,7 @@ export function CheckinForm({
                   midLabel={t('checkin.somewhatStiff')}
                   maxLabel={t('checkin.rigid')}
                   restAtMidpoint
+                  hint={hints.stiffness_level}
                   info={t('checkin.stiffnessInfo')}
                 />
               )}
@@ -356,6 +384,7 @@ export function CheckinForm({
                   midLabel={t('checkin.somewhatLimited')}
                   maxLabel={t('checkin.full')}
                   restAtMidpoint
+                  hint={hints.range_of_motion}
                   info={t('checkin.rangeOfMotionInfo')}
                 />
               )}
@@ -367,9 +396,9 @@ export function CheckinForm({
           <>
             {currentIssue === 'answerOneQuestion' && <RequiredMessage text={issueMessage} />}
             {isMorning ? (
-              <MorningFields control={control as Control<MorningCheckinFormData>} />
+              <MorningFields control={control as Control<MorningCheckinFormData>} hints={hints} />
             ) : (
-              <EveningFields control={control as Control<EveningCheckinFormData>} />
+              <EveningFields control={control as Control<EveningCheckinFormData>} hints={hints} />
             )}
 
             {isQuickMode &&

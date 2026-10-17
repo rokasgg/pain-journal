@@ -78,6 +78,7 @@ export default function EditCheckinModal() {
   return (
     <CheckinForm
       type={checkin.type}
+      checkinDate={checkin.checkin_date}
       defaultValues={toFormData(checkin)}
       submitLabel={t('checkin.saveChanges')}
       onSubmit={handleSubmit}

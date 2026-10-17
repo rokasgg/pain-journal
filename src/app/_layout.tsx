@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppSplashScreen } from '@/components/AppSplashScreen';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { WateringCelebrationHost } from '@/components/WateringCelebrationHost';
+import { KeyboardDoneBar } from '@/components/ui/KeyboardDoneBar';
 import { ToastModalHost } from '@/components/ui/ToastModalHost';
 import { useTodayCheckins } from '@/hooks/useCheckins';
 import { useProfile } from '@/hooks/useProfile';
@@ -339,6 +340,7 @@ function RootLayoutNav() {
       </Stack>
       <ToastModalHost />
       <WateringCelebrationHost />
+      <KeyboardDoneBar />
     </ErrorBoundary>
   );
 }

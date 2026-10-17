@@ -82,6 +82,7 @@ export default function EditProfileModal() {
       contentContainerClassName="gap-6 px-6 py-6"
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive"
     >
       <View className="items-center gap-3">
         <Pressable onPress={handlePickAvatar} accessibilityRole="button" accessibilityLabel={t('settings.changeAvatar')}>

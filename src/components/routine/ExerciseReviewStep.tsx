@@ -45,6 +45,7 @@ export function ExerciseReviewStep({
         contentContainerClassName="gap-6 px-6 py-6"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
       >
         <Text className="text-sm font-semibold uppercase text-gray-500 dark:text-gray">
           {t('routine.exerciseStepLabel', { index, total })}

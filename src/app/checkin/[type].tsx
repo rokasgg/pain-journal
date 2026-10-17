@@ -63,6 +63,7 @@ export default function CheckinModal() {
   return (
     <CheckinForm
       type={isMorning ? 'morning' : 'evening'}
+      checkinDate={todayLocalDate()}
       submitLabel={t('checkin.saveCheckin')}
       onSubmit={handleSubmit}
       onSaved={handleSaved}

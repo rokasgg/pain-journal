@@ -84,6 +84,7 @@ export default function CompleteRoutineScreen() {
         contentContainerClassName="gap-6 px-6 py-6"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
       >
         <Text className="text-xl font-bold text-black dark:text-white">{routine.title}</Text>
 

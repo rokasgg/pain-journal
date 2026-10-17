@@ -124,6 +124,7 @@ export default function OnboardingScreen() {
         contentContainerClassName="gap-6 px-6 py-6"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
       >
         {step === 1 && (
           <View className="gap-3">

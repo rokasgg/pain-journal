@@ -4,15 +4,18 @@ import { Pressable, Text, View } from 'react-native';
 import { PainSlider } from '@/components/checkin/PainSlider';
 import { HoursMinutesPickerField } from '@/components/ui/HoursMinutesPickerField';
 import { InfoButton } from '@/components/ui/InfoButton';
+import { Input } from '@/components/ui/Input';
 import { SLEEP_POSITION_OPTIONS } from '@/constants/symptoms';
+import type { CheckinSliderHints } from '@/lib/checkinHints';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { MorningCheckinFormData } from '@/lib/validations/checkin';
 
 export interface MorningFieldsProps {
   control: Control<MorningCheckinFormData>;
+  hints?: CheckinSliderHints;
 }
 
-export function MorningFields({ control }: MorningFieldsProps) {
+export function MorningFields({ control, hints }: MorningFieldsProps) {
   const { t } = useTranslation();
 
   return (
@@ -28,6 +31,7 @@ export function MorningFields({ control }: MorningFieldsProps) {
             minLabel={t('checkin.sleepBad')}
             maxLabel={t('checkin.sleepGood')}
             info={t('checkin.sleepQualityInfo')}
+            hint={hints?.sleep_quality}
           />
         )}
       />
@@ -81,6 +85,22 @@ export function MorningFields({ control }: MorningFieldsProps) {
               })}
             </View>
           </View>
+        )}
+      />
+
+      <Controller
+        control={control}
+        name="notes"
+        render={({ field: { value, onChange, onBlur } }) => (
+          <Input
+            label={t('checkin.morningNotes')}
+            multiline
+            numberOfLines={3}
+            value={value ?? ''}
+            onChangeText={onChange}
+            onBlur={onBlur}
+            placeholder={t('checkin.morningNotesPlaceholder')}
+          />
         )}
       />
     </View>

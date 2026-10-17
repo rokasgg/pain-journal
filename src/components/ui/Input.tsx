@@ -3,6 +3,7 @@ import { forwardRef, useState } from 'react';
 import { Pressable, Text, TextInput, View, type TextInputProps } from 'react-native';
 
 import { InfoButton } from '@/components/ui/InfoButton';
+import { KEYBOARD_DONE_BAR_ID } from '@/components/ui/KeyboardDoneBar';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
@@ -40,6 +41,9 @@ export const Input = forwardRef<TextInput, InputProps>(function Input(
           ref={ref}
           placeholderTextColor={colors.gray}
           secureTextEntry={hideText}
+          // Multiline: Return inserts a newline, so attach the shared "Done"
+          // bar (iOS) as the way to close the keyboard. Props can override.
+          inputAccessoryViewID={props.multiline ? KEYBOARD_DONE_BAR_ID : undefined}
           className={`rounded-lg border bg-surface px-4 py-3 text-strongGray dark:bg-surfaceDark dark:text-white ${error ? 'border-red dark:border-red-500' : 'border-gray dark:border-gray'
             } ${isPassword ? 'pr-12' : ''} ${inputClassName ?? ''}`}
           {...props}

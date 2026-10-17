@@ -88,6 +88,7 @@ export default function NotificationsScreen() {
       contentContainerClassName="gap-6 px-6 py-8"
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive"
     >
       {isLoading ? (
         <ActivityIndicator />

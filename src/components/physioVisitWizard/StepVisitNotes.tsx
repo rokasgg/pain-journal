@@ -1,4 +1,4 @@
-import { Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
 import { Input } from '@/components/ui/Input';
@@ -17,11 +17,19 @@ export interface StepVisitNotesProps {
 // typed, not just a cramped 3-line box competing with other inputs.
 export function StepVisitNotes({ overallNotes, onChangeOverallNotes, onBack, onNext }: StepVisitNotesProps) {
   const { t } = useTranslation();
-  const { height: screenHeight } = useWindowDimensions();
 
   return (
     <View className="flex-1">
-      <View className="flex-1 gap-6 px-6 py-6">
+      {/* ScrollView (not a plain View) so tapping outside or swiping down
+          closes the keyboard; the multiline Input also gets the shared Done
+          bar, since Return here only inserts a newline. */}
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-6 px-6 py-6"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        automaticallyAdjustKeyboardInsets
+      >
         <Text className="text-lg font-semibold text-black dark:text-white">
           {t('physioVisit.wizard.step2Title')}
         </Text>
@@ -33,9 +41,9 @@ export function StepVisitNotes({ overallNotes, onChangeOverallNotes, onBack, onN
           textAlignVertical="top"
           value={overallNotes ?? ''}
           onChangeText={onChangeOverallNotes}
-          style={{ height: screenHeight / 3 }}
+          inputClassName="h-64"
         />
-      </View>
+      </ScrollView>
 
       <WizardFooter>
         <Pressable

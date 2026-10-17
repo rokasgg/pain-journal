@@ -50,6 +50,7 @@ export function PhysioAssessmentForm({
       contentContainerClassName="gap-6 px-6 py-6"
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
+      keyboardDismissMode="interactive"
     >
       <Controller
         control={control}

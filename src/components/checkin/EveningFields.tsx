@@ -5,14 +5,16 @@ import { PainSlider } from '@/components/checkin/PainSlider';
 import { YesNoField } from '@/components/checkin/YesNoField';
 import { HoursMinutesPickerField } from '@/components/ui/HoursMinutesPickerField';
 import { Input } from '@/components/ui/Input';
+import type { CheckinSliderHints } from '@/lib/checkinHints';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { EveningCheckinFormData } from '@/lib/validations/checkin';
 
 export interface EveningFieldsProps {
   control: Control<EveningCheckinFormData>;
+  hints?: CheckinSliderHints;
 }
 
-export function EveningFields({ control }: EveningFieldsProps) {
+export function EveningFields({ control, hints }: EveningFieldsProps) {
   const { t } = useTranslation();
   const didExercises = useWatch({ control, name: 'did_exercises' });
 
@@ -27,6 +29,7 @@ export function EveningFields({ control }: EveningFieldsProps) {
             value={value}
             onChange={onChange}
             info={t('checkin.activityLevelInfo')}
+            hint={hints?.activity_level}
           />
         )}
       />
@@ -71,6 +74,7 @@ export function EveningFields({ control }: EveningFieldsProps) {
                 minLabel={t('checkin.light')}
                 maxLabel={t('checkin.intense')}
                 info={t('checkin.exerciseIntensityInfo')}
+                hint={hints?.exercise_intensity}
               />
             )}
           />

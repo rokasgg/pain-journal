@@ -1,6 +1,6 @@
 import { useNavigation, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PreVisitScreen } from '@/components/physioVisitWizard/PreVisitScreen';
@@ -125,38 +125,42 @@ export default function NewPhysioVisitWizard() {
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top']}>
-      <WizardProgress step={step} onClose={() => router.back()} totalSteps={3} />
+      {/* Keeps Back/Continue/Save above the keyboard on every step. Offset 0:
+          this screen has no native header. */}
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <WizardProgress step={step} onClose={() => router.back()} totalSteps={3} />
 
-      {step === 1 && (
-        <Step1VisitInfo
-          visitDate={visitDate}
-          physioName={physioName}
-          onChangeVisitDate={setVisitDate}
-          onChangePhysioName={setPhysioName}
-          onNext={() => setStep(2)}
-        />
-      )}
+        {step === 1 && (
+          <Step1VisitInfo
+            visitDate={visitDate}
+            physioName={physioName}
+            onChangeVisitDate={setVisitDate}
+            onChangePhysioName={setPhysioName}
+            onNext={() => setStep(2)}
+          />
+        )}
 
-      {step === 2 && (
-        <StepVisitNotes
-          overallNotes={overallNotes}
-          onChangeOverallNotes={setOverallNotes}
-          onBack={() => setStep(1)}
-          onNext={() => setStep(3)}
-        />
-      )}
+        {step === 2 && (
+          <StepVisitNotes
+            overallNotes={overallNotes}
+            onChangeOverallNotes={setOverallNotes}
+            onBack={() => setStep(1)}
+            onNext={() => setStep(3)}
+          />
+        )}
 
-      {step === 3 && (
-        <StepNextVisit
-          nextVisitDate={nextVisitDate}
-          questions={questions}
-          onChangeNextVisitDate={setNextVisitDate}
-          onChangeQuestions={setQuestions}
-          onBack={() => setStep(2)}
-          onSave={handleSave}
-          isSaving={isSaving}
-        />
-      )}
+        {step === 3 && (
+          <StepNextVisit
+            nextVisitDate={nextVisitDate}
+            questions={questions}
+            onChangeNextVisitDate={setNextVisitDate}
+            onChangeQuestions={setQuestions}
+            onBack={() => setStep(2)}
+            onSave={handleSave}
+            isSaving={isSaving}
+          />
+        )}
+      </KeyboardAvoidingView>
 
       <ConfirmModal
         visible={isConfirmDiscardVisible}

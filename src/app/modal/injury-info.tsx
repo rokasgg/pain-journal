@@ -50,6 +50,7 @@ function InjuryInfoForm({ profile }: InjuryInfoFormProps) {
         contentContainerClassName="gap-3 px-6 py-8"
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
       >
         <DatePickerField
           label={t('settings.injuryStartDate')}

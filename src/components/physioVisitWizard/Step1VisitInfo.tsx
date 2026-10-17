@@ -25,7 +25,13 @@ export function Step1VisitInfo({
 
   return (
     <View className="flex-1">
-      <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-6">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="gap-6 px-6 py-6"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        automaticallyAdjustKeyboardInsets
+      >
         <Text className="text-lg font-semibold text-black dark:text-white">
           {t('physioVisit.wizard.step1Title')}
         </Text>

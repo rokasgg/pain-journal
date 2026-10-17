@@ -71,6 +71,7 @@ export default function BackfillModal() {
       <CheckinForm
         key={checkinType}
         type={checkinType}
+        checkinDate={checkinDate}
         submitLabel={t('checkin.saveCheckin')}
         onSubmit={handleSubmit}
         onSaved={handleSaved}
