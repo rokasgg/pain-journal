@@ -56,6 +56,8 @@ export default function RegisterScreen() {
           <Input
             label={t('auth.nameLabel')}
             placeholder={t('auth.namePlaceholder')}
+            textContentType="name"
+            autoComplete="name"
             onChangeText={onChange}
             onBlur={onBlur}
             value={value}
@@ -71,6 +73,8 @@ export default function RegisterScreen() {
           <Input
             label={t('auth.emailLabel')}
             placeholder={t('auth.emailPlaceholder')}
+            textContentType="emailAddress"
+            autoComplete="email"
             autoCapitalize="none"
             keyboardType="email-address"
             onChangeText={onChange}
@@ -89,6 +93,11 @@ export default function RegisterScreen() {
             label={t('auth.passwordLabel')}
             placeholder={t('auth.passwordPlaceholder')}
             isPassword
+            // Both password fields declare themselves as a *new* password —
+            // without this iOS guesses and paints its yellow "Strong
+            // Password" autofill styling onto just one of them.
+            textContentType="newPassword"
+            autoComplete="new-password"
             onChangeText={onChange}
             onBlur={onBlur}
             value={value}
@@ -105,6 +114,8 @@ export default function RegisterScreen() {
             label={t('auth.confirmPasswordLabel')}
             placeholder={t('auth.passwordPlaceholder')}
             isPassword
+            textContentType="newPassword"
+            autoComplete="new-password"
             onChangeText={onChange}
             onBlur={onBlur}
             value={value}

@@ -1,20 +1,35 @@
+import { MILESTONE_LABEL_KEYS } from '@/components/home/JourneyCard';
+import { TAB_BAR_HEIGHT } from '@/constants/layout';
+import { useJourney } from '@/hooks/useJourney';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { JOURNEY_MILESTONES, type MilestoneKey } from '@/lib/journey';
 import { colors } from '@/lib/theme';
 import { haptics } from '@/utils/haptics';
+import { toast } from '@/utils/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Text, useColorScheme, View } from 'react-native';
+
+// Tabs that stay visible-but-locked until the new-user journey unlocks them
+// (by logged days — see lib/journey.ts). Locked, not hidden, so new users can
+// see what's coming.
+const LOCKED_TAB_MILESTONES: Partial<Record<string, MilestoneKey>> = {
+  history: 'history',
+  insights: 'insights',
+};
 
 function TabButton({
   name,
   label,
   focused,
   size,
+  locked = false,
 }: {
   name: keyof typeof Ionicons.glyphMap;
   label: string;
   focused: boolean;
   size: number;
+  locked?: boolean;
 }) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -35,11 +50,15 @@ function TabButton({
         minWidth: 100,
       }}
     >
-      <Ionicons name={name} size={size} color={focused ? colors.selectedTab : colors.lightGrey} />
+      <Ionicons
+        name={locked ? 'lock-closed' : name}
+        size={size}
+        color={focused && !locked ? colors.selectedTab : colors.lightGrey}
+      />
 
       <Text
         numberOfLines={1}
-        style={{ color: colors.selectedTab, fontSize: 12, fontWeight: '600' }}
+        style={{ color: locked ? colors.lightGrey : colors.selectedTab, fontSize: 12, fontWeight: '600' }}
       >
         {label}
       </Text>
@@ -50,6 +69,7 @@ function TabButton({
 
 export default function TabsLayout() {
   const { t } = useTranslation();
+  const { state, isUnlocked } = useJourney();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
 
@@ -57,8 +77,22 @@ export default function TabsLayout() {
     <Tabs
       // Tick only when actually switching tabs, not when re-tapping the
       // current one (`navigation` here is the pressed tab's own navigation).
-      screenListeners={({ navigation }) => ({
-        tabPress: () => {
+      screenListeners={({ navigation, route }) => ({
+        tabPress: (e) => {
+          const milestone = LOCKED_TAB_MILESTONES[route.name];
+          if (milestone && !isUnlocked(milestone)) {
+            e.preventDefault();
+            haptics.tick();
+            const total = JOURNEY_MILESTONES.find((m) => m.key === milestone)?.days ?? 0;
+            toast.info(
+              t('journey.lockedTab', {
+                feature: t(MILESTONE_LABEL_KEYS[milestone]),
+                total,
+                count: Math.max(total - state.loggedDays, 1),
+              }),
+            );
+            return;
+          }
           if (!navigation.isFocused()) haptics.tick();
         },
       })}
@@ -70,7 +104,7 @@ export default function TabsLayout() {
         tabBarStyle: {
           backgroundColor: isDark ? colors.backgroundDark : colors.background,
           borderTopColor: isDark ? colors.borderDark : colors.borderLight,
-          height: 80,
+          height: TAB_BAR_HEIGHT,
 
           paddingBottom: 20,
           paddingTop: 15,
@@ -94,7 +128,13 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.history'),
           tabBarIcon: ({ focused, size }) => (
-            <TabButton name="stats-chart" label={t('tabs.history')} focused={focused} size={size} />
+            <TabButton
+              name="stats-chart"
+              label={t('tabs.history')}
+              focused={focused}
+              size={size}
+              locked={!isUnlocked('history')}
+            />
           ),
         }}
       />
@@ -103,7 +143,13 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.insights'),
           tabBarIcon: ({ focused, size }) => (
-            <TabButton name="bulb" label={t('tabs.insights')} focused={focused} size={size} />
+            <TabButton
+              name="bulb"
+              label={t('tabs.insights')}
+              focused={focused}
+              size={size}
+              locked={!isUnlocked('insights')}
+            />
           ),
         }}
       />

@@ -166,6 +166,8 @@ export type PrimaryGoal =
   | 'track_exercises'
   | 'just_journal';
 export type CheckinDepthPreference = 'quick' | 'detailed' | 'varies';
+// Answer to the journey's day-7 care step (supabase_journey_migration.sql).
+export type CareStatus = 'with_professional' | 'not_yet' | 'just_tracking';
 
 export interface Profile {
   id: string;
@@ -195,6 +197,12 @@ export interface Profile {
   // Optional so profiles fetched before supabase_training_payoff_migration.sql
   // ran still type-check — read it as `profile?.weekly_training_goal ?? 3`.
   weekly_training_goal?: number;
+  // New-user journey (supabase_journey_migration.sql) — optional so profiles
+  // fetched before the migration still type-check.
+  care_status?: CareStatus | null;
+  care_status_answered_at?: string | null;
+  // null/undefined = not decided; see resolveTrainingEnabled() in lib/journey.ts.
+  training_enabled?: boolean | null;
 
   created_at: string;
   updated_at: string;
@@ -218,6 +226,9 @@ export type ProfileUpdate = Partial<
     | 'checkin_depth_preference'
     | 'ai_insights_enabled'
     | 'weekly_training_goal'
+    | 'care_status'
+    | 'care_status_answered_at'
+    | 'training_enabled'
   >
 >;
 

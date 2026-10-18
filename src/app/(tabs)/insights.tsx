@@ -9,6 +9,7 @@ import { ExerciseFocusCard } from '@/components/insights/ExerciseFocusCard';
 import { PhysioFocusCard } from '@/components/insights/PhysioFocusCard';
 import { ReportsList } from '@/components/insights/ReportsList';
 import { TrainingPayoffCard } from '@/components/insights/TrainingPayoffCard';
+import { useJourney } from '@/hooks/useJourney';
 import { useProfile } from '@/hooks/useProfile';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
@@ -21,6 +22,7 @@ export default function InsightsScreen() {
   // AI features are opt-in via onboarding (defaultable to true from
   // Settings' "AI insights" toggle for existing profiles).
   const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
+  const { trainingEnabled } = useJourney();
 
   // Onboarding's "primary goal" answer decides whether the physio-focus
   // summary leads the tab — "prepare for appointments" cares most about it.
@@ -49,9 +51,13 @@ export default function InsightsScreen() {
         </View>
 
         <View className="gap-3">
-          <TodaysRoutineCard />
-          <TrainingPayoffCard />
-          <ExerciseFocusCard />
+          {trainingEnabled && (
+            <>
+              <TodaysRoutineCard />
+              <TrainingPayoffCard />
+              <ExerciseFocusCard />
+            </>
+          )}
           {physioFocusFirst && aiInsightsEnabled && <PhysioFocusCard />}
           {aiInsightsEnabled && <AskAiCta />}
           {!physioFocusFirst && aiInsightsEnabled && <PhysioFocusCard />}

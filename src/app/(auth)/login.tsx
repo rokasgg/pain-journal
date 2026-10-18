@@ -62,6 +62,8 @@ export default function LoginScreen() {
           <Input
             label={t('auth.emailLabel')}
             placeholder={t('auth.emailPlaceholder')}
+            textContentType="emailAddress"
+            autoComplete="email"
             autoCapitalize="none"
             keyboardType="email-address"
             onChangeText={onChange}
@@ -80,6 +82,8 @@ export default function LoginScreen() {
             label={t('auth.passwordLabel')}
             placeholder={t('auth.passwordPlaceholder')}
             isPassword
+            textContentType="password"
+            autoComplete="current-password"
             onChangeText={onChange}
             onBlur={onBlur}
             value={value}

@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
+import { useJourney } from '@/hooks/useJourney';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -36,6 +37,15 @@ export default function SettingsScreen() {
   const [isSignOutModalVisible, setIsSignOutModalVisible] = useState(false);
 
   const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
+
+  // Explicit choice always wins over the journey's derived default
+  // (lib/journey.ts resolveTrainingEnabled).
+  const { trainingEnabled } = useJourney();
+  const handleToggleTraining = async (value: boolean) => {
+    haptics.tick();
+    const { error } = await updateProfileMutation.mutateAsync({ training_enabled: value });
+    if (error) toast.error(error);
+  };
 
   const handleToggleAiInsights = async (value: boolean) => {
     haptics.tick();
@@ -180,6 +190,23 @@ export default function SettingsScreen() {
               <Switch
                 value={aiInsightsEnabled}
                 onValueChange={handleToggleAiInsights}
+                trackColor={{ false: colors.gray, true: isDark ? colors.primaryDark : colors.primary }}
+                thumbColor={colors.white}
+                ios_backgroundColor={colors.gray}
+              />
+            </View>
+
+            <View className="flex-row items-center justify-between px-4 py-3.5">
+              <View className="flex-1 flex-row items-center gap-3">
+                <Ionicons name="barbell-outline" size={20} color={colors.gray} />
+                <View className="flex-1">
+                  <Text className="text-base text-strongGray dark:text-white">{t('journey.trainingSetting')}</Text>
+                  <Text className="text-xs text-gray-500 dark:text-gray">{t('journey.trainingSettingInfo')}</Text>
+                </View>
+              </View>
+              <Switch
+                value={trainingEnabled}
+                onValueChange={handleToggleTraining}
                 trackColor={{ false: colors.gray, true: isDark ? colors.primaryDark : colors.primary }}
                 thumbColor={colors.white}
                 ios_backgroundColor={colors.gray}

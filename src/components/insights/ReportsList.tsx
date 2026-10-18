@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link, type Href } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { useJourney } from '@/hooks/useJourney';
 import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
 import { useProfile } from '@/hooks/useProfile';
 import { formatCheckinDate, toLocalDate } from '@/lib/dates';
@@ -47,11 +48,15 @@ export function ReportsList() {
   const { profile } = useProfile();
   const { assessments } = usePhysioAssessments();
   const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
+  const { trainingEnabled } = useJourney();
+  const showPhysioVisits = trainingEnabled || profile?.care_status === 'with_professional';
 
   const lastRun = (timestamp: string | null | undefined) =>
     timestamp
       ? t('insights.reportLastRun', { date: formatCheckinDate(toLocalDate(timestamp)) })
       : t('insights.reportNotRun');
+
+  if (!aiInsightsEnabled && !showPhysioVisits) return null;
 
   return (
     <View className="gap-3">
@@ -72,16 +77,19 @@ export function ReportsList() {
               icon="document-text-outline"
               title={t('insights.reportPhysioSummary')}
               subtitle={lastRun(profile?.last_physio_summary_at)}
+              isLast={!showPhysioVisits}
             />
           </>
         )}
-        <ReportRow
-          href={'/history/physio-visits' as Href}
-          icon="medkit-outline"
-          title={t('insights.reportPhysioVisits')}
-          subtitle={t('insights.reportVisitCount', { count: assessments.length })}
-          isLast
-        />
+        {showPhysioVisits && (
+          <ReportRow
+            href={'/history/physio-visits' as Href}
+            icon="medkit-outline"
+            title={t('insights.reportPhysioVisits')}
+            subtitle={t('insights.reportVisitCount', { count: assessments.length })}
+            isLast
+          />
+        )}
       </View>
     </View>
   );

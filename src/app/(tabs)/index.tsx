@@ -1,29 +1,43 @@
+import { CareStepCard } from '@/components/home/CareStepCard';
 import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
 import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
 import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
 import { FlowerHealthCard } from '@/components/home/FlowerHealthCard';
+import { JourneyCard } from '@/components/home/JourneyCard';
+import { WelcomeGuide } from '@/components/home/WelcomeGuide';
 import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
 import { WrapReadyCard } from '@/components/home/WrapReadyCard';
 import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
 import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
+import { useJourney } from '@/hooks/useJourney';
+import { useSession } from '@/hooks/useSession';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { weeklyTrainingProgress } from '@/lib/trainingInsights';
+import { isMorningOptionalToday } from '@/lib/checkinTiming';
+import { useJourneyStore } from '@/store/useJourneyStore';
 import { useOnboardingCompleteStore } from '@/store/useOnboardingCompleteStore';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+const POST_TRANSITION_DELAY_MS = 450;
+const WELCOME_OPEN_DELAY_MS = 300;
 
 export default function HomeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
+  // New-user journey: training cards only appear once the user opts in (care
+  // step / Settings) or already uses them — see lib/journey.ts.
+  const { trainingEnabled, state: journeyState, isLoading: journeyLoading } = useJourney();
+  const { profile } = useProfile();
   const [refreshing, setRefreshing] = useState(false);
   // Real trigger: shown once right after onboarding finishes (set by
   // onboarding.tsx via useOnboardingCompleteStore, read directly here rather
@@ -33,8 +47,17 @@ export default function HomeScreen() {
   const onboardingJustCompleted = useOnboardingCompleteStore((s) => s.pending);
   const consumeOnboardingCompletion = useOnboardingCompleteStore((s) => s.consume);
   const [debugCheckmarkVisible, setDebugCheckmarkVisible] = useState(false);
+  // Home lands here via the root layout's fade from onboarding — presenting a
+  // real <Modal> mid-transition is the documented Modal-vs-navigation race
+  // (see ToastModalHost), so wait for the fade to finish first.
+  const [checkmarkReady, setCheckmarkReady] = useState(false);
+  useEffect(() => {
+    if (!onboardingJustCompleted) return;
+    const timeout = setTimeout(() => setCheckmarkReady(true), POST_TRANSITION_DELAY_MS);
+    return () => clearTimeout(timeout);
+  }, [onboardingJustCompleted]);
 
-  const checkmarkVisible = onboardingJustCompleted || debugCheckmarkVisible;
+  const checkmarkVisible = (onboardingJustCompleted && checkmarkReady) || debugCheckmarkVisible;
   useEffect(() => {
     if (checkmarkVisible) haptics.success();
   }, [checkmarkVisible]);
@@ -43,12 +66,38 @@ export default function HomeScreen() {
     setDebugCheckmarkVisible(false);
   };
 
+  // Full-screen "how this works", auto-opened on each account's first time
+  // in the app (whatever its data), only once no onboarding checkmark is
+  // pending/showing — so the order is Home → checkmark → welcome, and a
+  // Modal never opens mid-transition. It collapses into the progress card,
+  // which can reopen it.
+  const progressCardRef = useRef<View>(null);
+  const { user } = useSession();
+  const welcomeSeen = useJourneyStore((s) => !!user && s.welcomeSeenBy.includes(user.id));
+  const [welcomeVisible, setWelcomeVisible] = useState(false);
+  const [welcomeFromCard, setWelcomeFromCard] = useState(false);
+  const shouldAutoOpenWelcome =
+    !!user && !welcomeSeen && !journeyLoading && !checkmarkVisible && !onboardingJustCompleted;
+
+  useEffect(() => {
+    if (!shouldAutoOpenWelcome) return;
+    const timeout = setTimeout(() => {
+      setWelcomeFromCard(false);
+      setWelcomeVisible(true);
+    }, WELCOME_OPEN_DELAY_MS);
+    return () => clearTimeout(timeout);
+  }, [shouldAutoOpenWelcome]);
+
+  const closeWelcome = () => {
+    setWelcomeVisible(false);
+    if (user) useJourneyStore.getState().markWelcomeSeen(user.id);
+  };
+
   // Routine-adherence weekly goal, not a generic "were you active today" —
   // a day counts only when the prescribed routine was actually logged (FULL
   // or PARTIAL), regardless of the evening check-in's separate, unrelated
   // `did_exercises` question. ~12 weeks fetched so weeks-in-a-row can count.
   const { logs: exerciseLogs } = useExerciseLogHistory(84);
-  const { profile } = useProfile();
   const updateProfile = useUpdateProfile();
   const weeklyGoal = profile?.weekly_training_goal ?? 3;
   const trainingProgress = useMemo(
@@ -89,13 +138,23 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        <JourneyCard
+          progressCardRef={progressCardRef}
+          onOpenGuide={() => {
+            setWelcomeFromCard(true);
+            setWelcomeVisible(true);
+          }}
+        />
+
+        <CareStepCard />
+
         <WrapReadyCard />
 
         <FlowerHealthCard />
 
         <CheckinStatusCard />
 
-        <TodaysRoutineCard />
+        {trainingEnabled && <TodaysRoutineCard />}
 
         <Link href="/flare-up/new" asChild>
           <Pressable className="items-center rounded-xl justify-center bg-primary h-16 py-3 dark:bg-primaryDark active:opacity-90">
@@ -103,14 +162,16 @@ export default function HomeScreen() {
           </Pressable>
         </Link>
 
-        <View className="gap-3">
+        {trainingEnabled && (
+          <View className="gap-3">
 
-          <ExerciseWeekCalendar
-            progress={trainingProgress}
-            onChangeGoal={handleChangeGoal}
-            onSelectDate={(date) => router.push(`/history/day/${date}`)}
-          />
-        </View>
+            <ExerciseWeekCalendar
+              progress={trainingProgress}
+              onChangeGoal={handleChangeGoal}
+              onSelectDate={(date) => router.push(`/history/day/${date}`)}
+            />
+          </View>
+        )}
 
 
         {/*
@@ -138,6 +199,14 @@ export default function HomeScreen() {
           />
         </Pressable>
       </Modal>
+
+      <WelcomeGuide
+        visible={welcomeVisible}
+        targetRef={progressCardRef}
+        expandFromTarget={welcomeFromCard}
+        startWithEvening={isMorningOptionalToday({ hour: new Date().getHours(), loggedDays: journeyState.loggedDays })}
+        onClosed={closeWelcome}
+      />
     </SafeAreaView>
   );
 }

@@ -2,7 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { GlowPulse } from '@/components/ui/GlowPulse';
+import { useJourney } from '@/hooks/useJourney';
 import { useTodayStatus } from '@/hooks/useTodayStatus';
+import { getNowAction, isMorningOptionalToday } from '@/lib/checkinTiming';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
@@ -12,16 +15,19 @@ interface StatusCardProps {
   done: boolean;
   href: '/checkin/morning' | '/checkin/evening';
   locked?: boolean;
+  // First-day evening: the morning moment has passed, so it's shown muted as
+  // optional (still tappable — never blocked).
+  optional?: boolean;
 }
 
-function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
+function StatusCard({ label, icon, done, href, locked, optional }: StatusCardProps) {
   const { t } = useTranslation();
 
   return (
     <View
       className={`flex-row items-center justify-between rounded-2xl p-4 ${done
         ? 'border-gray-200 bg-surface dark:border-gray-800 dark:bg-surfaceDark'
-        : locked
+        : locked || optional
           ? 'border-gray-200 bg-surface opacity-60 dark:border-gray-800 dark:bg-surfaceDark'
           : 'border-primary bg-primaryMuted dark:border-primaryDark dark:bg-primaryMutedDark'
         }`}
@@ -33,7 +39,13 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
         <View>
           <Text className="text-base font-semibold text-black dark:text-white">{label}</Text>
           <Text className="text-sm text-gray-500 dark:text-gray">
-            {done ? t('home.completed') : locked ? t('home.unlocksAt') : t('home.readyForCheckin')}
+            {done
+              ? t('home.completed')
+              : locked
+                ? t('home.unlocksAt')
+                : optional
+                  ? t('home.morningOptionalToday')
+                  : t('home.readyForCheckin')}
           </Text>
         </View>
       </View>
@@ -56,17 +68,32 @@ function StatusCard({ label, icon, done, href, locked }: StatusCardProps) {
 export function CheckinStatusCard() {
   const { t } = useTranslation();
   const { morningDone, eveningDone, eveningUnlocked } = useTodayStatus();
+  const { state } = useJourney();
+  const hour = new Date().getHours();
+  // Exactly one card glows: the check-in that's the thing to do right now.
+  const nowAction = getNowAction({ hour, morningDone, eveningDone });
+  const morningOptional = !morningDone && isMorningOptionalToday({ hour, loggedDays: state.loggedDays });
 
   return (
     <View className="gap-3">
-      <StatusCard label={t('home.morning')} icon="sunny" done={morningDone} href="/checkin/morning" />
-      <StatusCard
-        label={t('home.evening')}
-        icon="moon"
-        done={eveningDone}
-        href="/checkin/evening"
-        locked={!eveningUnlocked}
-      />
+      <GlowPulse active={nowAction === 'morning'}>
+        <StatusCard
+          label={t('home.morning')}
+          icon="sunny"
+          done={morningDone}
+          href="/checkin/morning"
+          optional={morningOptional}
+        />
+      </GlowPulse>
+      <GlowPulse active={nowAction === 'evening' && eveningUnlocked}>
+        <StatusCard
+          label={t('home.evening')}
+          icon="moon"
+          done={eveningDone}
+          href="/checkin/evening"
+          locked={!eveningUnlocked}
+        />
+      </GlowPulse>
     </View>
   );
 }
