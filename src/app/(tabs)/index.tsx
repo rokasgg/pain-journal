@@ -1,27 +1,30 @@
 import { CareStepCard } from '@/components/home/CareStepCard';
 import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
+import { CheckinWeekCard } from '@/components/home/CheckinWeekCard';
 import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
 import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
 import { FlowerHealthCard } from '@/components/home/FlowerHealthCard';
 import { JourneyCard } from '@/components/home/JourneyCard';
-import { WelcomeGuide } from '@/components/home/WelcomeGuide';
 import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
+import { WelcomeGuide } from '@/components/home/WelcomeGuide';
 import { WrapReadyCard } from '@/components/home/WrapReadyCard';
 import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
 import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
 import { useJourney } from '@/hooks/useJourney';
-import { useSession } from '@/hooks/useSession';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
-import { todayLocalDate } from '@/lib/dates';
+import { useSession } from '@/hooks/useSession';
+import { isMorningOptionalToday } from '@/lib/checkinTiming';
+import { capitalize, currentDateFnsLocale, todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { weeklyTrainingProgress } from '@/lib/trainingInsights';
-import { isMorningOptionalToday } from '@/lib/checkinTiming';
 import { useJourneyStore } from '@/store/useJourneyStore';
 import { useOnboardingCompleteStore } from '@/store/useOnboardingCompleteStore';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
+import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -125,18 +128,26 @@ export default function HomeScreen() {
         contentContainerClassName="gap-6 px-6 py-8"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
-        <View className="flex-row items-start justify-between">
-          <Pressable onLongPress={() => setDebugCheckmarkVisible(true)} delayLongPress={400}>
-            <Text className="text-2xl font-bold text-black dark:text-white">{t('home.title')}</Text>
-            <Text className="text-sm text-gray-500 dark:text-gray">
-              {t('home.subtitle')}
+        <View className="flex-row items-end justify-between gap-3">
+          <Pressable onLongPress={() => setDebugCheckmarkVisible(true)} delayLongPress={400} className="flex-1">
+            <Text className="text-base text-strongGray dark:text-gray">
+              {capitalize(format(new Date(), 'EEEE, d MMMM', { locale: currentDateFnsLocale() }))}
             </Text>
+            <Text className="text-4xl font-bold text-black dark:text-white">{t('home.title')}</Text>
           </Pressable>
-          <View className="items-end gap-2">
-            {/* <DaysSinceInjury /> */}
-            <DaysSinceHealing />
-          </View>
+          <DaysSinceHealing />
         </View>
+
+        {/* Order follows assets/possible-app-design/home: check-ins first,
+            then timely prompts, this week, unlocks, flare-up; the flower and
+            (opt-in) training cards below. */}
+        <CheckinStatusCard />
+
+        <CareStepCard />
+
+        <WrapReadyCard />
+
+        <CheckinWeekCard />
 
         <JourneyCard
           progressCardRef={progressCardRef}
@@ -146,33 +157,27 @@ export default function HomeScreen() {
           }}
         />
 
-        <CareStepCard />
-
-        <WrapReadyCard />
-
-        <FlowerHealthCard />
-
-        <CheckinStatusCard />
-
-        {trainingEnabled && <TodaysRoutineCard />}
-
         <Link href="/flare-up/new" asChild>
-          <Pressable className="items-center rounded-xl justify-center bg-primary h-16 py-3 dark:bg-primaryDark active:opacity-90">
-            <Text className="font-medium text-white text-lg">{t('home.logFlareUp')}</Text>
+          <Pressable
+            accessibilityRole="button"
+            className="flex-row items-center justify-center gap-2 rounded-3xl border-2 border-red-200 bg-surface py-5 active:opacity-80 dark:border-red-900 dark:bg-surfaceDark"
+          >
+            <Ionicons name="flash-outline" size={22} color="#dc2626" />
+            <Text className="text-lg font-bold text-red-700 dark:text-red-400">{t('home.logFlareUp')}</Text>
           </Pressable>
         </Link>
 
+        <FlowerHealthCard />
+
+        {trainingEnabled && <TodaysRoutineCard />}
+
         {trainingEnabled && (
-          <View className="gap-3">
-
-            <ExerciseWeekCalendar
-              progress={trainingProgress}
-              onChangeGoal={handleChangeGoal}
-              onSelectDate={(date) => router.push(`/history/day/${date}`)}
-            />
-          </View>
+          <ExerciseWeekCalendar
+            progress={trainingProgress}
+            onChangeGoal={handleChangeGoal}
+            onSelectDate={(date) => router.push(`/history/day/${date}`)}
+          />
         )}
-
 
         {/*
         <Link href="/checkin/backfill" asChild>

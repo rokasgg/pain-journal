@@ -6,6 +6,7 @@ import { Pressable, Text, View } from 'react-native';
 import { GlowPulse } from '@/components/ui/GlowPulse';
 import { useJourney } from '@/hooks/useJourney';
 import { useProfile } from '@/hooks/useProfile';
+import { formatDayCount } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { JOURNEY_MILESTONES, type MilestoneKey } from '@/lib/journey';
 import { colors } from '@/lib/theme';
@@ -32,11 +33,20 @@ const ANNOUNCED_MILESTONES: { key: MilestoneKey; bodyKey: string; href: Href }[]
 const PROGRESS_MILESTONES = JOURNEY_MILESTONES.filter((m) => m.key !== 'careStep');
 const MAX_PROGRESS_ROWS = 2;
 
-function ProgressBar({ value, total }: { value: number; total: number }) {
-  const pct = Math.min(value / total, 1) * 100;
+// One segment per required day (3 for History, 7 for Insights); logged days
+// fill green from the left. Each segment keeps fixed classes — fill is a
+// layer shown via style (NativeWind upgrade gotcha, CLAUDE.md).
+function SegmentedBar({ value, total }: { value: number; total: number }) {
   return (
-    <View className="h-1.5 flex-1 overflow-hidden rounded-full bg-primaryMuted dark:bg-primaryMutedDark">
-      <View className="h-full rounded-full bg-primary dark:bg-primaryDark" style={{ width: `${pct}%` }} />
+    <View className="flex-1 flex-row gap-1">
+      {Array.from({ length: total }, (_, index) => (
+        <View key={index} className="h-2 flex-1 overflow-hidden rounded-full bg-borderLight dark:bg-borderDark">
+          <View
+            className="h-full w-full rounded-full bg-primary dark:bg-primaryDark"
+            style={{ opacity: index < value ? 1 : 0 }}
+          />
+        </View>
+      ))}
     </View>
   );
 }
@@ -54,7 +64,7 @@ export interface JourneyCardProps {
 //    full-screen "how it works" guide, which collapses into this card);
 // and nothing once everything is unlocked and announced.
 export function JourneyCard({ progressCardRef, onOpenGuide }: JourneyCardProps) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const router = useRouter();
   const { state, isLoading } = useJourney();
   const { profile } = useProfile();
@@ -119,21 +129,19 @@ export function JourneyCard({ progressCardRef, onOpenGuide }: JourneyCardProps) 
       onPress={onOpenGuide}
       accessibilityRole="button"
       accessibilityHint={t('journey.howTitle')}
-      className="gap-3 rounded-2xl bg-surface p-4 active:opacity-80 dark:bg-surfaceDark"
+      className="gap-4 rounded-3xl bg-surface p-5 active:opacity-80 dark:bg-surfaceDark"
     >
-      <View className="flex-row items-center justify-between">
-        <Text className="text-xs font-semibold uppercase text-gray-500 dark:text-gray">{t('journey.unlocksTitle')}</Text>
-        <Ionicons name="information-circle-outline" size={18} color={colors.gray} />
-      </View>
       {locked.map((milestone) => (
         <View key={milestone.key} className="flex-row items-center gap-3">
-          <Ionicons name="lock-closed" size={14} color={colors.gray} />
-          <Text className="w-20 text-sm font-medium text-strongGray dark:text-white">
+          <Ionicons name="lock-closed-outline" size={18} color={colors.gray} />
+          <Text className="w-24 text-md font-semibold text-black dark:text-white">
             {t(MILESTONE_LABEL_KEYS[milestone.key])}
           </Text>
-          <ProgressBar value={state.loggedDays} total={milestone.days} />
-          <Text className="w-16 text-right text-xs text-gray-500 dark:text-gray">
-            {t('journey.unlockProgress', { done: Math.min(state.loggedDays, milestone.days), total: milestone.days })}
+          <SegmentedBar value={Math.min(state.loggedDays, milestone.days)} total={milestone.days} />
+          <Text className="w-28 text-right text-sm text-gray">
+            {t('journey.daysLeft', {
+              days: formatDayCount(Math.max(milestone.days - state.loggedDays, 0), locale),
+            })}
           </Text>
         </View>
       ))}

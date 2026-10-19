@@ -236,7 +236,7 @@ src/
   - With reduced motion it only fades.
 - **Home `JourneyCard`** is either:
   - **a one-time, glowing "✨ New: …" card** per newly reached milestone (Open + dismiss, `haptics.success()`). The care step has its own card, so it isn't announced here.
-  - **the compact "Your unlocks" card:** one progress bar per still-locked milestone (max 2, care step excluded), tappable to reopen the guide.
+  - **the compact unlocks card:** per still-locked milestone (max 2, care step excluded), a lock, the label, a **segmented** bar (one segment per required day, logged days filled), and "N days left" (`journey.daysLeft` + `formatDayCount`). It has no header row, matching the design, and is tappable to reopen the guide.
   
   It hides once everything is unlocked and announced.
 - **"Now" action, glow and first-day evening** (`src/lib/checkinTiming.ts`, tested):
@@ -276,6 +276,28 @@ src/
   - **`handleFinish` does not navigate at all.** The root layout's guard (`!needsOnboarding && inOnboarding` → `router.replace('/(tabs)')`) performs the single redirect once the refetched profile has `onboarding_completed`. It used to *also* call `router.replace('/(tabs)')` itself, which fired two overlapping fade transitions; that was the "something is off" finish. `isSaving` stays true on success so the button keeps spinning until the screen leaves.
   - Home waits `POST_TRANSITION_DELAY_MS` (450ms) after landing before presenting the checkmark's real `<Modal>`, so it never presents mid-fade (the documented Modal-vs-transition race).
   - Home reads `pending` directly off the store (no mirrored local state/`useEffect`+`setState` — that pattern trips the `react-hooks/set-state-in-effect` lint rule) and shows the same success `<Modal>` overlay once it lands, clearing the flag in its `closeCheckmark` handler so it only ever plays once.
+
+## Home screen (`src/app/(tabs)/index.tsx`, design: `assets/possible-app-design/home`)
+- **Order, top to bottom** (the user's choices):
+  1. **header:** the date ("Monday, 19 October", `EEEE, d MMMM`) above a big "Today", with the `DaysSinceHealing` pill on the right ("🌱 Day 63 of healing", the same `daysSince + 1` count as Injury info, linking there)
+  2. **`CheckinStatusCard`**
+  3. the temporary prompts: `CareStepCard`, `WrapReadyCard`
+  4. **`CheckinWeekCard`** ("This week")
+  5. `JourneyCard` (unlocks)
+  6. the **red outlined "⚡ Log a flare-up"** button
+  7. **`FlowerHealthCard`**, kept but moved lower by choice; the mockup omits it
+  8. the opt-in training cards (`TodaysRoutineCard`, weekly goal)
+- **`CheckinStatusCard`** has both check-ins in **one card**:
+  - an amber sun / indigo moon tile per row
+  - **done:** a filled ✓ and "Done". It's deliberately **not tappable** (explicit decision).
+  - **evening before 16:00:** "Opens at 16:00" plus an "in 3 h 51 min" chip, refreshed every minute by a local tick
+  - **ready:** a "Start" pill, and the whole row is tappable
+  - **The check-in due right now** (`getNowAction`) gets a **soft green row tint instead of the old `GlowPulse` ring.** The tint is an always-rendered layer toggled by `style.opacity`, never a toggled class.
+  - The first-day-evening "optional morning" behaviour is unchanged.
+- **`CheckinWeekCard`:**
+  - Mon–Sun, two dots per day (top = morning, bottom = evening), today framed, and "N of 14 check-ins"
+  - Its logic is `buildCheckinWeek()` in `src/lib/checkinWeek.ts` (tested), fed by `useCheckinHistory(30)`.
+  - Every dot state (grey / dashed "today, not yet" / filled) is a stacked layer shown via opacity, so logging a check-in never swaps classes on a mounted element.
 
 ## Stack headers (`src/app/_layout.tsx`)
 - **Headers blend into the page.** The root `<Stack>`'s `screenOptions` sets defaults for *every* screen:
