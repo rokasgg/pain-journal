@@ -8,7 +8,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SettingsRow } from '@/components/settings/SettingsRow';
 import { SettingsSection } from '@/components/settings/SettingsSection';
-import { ActionSheet, type ActionSheetAction } from '@/components/ui/ActionSheet';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
 import { FEEDBACK_EMAIL } from '@/constants/app';
@@ -42,14 +41,12 @@ export default function SettingsScreen() {
   const hapticsEnabled = useHapticsStore((s) => s.enabled);
   const setHapticsEnabled = useHapticsStore((s) => s.setEnabled);
   const locale = useLocaleStore((s) => s.locale);
-  const setLocale = useLocaleStore((s) => s.setLocale);
   const updateProfileMutation = useUpdateProfile();
   const resetPassword = useAuthStore((state) => state.resetPassword);
   const signOut = useAuthStore((state) => state.signOut);
   const deleteAccount = useAuthStore((state) => state.deleteAccount);
   const [isSignOutModalVisible, setIsSignOutModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-  const [isLanguageSheetVisible, setIsLanguageSheetVisible] = useState(false);
 
   const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
   // Explicit choice always wins over the journey's derived default
@@ -111,24 +108,13 @@ export default function SettingsScreen() {
     toast.success(t('settings.accountDeleted'));
   };
 
-  const languageActions: ActionSheetAction[] = (Object.keys(LANGUAGE_LABEL_KEYS) as Locale[]).map((option) => ({
-    label: t(LANGUAGE_LABEL_KEYS[option]),
-    onPress: () => {
-      setIsLanguageSheetVisible(false);
-      if (option !== locale) {
-        haptics.tick();
-        setLocale(option);
-      }
-    },
-  }));
-
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top']}>
       <ScrollView className="flex-1" contentContainerClassName="gap-7 px-5 pb-12 pt-8">
         <Text className="px-1 text-4xl font-bold text-black dark:text-white">{t('tabs.settings')}</Text>
 
         <Pressable
-          onPress={() => router.push('/modal/edit-profile')}
+          onPress={() => router.push('/settings/edit-profile' as Href)}
           accessibilityRole="button"
           accessibilityLabel={t('settings.editProfile')}
           className="flex-row items-center gap-4 rounded-3xl bg-surface p-4 active:opacity-70 dark:bg-surfaceDark"
@@ -155,7 +141,7 @@ export default function SettingsScreen() {
           <SettingsRow
             icon="bandage-outline"
             title={t('settings.injuryInfo')}
-            onPress={() => router.push('/modal/injury-info' as Href)}
+            onPress={() => router.push('/settings/injury-info' as Href)}
           />
           <SettingsRow
             icon="barbell-outline"
@@ -175,7 +161,7 @@ export default function SettingsScreen() {
             icon="globe-outline"
             title={t('settings.language')}
             value={t(LANGUAGE_LABEL_KEYS[locale])}
-            onPress={() => setIsLanguageSheetVisible(true)}
+            onPress={() => router.push('/settings/language' as Href)}
           />
           <SettingsRow icon="contrast-outline" title={t('settings.appearance')} below={<ThemeSwitcher />} />
           <SettingsRow
@@ -239,12 +225,6 @@ export default function SettingsScreen() {
           {version !== '' && <Text className="text-sm text-gray">{t('settings.version', { version })}</Text>}
         </View>
       </ScrollView>
-
-      <ActionSheet
-        visible={isLanguageSheetVisible}
-        actions={languageActions}
-        onCancel={() => setIsLanguageSheetVisible(false)}
-      />
 
       <ConfirmModal
         visible={isSignOutModalVisible}

@@ -114,28 +114,43 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
         <Stack.Screen name="onboarding" options={{ animation: 'fade' }} />
         <Stack.Screen name="(auth)" options={{ animation: 'fade' }} />
+        {/* Pushed like every other settings sub-page; Save lives in the
+            screen's own headerRight (set via Stack.Screen options there). */}
         <Stack.Screen
-          name="modal/edit-profile"
+          name="settings/edit-profile"
           options={{
-            presentation: 'modal',
-            // presentation:'modal' alone doesn't guarantee the same slide-up
-            // feel cross-platform — pin it explicitly (same on every modal
-            // screen below).
-            animation: 'slide_from_bottom',
             headerShown: true,
             title: t('screenTitles.editProfile'),
+            headerBackTitle: t('tabs.settings'),
+            headerTintColor: colors.primary,
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
-          name="modal/injury-info"
+          name="settings/injury-info"
           options={{
-            headerShown: true, title: t('screenTitles.injuryInfo'), headerBackButtonDisplayMode: 'minimal',
+            headerShown: true,
+            title: t('screenTitles.injuryInfo'),
+            headerBackTitle: t('tabs.settings'),
+            headerTintColor: colors.primary,
             headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
             headerShadowVisible: false,
           }}
         />
         {/* Settings sub-pages (src/app/settings/) are pushed pages with a
             "‹ Settings" back button, not modal sheets — the new settings design. */}
+        <Stack.Screen
+          name="settings/language"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.language'),
+            headerBackTitle: t('tabs.settings'),
+            headerTintColor: colors.primary,
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
+          }}
+        />
         <Stack.Screen
           name="settings/notifications"
           options={{

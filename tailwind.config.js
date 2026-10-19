@@ -7,7 +7,7 @@ const colors = {
   gray: '#8e8e93',
   borderLight: '#e5e7eb',
   borderDark: '#27272a',
-  background: '#F3FAFF',
+  // background: '#dde0ddff',
   backgroundDark: '#0B1410',
   surface: '#ffffffff',
   surfaceDark: '#111C16',

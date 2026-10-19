@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import { Link, type Href } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { useProfile } from '@/hooks/useProfile';
@@ -13,7 +13,7 @@ export function DaysSinceHealing() {
 
   if (!profile?.healing_started_on) {
     return (
-      <Link href="/(tabs)/settings" asChild>
+      <Link href={'/settings/injury-info' as Href} asChild>
         <Pressable className="flex-row items-center gap-1.5 rounded-full bg-primaryMuted px-3 py-2 dark:bg-primaryMutedDark">
           <Ionicons name="leaf-outline" size={14} color={colors.primary} />
           <Text className="text-xs font-medium text-black dark:text-white">{t('home.setHealingDate')}</Text>
