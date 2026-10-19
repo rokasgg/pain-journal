@@ -134,13 +134,17 @@ function RootLayoutNav() {
             headerShadowVisible: false,
           }}
         />
+        {/* Settings sub-pages (src/app/settings/) are pushed pages with a
+            "‹ Settings" back button, not modal sheets — the new settings design. */}
         <Stack.Screen
-          name="modal/notifications"
+          name="settings/notifications"
           options={{
-            presentation: 'modal',
-            animation: 'slide_from_bottom',
             headerShown: true,
             title: t('screenTitles.notifications'),
+            headerBackTitle: t('tabs.settings'),
+            headerTintColor: colors.primary,
+            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+            headerShadowVisible: false,
           }}
         />
         <Stack.Screen

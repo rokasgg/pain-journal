@@ -169,7 +169,7 @@ export default function SettingsScreen() {
           <SettingsRow
             icon="notifications-outline"
             title={t('screenTitles.notifications')}
-            onPress={() => router.push('/modal/notifications' as Href)}
+            onPress={() => router.push('/settings/notifications' as Href)}
           />
           <SettingsRow
             icon="globe-outline"

@@ -26,6 +26,12 @@ export interface SettingsRowProps {
   onPress?: () => void;
   showChevron?: boolean;
   tone?: RowTone;
+  // Per-row icon tile colours (e.g. amber morning / indigo evening);
+  // default is the tone's tile.
+  iconTileClassName?: string;
+  iconColor?: string;
+  // Dims the row and blocks presses (e.g. reminder times while reminders are off).
+  disabled?: boolean;
   // Injected by SettingsSection — hides the divider on the last row.
   isLast?: boolean;
   className?: string;
@@ -44,6 +50,9 @@ export function SettingsRow({
   onPress,
   showChevron = !!onPress && !accessory,
   tone = 'default',
+  iconTileClassName,
+  iconColor,
+  disabled = false,
   isLast,
   className,
 }: SettingsRowProps) {
@@ -51,8 +60,8 @@ export function SettingsRow({
 
   const content = (
     <View className="flex-row gap-3.5 pl-4">
-      <View className={`mt-3.5 h-9 w-9 items-center justify-center rounded-xl ${styles.tile}`}>
-        <Ionicons name={icon} size={18} color={styles.icon} />
+      <View className={`mt-3.5 h-9 w-9 items-center justify-center rounded-xl ${iconTileClassName ?? styles.tile}`}>
+        <Ionicons name={icon} size={18} color={iconColor ?? styles.icon} />
       </View>
       <View className={`flex-1 gap-3 py-3.5 pr-4 ${isLast ? '' : 'border-b border-borderLight dark:border-borderDark'}`}>
         <View className="min-h-9 flex-row items-center gap-3">
@@ -69,10 +78,27 @@ export function SettingsRow({
     </View>
   );
 
-  if (!onPress) return <View className={className}>{content}</View>;
+  // Dimming via style, not an `opacity-*` class toggled later — see the
+  // NativeWind upgrade gotcha in CLAUDE.md.
+  // Only set while disabled, so it doesn't override `active:opacity-60`.
+  const dimStyle = disabled ? { opacity: 0.45 } : undefined;
+
+  if (!onPress) {
+    return (
+      <View className={className} style={dimStyle} pointerEvents={disabled ? 'none' : 'auto'}>
+        {content}
+      </View>
+    );
+  }
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" className={`active:opacity-60 ${className ?? ''}`}>
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      style={dimStyle}
+      className={`active:opacity-60 ${className ?? ''}`}
+    >
       {content}
     </Pressable>
   );
