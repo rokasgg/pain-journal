@@ -10,20 +10,26 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { colors } from '@/lib/theme';
-
 export interface GlowPulseProps {
   active: boolean;
   children: ReactNode;
   className?: string;
 }
 
-const HALF_PERIOD_MS = 800;
-const STATIC_OPACITY = 0.4;
+const HALF_PERIOD_MS = 1400;
+const MIN_OPACITY = 0.35;
+const STATIC_OPACITY = 0.7;
+// Soft blurred halo in the primary green, drawn *outside* the card's edges
+// (boxShadow — cross-platform on the New Architecture). primaryDark's
+// slightly brighter green reads in both light and dark mode, so no
+// colour-scheme branching is needed.
+const HALO_SHADOW = '0px 0px 18px 3px rgba(79, 122, 92, 0.55)';
 
-// A soft breathing ring behind its child, drawing the eye to "do this now".
-// Use on exactly one element at a time — one glowing thing is what makes the
-// glow mean "this one". Respects the OS reduce-motion setting (static ring).
+// A soft breathing halo around its child, drawing the eye to "do this now".
+// Deliberately no outline ring and no scaling — an earlier version drew an
+// offset border-2 ring that pulsed in size, which read as a second, jittery
+// border around the card. Only the halo's opacity breathes. Use on exactly
+// one element at a time. Respects the OS reduce-motion setting (static halo).
 export function GlowPulse({ active, children, className }: GlowPulseProps) {
   const reduceMotion = useReducedMotion();
   const progress = useSharedValue(0);
@@ -38,9 +44,8 @@ export function GlowPulse({ active, children, className }: GlowPulseProps) {
     return () => cancelAnimation(progress);
   }, [active, reduceMotion, progress]);
 
-  const ringStyle = useAnimatedStyle(() => ({
-    opacity: reduceMotion ? STATIC_OPACITY : 0.15 + progress.value * 0.4,
-    transform: [{ scale: reduceMotion ? 1 : 1 + progress.value * 0.03 }],
+  const haloStyle = useAnimatedStyle(() => ({
+    opacity: reduceMotion ? STATIC_OPACITY : MIN_OPACITY + progress.value * (1 - MIN_OPACITY),
   }));
 
   return (
@@ -48,11 +53,10 @@ export function GlowPulse({ active, children, className }: GlowPulseProps) {
       {active && (
         <Animated.View
           pointerEvents="none"
-          className="absolute -inset-1 rounded-[20px] border-2 border-primary dark:border-primaryDark"
-          style={[
-            { shadowColor: colors.primary, shadowOpacity: 0.6, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
-            ringStyle,
-          ]}
+          // Same radius as the cards it wraps (rounded-2xl), so the halo
+          // follows their exact outline.
+          className="absolute inset-0 rounded-2xl"
+          style={[{ boxShadow: HALO_SHADOW }, haloStyle]}
         />
       )}
       {children}

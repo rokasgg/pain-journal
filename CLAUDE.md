@@ -178,7 +178,11 @@ src/
 - **"Now" action, glow and first-day evening** (`src/lib/checkinTiming.ts`, tested):
   - `EVENING_UNLOCK_HOUR` (16) lives here, and `useTodayStatus` imports it.
   - `getNowAction()` is morning before 16:00 and evening from 16:00, or nothing if that one is done. **A missed morning is never nudged in the evening.**
-  - `GlowPulse` (`src/components/ui/GlowPulse.tsx`) is a breathing ring around **exactly one element at a time**: the "now" check-in card, or the "✨ New" card. One glowing thing is what makes the glow mean "this one". It honours reduced motion with a static ring.
+  - `GlowPulse` (`src/components/ui/GlowPulse.tsx`) is a soft breathing halo around **exactly one element at a time**: the "now" check-in card, or the "✨ New" card. One glowing thing is what makes the glow mean "this one".
+    - It's an absolute `rounded-2xl` layer behind the child, with a green `boxShadow` blur drawn outside the card's edges. Only its opacity animates.
+    - **No outline ring and no scaling.** The first version was an offset `border-2` ring that pulsed in size; it read as a jittery second border and was rejected as ugly.
+    - `boxShadow` is cross-platform because the app runs on the New Architecture (RN 0.86).
+    - It honours reduced motion with a static halo.
   - `isMorningOptionalToday()`: a brand-new user (0 logged days) after 16:00 sees the morning card muted as "Optional today", still tappable and never blocked, and the welcome says to start with this evening.
 - **"Already announced" is persisted per device** in `useJourneyStore`. Its `initialize()` runs once per device and silently marks everything *already* unlocked as announced, so existing users don't get a flood of "New!" cards.
 - **The care step** (`CareStepCard`, a Home card, never a modal) asks "Do you know what's causing your pain?" once `careStep` unlocks. Its three answers are saved to `profiles.care_status`/`care_status_answered_at`:
