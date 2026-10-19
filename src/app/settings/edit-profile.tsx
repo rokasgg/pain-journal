@@ -13,6 +13,7 @@ import { useSession } from '@/hooks/useSession';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { editProfileSchema, type EditProfileFormData } from '@/lib/validations/profile';
+import { headerRightWithoutGlass } from '@/lib/navigation/headerItems';
 import { useAuthStore } from '@/store/useAuthStore';
 import { pickAvatarImage } from '@/utils/image';
 import { toast } from '@/utils/toast';
@@ -109,24 +110,23 @@ export default function EditProfileScreen() {
   return (
     <>
       <Stack.Screen
-        options={{
-          headerRight: () =>
-            isSubmitting ? (
-              <ActivityIndicator color={colors.primary} />
-            ) : (
-              <Pressable
-                onPress={handleSubmit(onSubmit)}
-                disabled={!canSave}
-                hitSlop={10}
-                accessibilityRole="button"
-                // Disabled look via style, not a toggled class (NativeWind
-                // upgrade gotcha, CLAUDE.md).
-                style={{ opacity: canSave ? 1 : 0.4 }}
-              >
-                <Text className="text-base font-bold text-primary dark:text-white">{t('common.save')}</Text>
-              </Pressable>
-            ),
-        }}
+        options={headerRightWithoutGlass(
+          isSubmitting ? (
+            <ActivityIndicator color={colors.primary} />
+          ) : (
+            <Pressable
+              onPress={handleSubmit(onSubmit)}
+              disabled={!canSave}
+              hitSlop={10}
+              accessibilityRole="button"
+              // Disabled look via style, not a toggled class (NativeWind
+              // upgrade gotcha, CLAUDE.md).
+              style={{ opacity: canSave ? 1 : 0.4 }}
+            >
+              <Text className="text-base font-bold text-primary dark:text-white">{t('common.save')}</Text>
+            </Pressable>
+          ),
+        )}
       />
 
       <ScrollView

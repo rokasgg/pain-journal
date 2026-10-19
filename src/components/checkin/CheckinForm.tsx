@@ -28,6 +28,7 @@ import {
 } from '@/lib/checkinHints';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { headerRightWithoutGlass } from '@/lib/navigation/headerItems';
 import {
   eveningCheckinSchema,
   morningCheckinSchema,
@@ -273,7 +274,7 @@ export function CheckinForm({
   if (flareUpCandidate && !flareUpStepDone) {
     return (
       <View className="flex-1 bg-background dark:bg-backgroundDark">
-        <Stack.Screen options={{ headerRight: () => <StepDots step={0} totalSteps={totalSteps} /> }} />
+        <Stack.Screen options={headerRightWithoutGlass(<StepDots step={0} totalSteps={totalSteps} />)} />
         <FlareUpFollowUpStep flareUp={flareUpCandidate} onDone={() => setFlareUpStepDone(true)} />
       </View>
     );
@@ -282,7 +283,7 @@ export function CheckinForm({
   if (hasRoutinesInRotation && !routineStepDone) {
     return (
       <View className="flex-1 bg-background dark:bg-backgroundDark">
-        <Stack.Screen options={{ headerRight: () => <StepDots step={0} totalSteps={totalSteps} /> }} />
+        <Stack.Screen options={headerRightWithoutGlass(<StepDots step={0} totalSteps={totalSteps} />)} />
         <RoutineTrainingStep onDone={() => setRoutineStepDone(true)} />
       </View>
     );
@@ -290,7 +291,7 @@ export function CheckinForm({
 
   return (
     <View className="flex-1 bg-background dark:bg-backgroundDark">
-      <Stack.Screen options={{ headerRight: () => <StepDots step={step} totalSteps={totalSteps} /> }} />
+      <Stack.Screen options={headerRightWithoutGlass(<StepDots step={step} totalSteps={totalSteps} />)} />
 
       <ScrollView
         className="flex-1"

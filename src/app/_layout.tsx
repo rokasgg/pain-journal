@@ -4,11 +4,12 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack, useRouter, useSegments, type Href } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useRef, useState } from 'react';
-import { useColorScheme } from 'react-native';
+import { Platform, useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AppSplashScreen } from '@/components/AppSplashScreen';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { WateringCelebrationHost } from '@/components/WateringCelebrationHost';
 import { KeyboardDoneBar } from '@/components/ui/KeyboardDoneBar';
 import { ToastModalHost } from '@/components/ui/ToastModalHost';
@@ -23,6 +24,17 @@ import { colors } from '@/lib/theme';
 SplashScreen.preventAutoHideAsync().catch(() => { });
 
 const MIN_SPLASH_MS = 3000;
+
+// Routes presented as modal sheets (`presentation: 'modal'` below). They have
+// no back button, so they don't get the custom iOS back item. Keep in sync
+// when changing a screen's presentation.
+const MODAL_SHEET_ROUTES = new Set([
+  'flare-up/edit/[id]',
+  'history/[kind]/[id]',
+  'history/day/[date]',
+  'history/patterns',
+  'physio-visit/edit/[id]',
+]);
 
 function RootLayoutNav() {
   const { session, isLoading } = useSession();
@@ -99,14 +111,41 @@ function RootLayoutNav() {
   return (
     <ErrorBoundary>
       <Stack
-        screenOptions={{
+        screenOptions={({ route, navigation }) => ({
           headerShown: false,
           // Explicit (not native-stack's implicit 'default') so plain-push
           // screens slide the same way on iOS and Android — Android's
           // implicit default can render as an inconsistent fade/scale
           // depending on OS/RN Screens version.
           animation: 'slide_from_right',
-        }}
+          // Every header blends into the screen behind it: same colour as
+          // the page background, no hairline. (Deliberately not
+          // `headerTransparent`, which floats the header over content that
+          // doesn't inset for it.)
+          headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
+          headerShadowVisible: false,
+          headerTintColor: colors.primary,
+          headerTitleStyle: { color: isDark ? colors.white : colors.black },
+          // iOS 26 draws a "Liquid Glass" bubble behind the native back
+          // button that can't be turned off; a custom item with
+          // hidesSharedBackground can. Skipped on modal sheets (no back
+          // button there — they swipe down to close).
+          ...(Platform.OS === 'ios' && navigation.canGoBack() && !MODAL_SHEET_ROUTES.has(route.name)
+            ? {
+                unstable_headerLeftItems: () => [
+                  {
+                    type: 'custom' as const,
+                    element: (
+                      <HeaderBackButton
+                        label={route.name.startsWith('settings/') ? t('tabs.settings') : undefined}
+                      />
+                    ),
+                    hidesSharedBackground: true,
+                  },
+                ],
+              }
+            : {}),
+        })}
       >
         {/* Reached via router.replace (auth/onboarding/tabs mode switches),
             not a user-initiated push — a directional slide would misread as
@@ -122,9 +161,6 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.editProfile'),
             headerBackTitle: t('tabs.settings'),
-            headerTintColor: colors.primary,
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -133,9 +169,6 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.injuryInfo'),
             headerBackTitle: t('tabs.settings'),
-            headerTintColor: colors.primary,
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         {/* Settings sub-pages (src/app/settings/) are pushed pages with a
@@ -146,9 +179,6 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.language'),
             headerBackTitle: t('tabs.settings'),
-            headerTintColor: colors.primary,
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -157,9 +187,6 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.notifications'),
             headerBackTitle: t('tabs.settings'),
-            headerTintColor: colors.primary,
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -168,8 +195,6 @@ function RootLayoutNav() {
             headerShown: true, title: t('screenTitles.checkin'),
             headerBackTitle: t('tabs.home'),
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
 
         />
@@ -177,8 +202,6 @@ function RootLayoutNav() {
           name="checkin/backfill"
           options={{
             headerShown: true, title: t('screenTitles.backfillCheckin'), headerBackTitle: t('tabs.home'), headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -189,16 +212,12 @@ function RootLayoutNav() {
           name="flare-up/new"
           options={{
             headerShown: true, title: t('screenTitles.logFlareUp'), headerBackTitle: t('tabs.home'), headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
           name="flare-up/edit/[id]"
           options={{
             presentation: 'modal', animation: 'slide_from_bottom', headerShown: true, title: t('screenTitles.editFlareUp'),
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -235,8 +254,6 @@ function RootLayoutNav() {
             title: t('screenTitles.physioSummary'),
             headerBackTitle: '',
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         {/* Immersive story takeover, not a form sheet — fullScreenModal (no
@@ -251,8 +268,6 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.completeRoutine'),
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -261,8 +276,6 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.newRoutine'),
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -271,8 +284,6 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.reviewRoutine'),
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -281,8 +292,6 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.viewRoutine'),
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -291,8 +300,6 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.editRoutine'),
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -301,8 +308,6 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.routineHistory'),
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen name="physio-visit/new" options={{ headerShown: false }} />
@@ -322,8 +327,6 @@ function RootLayoutNav() {
             title: t('screenTitles.physioVisitDetails'),
             headerBackTitle: '',
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -341,8 +344,6 @@ function RootLayoutNav() {
             title: t('screenTitles.physioFocusDetail'),
             headerBackTitle: t('tabs.insights'),
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
         <Stack.Screen
@@ -352,8 +353,6 @@ function RootLayoutNav() {
             title: t('screenTitles.aiChat'),
             headerBackTitle: t('tabs.insights'),
             headerBackButtonDisplayMode: 'minimal',
-            headerStyle: { backgroundColor: isDark ? colors.backgroundDark : colors.background },
-            headerShadowVisible: false,
           }}
         />
       </Stack>

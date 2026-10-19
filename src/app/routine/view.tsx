@@ -9,6 +9,7 @@ import { useDeleteRoutine, useRoutineHistory, useSetRoutineRotation } from '@/ho
 import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { headerRightWithoutGlass } from '@/lib/navigation/headerItems';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 
@@ -96,7 +97,7 @@ export default function ViewRoutinesScreen() {
   // "+ New routine" moved here from TodaysRoutineCard.tsx — this is where
   // routines are actually browsed/managed, so it's the natural home for
   // adding one too.
-  const headerRight = () => (
+  const headerOptions = headerRightWithoutGlass(
     <Pressable
       onPress={() => router.push('/routine/new' as Href)}
       accessibilityRole="button"
@@ -111,7 +112,7 @@ export default function ViewRoutinesScreen() {
   if (isLoading) {
     return (
       <View className="flex-1 items-center justify-center bg-background dark:bg-backgroundDark">
-        <Stack.Screen options={{ headerRight }} />
+        <Stack.Screen options={headerOptions} />
         <ActivityIndicator />
       </View>
     );
@@ -120,7 +121,7 @@ export default function ViewRoutinesScreen() {
   if (routines.length === 0) {
     return (
       <View className="flex-1 items-center justify-center bg-background px-6 dark:bg-backgroundDark">
-        <Stack.Screen options={{ headerRight }} />
+        <Stack.Screen options={headerOptions} />
         <Text className="text-center text-gray-500 dark:text-gray">{t('routine.noRoutinesYet')}</Text>
       </View>
     );
@@ -128,7 +129,7 @@ export default function ViewRoutinesScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ headerRight }} />
+      <Stack.Screen options={headerOptions} />
       <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-3 px-6 py-6">
         {routines.map((routine) => (
           <Link key={routine.id} href={`/routine/${routine.id}` as Href} asChild>

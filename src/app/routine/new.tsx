@@ -13,6 +13,7 @@ import { useStepHaptic } from '@/hooks/useStepHaptic';
 import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { headerRightWithoutGlass } from '@/lib/navigation/headerItems';
 import { usePendingRoutineDraftStore } from '@/store/usePendingRoutineDraftStore';
 import type { Routine } from '@/types/database.types';
 import { toast } from '@/utils/toast';
@@ -106,7 +107,7 @@ export default function NewRoutineScreen() {
 
   return (
     <View className="flex-1 bg-background dark:bg-backgroundDark">
-      <Stack.Screen options={{ headerRight: () => <StepDots step={step} totalSteps={TOTAL_STEPS} /> }} />
+      <Stack.Screen options={headerRightWithoutGlass(<StepDots step={step} totalSteps={TOTAL_STEPS} />)} />
 
       <ScrollView
         className="flex-1"
