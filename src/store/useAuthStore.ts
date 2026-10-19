@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { extractFunctionErrorMessage } from '@/lib/functionsError';
 import { t } from '@/lib/i18n/useTranslation';
 import { supabase } from '@/lib/supabase';
 
@@ -14,6 +15,7 @@ interface AuthActions {
   resetPassword: (email: string) => Promise<{ error: string | null }>;
   updateProfile: (updates: { name?: string; avatarUrl?: string }) => Promise<{ error: string | null }>;
   uploadAvatar: (userId: string, localUri: string) => Promise<{ url: string | null; error: string | null }>;
+  deleteAccount: () => Promise<{ error: string | null }>;
 }
 
 export const useAuthStore = create<AuthActions>(() => ({
@@ -34,6 +36,21 @@ export const useAuthStore = create<AuthActions>(() => ({
   signOut: async () => {
     const { error } = await supabase.auth.signOut();
     return { error: error?.message ?? null };
+  },
+
+  // Permanent: the delete-account edge function removes all of the user's
+  // rows, avatar files and the auth user itself (service role, server-side).
+  // Then the now-invalid local session is cleared — `scope: 'local'` because
+  // the user no longer exists server-side, so a global sign-out would fail.
+  // The SIGNED_OUT event reaches useSession() and the root layout redirects
+  // to login.
+  deleteAccount: async () => {
+    const { error } = await supabase.functions.invoke('delete-account');
+    if (error) {
+      return { error: await extractFunctionErrorMessage(error, error.message) };
+    }
+    await supabase.auth.signOut({ scope: 'local' });
+    return { error: null };
   },
 
   resetPassword: async (email: string) => {

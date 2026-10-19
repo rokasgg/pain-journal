@@ -110,7 +110,7 @@ src/
 
 ## Theming (`src/store/useThemeStore.ts`)
 - `tailwind.config.js`'s `darkMode: 'class'` is driven exclusively by NativeWind's `colorScheme.set('system' | 'light' | 'dark')` (imported from `'nativewind'`) — never call `Appearance.setColorScheme` or branch styling off `useColorScheme()` from `react-native` in app code (the tab bar's native-options case in `(tabs)/_layout.tsx` is the one sanctioned exception, since those are non-style navigator props).
-- The user-facing control is `components/ui/ThemeSwitcher` (segmented System/Light/Dark), backed by `useThemeStore`. Add new theme entry points by calling `useThemeStore((s) => s.setMode)`, never by importing `colorScheme` directly in a screen.
+- The user-facing control is `components/ui/ThemeSwitcher` (segmented System/Light/Dark: a grey track with a raised white selected pill, labels via `t('settings.theme*')`), backed by `useThemeStore`. It sits inside Settings' Appearance row. Add new theme entry points by calling `useThemeStore((s) => s.setMode)`, never by importing `colorScheme` directly in a screen.
 - The store is the single source of truth and is persisted; don't re-derive or cache the mode elsewhere (e.g. component-local `useState`).
 
 ## Media / Avatars (`src/utils/image.ts`, `useAuthStore.uploadAvatar`)
@@ -118,6 +118,27 @@ src/
 - Uploading is a two-step flow, always in this order: `uploadAvatar(userId, localUri)` (uploads to the Supabase Storage `avatars` bucket at `${userId}/avatar.<ext>`, `upsert: true`, returns a cache-busted public URL) then `updateProfile({ avatarUrl })` to persist it on the user. Never skip the second call — the uploaded file isn't reflected in `user_metadata` until you do.
 - Display avatars with `expo-image`'s `<Image source={{ uri }} contentFit="cover" className="rounded-full ..." />`, not `react-native`'s `Image` — falls back to a `Ionicons name="person"` placeholder circle when there's no `avatar_url`.
 - Requires a public Supabase Storage bucket named `avatars` to exist on the project (not created by app code) — check for it before assuming avatar upload works end-to-end on a fresh Supabase project.
+
+## Settings screen (`src/app/(tabs)/settings.tsx`)
+- **Layout follows `assets/possible-app-design/settings`:**
+  - a big "Settings" title
+  - a profile card (avatar photo or initial, name, email, ›, opening `modal/edit-profile`)
+  - grouped cards: **Recovery** (Injury info, Training & physio), **Preferences** (Notifications, Language, Appearance with `ThemeSwitcher` inside the row, Vibration), **Privacy & data** (AI insights, Privacy policy), **Account** (Change password, Sign out, Delete account)
+  - "Send feedback" and the app version at the bottom
+- **Built from `src/components/settings/`:**
+  - `SettingsSection`: an uppercase header plus one rounded card. It injects `isLast` into rows, so only dividers *between* rows draw.
+  - `SettingsRow`: a tinted icon tile, title/subtitle, then a value, chevron or custom `accessory` (e.g. a `Switch`). There's a `below` slot for full-width content, and `tone="destructive"` for red rows. New settings should be rows, not hand-rolled `Pressable`s.
+- **The AI insights subtitle discloses that entries are processed by Anthropic (Claude).** Keep that disclosure if the provider or wording changes.
+- **"Change password"** currently sends the existing reset-password email.
+- **"Send feedback"** only renders once `FEEDBACK_EMAIL` (`src/constants/app.ts`) is set.
+- **The version** comes from `Constants.expoConfig.version`.
+- **Delete account** (an App Store requirement, guideline 5.1.1(v)):
+  - It goes through a destructive `ConfirmModal`, then `useAuthStore.deleteAccount()`, which invokes the **`delete-account` edge function** (`supabase/functions/delete-account/`).
+  - The function identifies the user only from their session, never from the request body.
+  - With the service-role key, it deletes every user table explicitly (not trusting FK cascades on the dashboard-created tables), then the profile, the avatar files, and finally the auth user (`auth.admin.deleteUser`).
+  - Then the client signs out with `scope: 'local'`, because the user no longer exists server-side, and the root layout redirects to login.
+  - **Deploy it with `supabase functions deploy delete-account`.** Add any new per-user table to its `USER_TABLES` list.
+- **Not built yet** (no placeholder rows): **Export my data**, which needs `expo-file-system` + `expo-sharing`. **Privacy policy** still toasts "coming soon" until there's hosted policy text; the App Store requires a real one.
 
 ## Confirm/Informative Modals (`src/components/ui/ConfirmModal.tsx`)
 - `Alert.alert` is banned from this codebase entirely — every former call site (`toast.ts`, `InfoButton`, the Settings sign-out confirm) now renders through `<ConfirmModal>` so all dialogs share the app's design system instead of the native OS alert. Never add a new `Alert.alert` call; always use `ConfirmModal` (directly, for a one-off confirm dialog owned by a screen's local `useState`; or via `toast.ts`, for async-result notifications).
@@ -356,6 +377,9 @@ src/
   - All new `Profile` fields are optional/nullable in `src/types/database.types.ts` except `onboarding_completed`/`ai_insights_enabled` (`boolean not null default`) — every screen that reads them treats `null`/`undefined` as "not answered yet" and falls back to the pre-onboarding default behavior (e.g. `ai_insights_enabled ?? true`), so existing profiles created before this migration don't silently lose features.
 
 ## Visual Design System
+- **Gotcha: NativeWind "upgrades" (remounts) an element whose className starts setting CSS variables after its first render.** For example, a segmented option that gains `bg-white` (`--tw-bg-opacity`) or `shadow-sm` (`--tw-shadow`) when it becomes selected, while unselected it had none. In dev builds the upgrade *warning* JSON-stringifies the element's props, which can walk into React Navigation's default context, whose getters throw **"Couldn't find a navigation context"** and crash the screen. This crashed Settings via `ThemeSwitcher` when the persisted theme rehydrated and the selection moved. Two defences:
+  - **(1) Keep the className stable across a component's states and toggle visual state through `style`.** `ThemeSwitcher` renders identical classes for every option, and draws the selected pill as an always-present layer whose opacity and shadow come from `style`. Background colour classes for custom hex tokens with 6 digits set a variable, while 8-digit ones (e.g. `surface: '#ffffffff'`) don't, so even swapping colour tokens can trigger it. Check with Tailwind's compiled output if unsure.
+  - **(2) `patches/react-native-css-interop+0.2.6.patch`** (applied by `postinstall: patch-package`) wraps that warning's stringify in a try/catch, so a stray upgrade elsewhere only logs and never crashes. If NativeWind/css-interop is upgraded, re-check whether the patch is still needed or still applies.
 - **Gotcha: `tailwind.config.js` defines `gray: '#8e8e93'` as a single value, which wipes Tailwind's whole `gray-50…950` scale.** Classes like `bg-gray-200`, `text-gray-500` and `border-gray-300` **don't exist** and silently render nothing, falling back to default colours. This was confirmed via `resolveConfig`, and found because the unlock sheet's upcoming-day segments were invisible. ~160 `gray-N` usages exist across `src/` and are affected.
   - For neutral greys use the defined tokens: `gray` (#8e8e93), `borderLight`/`borderDark`, and `strongGray`.
   - A global fix would make `gray` a scale with a `DEFAULT` (`{ ...require('tailwindcss/colors').gray, DEFAULT: '#8e8e93' }`). That changes the look of every existing `gray-N` usage at once, so it's a deliberate design pass, not a drive-by.
@@ -372,7 +396,7 @@ src/
 - Calling convention: `t('domain.key', { var: value })`, with `{{var}}` placeholders in the dictionary string interpolated via simple `.replace()` — no plural rules, no ICU. The one scoped exception is `formatDayCount(count, locale, case?)` in `src/lib/i18n/plural.ts` (tested), for Lithuanian day counts ("1 diena / 2 dienos / 10 dienų", accusative "1 dieną / 2 dienas"). Use it for any day count shown in Lithuanian copy instead of hardcoding one form. E.g. `t('home.daysSinceInjury', { days })` → `'{{days}} days since injury'`.
 - Every user-facing string (JSX text, `Alert.alert`/`toast.*` args, `placeholder`, `accessibilityLabel`, `InfoButton` title/message) must go through `t()` — never hardcoded. New keys are added to **both** `en.ts` and `lt.ts` in the same change; TypeScript's structural check on `lt: typeof en` is what catches a forgotten language.
 - Zod schemas (`src/lib/validations/*.ts`) are built at module load time, before any component can call `useTranslation()`, so their `.min()`/`.email()`/`.refine()` messages are stable i18n key strings (e.g. `'validation.emailRequired'`) rather than literal English. Screens run the resolved message through `t()` at the point they read it: `error={errors.email?.message && t(errors.email.message)}`. Only the auth forms (`login.tsx`, `register.tsx`, `forgot-password.tsx`, `modal/edit-profile.tsx`) currently render field errors this way — `checkin.ts`/`flareUp.ts` schema messages exist as keys but aren't surfaced to any UI yet (those forms don't read `formState.errors`), so wire them the same way if that changes.
-- `LanguageSwitcher` (`src/components/ui/LanguageSwitcher.tsx`) mirrors `ThemeSwitcher` exactly (segmented control) and lives in its own "Language" section in `(tabs)/settings.tsx`, right after Appearance.
+- Language is picked from a Settings row ("Language · English ›") that opens an `ActionSheet` with the two locales. The old segmented `LanguageSwitcher` component was deleted with the Settings redesign.
 - `ErrorBoundary` is a class component and can't call hooks directly — its fallback UI is a separate functional component (`ErrorFallback`) that calls `useTranslation()`, rendered from `ErrorBoundary.render()`.
 
 ## Maintaining This File

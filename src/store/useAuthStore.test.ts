@@ -15,6 +15,10 @@ jest.mock('@/lib/supabase', () => ({
     auth: {
       signInWithPassword: jest.fn(),
       signUp: jest.fn(),
+      signOut: jest.fn(),
+    },
+    functions: {
+      invoke: jest.fn(),
     },
   },
 }));
@@ -56,5 +60,28 @@ describe('useAuthStore', () => {
       password: 'secret1',
       options: { data: { name: 'Jane Doe' } },
     });
+  });
+
+  it('deleteAccount calls the edge function, then clears the local session', async () => {
+    (supabase.functions.invoke as jest.Mock).mockResolvedValue({ data: { deleted: true }, error: null });
+    (supabase.auth.signOut as jest.Mock).mockResolvedValue({ error: null });
+
+    const result = await useAuthStore.getState().deleteAccount();
+
+    expect(result).toEqual({ error: null });
+    expect(supabase.functions.invoke).toHaveBeenCalledWith('delete-account');
+    expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: 'local' });
+  });
+
+  it('deleteAccount returns the function error and keeps the session', async () => {
+    (supabase.functions.invoke as jest.Mock).mockResolvedValue({
+      data: null,
+      error: { message: 'Edge Function returned a non-2xx status code' },
+    });
+
+    const result = await useAuthStore.getState().deleteAccount();
+
+    expect(result).toEqual({ error: 'Edge Function returned a non-2xx status code' });
+    expect(supabase.auth.signOut).not.toHaveBeenCalled();
   });
 });
