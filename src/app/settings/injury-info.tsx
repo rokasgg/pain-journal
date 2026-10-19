@@ -26,17 +26,17 @@ function HealingHero({ healingStartedOn }: { healingStartedOn: string | null }) 
         <Ionicons name="leaf-outline" size={24} color={colors.white} />
       </View>
       <View className="flex-1 gap-0.5">
-        <Text className="text-2xl font-bold text-black dark:text-white">
+        <Text className="text-lg font-bold text-black dark:text-white">
           {healingStartedOn
             ? // Same count as Home's DaysSinceHealing pill, 1-based ("day 1" = the start day).
-              t('injuryInfo.dayOfHealing', { day: daysSince(healingStartedOn) + 1 })
+            t('injuryInfo.dayOfHealing', { day: daysSince(healingStartedOn) + 1 })
             : t('injuryInfo.noHealingTitle')}
         </Text>
-        <Text className="text-base text-strongGray dark:text-white/80">
+        <Text className="text-sm text-strongGray dark:text-white/80">
           {healingStartedOn
             ? t('injuryInfo.countingFrom', {
-                date: format(parseISO(healingStartedOn), 'd MMM yyyy', { locale: currentDateFnsLocale() }),
-              })
+              date: format(parseISO(healingStartedOn), 'd MMM yyyy', { locale: currentDateFnsLocale() }),
+            })
             : t('injuryInfo.noHealingBody')}
         </Text>
       </View>

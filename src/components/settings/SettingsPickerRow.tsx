@@ -1,5 +1,5 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
 import type { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 
@@ -74,7 +74,7 @@ export function SettingsPickerRow({
     >
       {/* Placeholder dimmed via style, not a swapped colour class (NativeWind
           upgrade gotcha, CLAUDE.md). */}
-      <Text className="text-lg font-semibold text-black dark:text-white" style={value ? undefined : { opacity: 0.45 }}>
+      <Text className="text-sm font-semibold text-black dark:text-white" style={value ? undefined : { opacity: 0.45 }}>
         {value ? displayValue : placeholder}
       </Text>
     </Pressable>
