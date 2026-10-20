@@ -168,7 +168,22 @@ function RootLayoutNav() {
           options={{
             headerShown: true,
             title: t('screenTitles.injuryInfo'),
-            headerBackTitle: t('tabs.settings'),
+            headerTitleAlign: 'center',
+            headerBackButtonDisplayMode: 'minimal',
+            // Background + no shadow come from screenOptions.
+            headerTintColor: colors.accent,
+            // Chevron-only on iOS too: overrides screenOptions' "‹ Settings" custom back item.
+            ...(Platform.OS === 'ios'
+              ? {
+                unstable_headerLeftItems: () => [
+                  {
+                    type: 'custom' as const,
+                    element: <HeaderBackButton color={colors.accent} />,
+                    hidesSharedBackground: true,
+                  },
+                ],
+              }
+              : {}),
           }}
         />
         {/* Settings sub-pages (src/app/settings/) are pushed pages with a

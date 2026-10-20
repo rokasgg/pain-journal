@@ -8,6 +8,7 @@ import { colors } from '@/lib/theme';
 export interface HeaderBackButtonProps {
   // e.g. "Settings" — omit for a chevron-only back button.
   label?: string;
+  color?: string;
 }
 
 // iOS header back button drawn by us instead of the system one, so it can sit
@@ -15,7 +16,7 @@ export interface HeaderBackButtonProps {
 // hide that shared background on custom bar items (`hidesSharedBackground`),
 // not on the native back button. Wired globally from the root Stack's
 // screenOptions; Android keeps its native back button (no bubble there).
-export function HeaderBackButton({ label }: HeaderBackButtonProps) {
+export function HeaderBackButton({ label, color = colors.primary }: HeaderBackButtonProps) {
   const router = useRouter();
   const { t } = useTranslation();
 
@@ -27,7 +28,7 @@ export function HeaderBackButton({ label }: HeaderBackButtonProps) {
       accessibilityLabel={label ?? t('common.back')}
       className="flex-row items-center active:opacity-50"
     >
-      <Ionicons name="chevron-back" size={26} color={colors.primary} />
+      <Ionicons name="chevron-back" size={26} color={color} />
       {label && <Text className="text-lg text-primary dark:text-primaryDark">{label}</Text>}
     </Pressable>
   );

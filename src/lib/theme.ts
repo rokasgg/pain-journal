@@ -21,5 +21,7 @@ export const colors = {
   flameBlue: '#6389daff',
   bone: '#F5F0E6',
   inActive: '#6B756F',
+  accent: '#2F5A41',
+  accentMuted: '#E5EEE7',
 
 } as const;

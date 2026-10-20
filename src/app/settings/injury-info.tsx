@@ -17,7 +17,8 @@ const DESCRIPTION_MAX_LENGTH = 500;
 // Save the description this long after typing stops (and on blur / leaving).
 const DESCRIPTION_SAVE_DELAY_MS = 800;
 
-function HealingHero({ healingStartedOn }: { healingStartedOn: string | null }) {
+// Only rendered once a healing date is set.
+function HealingHero({ healingStartedOn }: { healingStartedOn: string }) {
   const { t } = useTranslation();
 
   return (
@@ -27,17 +28,13 @@ function HealingHero({ healingStartedOn }: { healingStartedOn: string | null }) 
       </View>
       <View className="flex-1 gap-0.5">
         <Text className="text-lg font-bold text-black dark:text-white">
-          {healingStartedOn
-            ? // Same count as Home's DaysSinceHealing pill, 1-based ("day 1" = the start day).
-            t('injuryInfo.dayOfHealing', { day: daysSince(healingStartedOn) + 1 })
-            : t('injuryInfo.noHealingTitle')}
+          {/* Same count as Home's DaysSinceHealing pill, 1-based ("day 1" = the start day). */}
+          {t('injuryInfo.dayOfHealing', { day: daysSince(healingStartedOn) + 1 })}
         </Text>
         <Text className="text-sm text-strongGray dark:text-white/80">
-          {healingStartedOn
-            ? t('injuryInfo.countingFrom', {
-              date: format(parseISO(healingStartedOn), 'd MMM yyyy', { locale: currentDateFnsLocale() }),
-            })
-            : t('injuryInfo.noHealingBody')}
+          {t('injuryInfo.countingFrom', {
+            date: format(parseISO(healingStartedOn), 'd MMM yyyy', { locale: currentDateFnsLocale() }),
+          })}
         </Text>
       </View>
     </View>
@@ -85,26 +82,33 @@ function InjuryInfoForm({ profile }: { profile: Profile | null }) {
 
   return (
     <View className="gap-7">
-      <HealingHero healingStartedOn={healingStartedOn} />
+      {healingStartedOn && <HealingHero healingStartedOn={healingStartedOn} />}
 
       <SettingsSection title={t('injuryInfo.datesTitle')} footer={t('injuryInfo.healingHint')}>
         <SettingsDateRow
           icon="flash-outline"
           title={t('injuryInfo.injuryHappened')}
+          accessibilityName={t('injuryInfo.injuryDateA11y')}
           iconTileClassName="bg-red-100 dark:bg-red-950"
           iconColor="#dc2626"
           value={injuryStartedOn}
           placeholder={t('injuryInfo.setDate')}
-          // The injury can't come after healing started, or be in the future.
-          maximumDate={healingStartedOn ? parseISO(healingStartedOn) : today}
+          maximumDate={today}
           onChange={(date) => {
             setInjuryStartedOn(date);
-            void save({ injury_started_on: date });
+            // Moving the injury past the healing start invalidates it ("yyyy-MM-dd" compares lexically).
+            if (healingStartedOn && date > healingStartedOn) {
+              setHealingStartedOn(null);
+              void save({ injury_started_on: date, healing_started_on: null });
+            } else {
+              void save({ injury_started_on: date });
+            }
           }}
         />
         <SettingsDateRow
           icon="leaf-outline"
           title={t('injuryInfo.healingStarted')}
+          accessibilityName={t('injuryInfo.healingDateA11y')}
           value={healingStartedOn}
           placeholder={t('injuryInfo.setDate')}
           minimumDate={injuryStartedOn ? parseISO(injuryStartedOn) : undefined}

@@ -180,13 +180,19 @@ src/
     It's built on the new **`SettingsFieldRow`** (`components/settings/`): a fixed-width label, the input, and a ✕ clear button. It has the same forwarded-ref and props-spread contract as `Input`, so it works as a `Controller` target. `readOnly` shows text plus a lock. It replaced `modal/edit-profile.tsx`.
 
   - **`settings/injury-info.tsx`** (design: `assets/possible-app-design/injury`) is a pushed page. It has:
-    - **a healing hero card:** "Day N of healing · Counting from …", where N is `daysSince(healing_started_on) + 1`, the same count as Home's pill. If no date is set, it shows a prompt instead.
-    - **a Dates card** with `SettingsDateRow`s for "Injury happened" and "Healing started". The injury date can't be after the healing date or today, and the healing date can't be before the injury date.
+    - **a healing hero card:** "Day N of healing · Counting from …", where N is `daysSince(healing_started_on) + 1`, the same count as Home's pill. It's **hidden** while no healing date is set.
+    - **a Dates card** with `SettingsDateRow`s for "Injury happened" and "Healing started".
+      - Both dates are `null` until set; they never default to today. An empty pill reads "Add date" / "Pridėti datą" in `accent` green on `accentMuted`.
+      - The injury date is capped at today. The healing date must fall between the injury date and today.
+      - Moving the injury date past the healing date **clears** the healing date, in the same save.
+      - **`SettingsDateRow` uses `react-native-modal-datetime-picker`, not `SettingsPickerRow`.** On iOS it's a modal inline calendar; on Android, the native dialog. The picker locale follows the app locale (`lt-LT` / `en-GB`), and confirm saves immediately. It was installed with `--legacy-peer-deps`. It still calls datetimepicker's deprecated `onChange`, which v9 supports.
+      - The pill text is formatted with date-fns `d MMM yyyy` ("19 spal. 2026"), not `Intl`. `Intl.DateTimeFormat('lt-LT', { month: 'short' })` gives "2026-10-19" in ICU.
+    - **Its header** is titled "Trauma" / "Injury", with a chevron-only back button in `colors.accent`. On iOS that's a per-screen `unstable_headerLeftItems` override of the default "‹ Settings" item.
     - **a "What happened" `SettingsTextArea`**, with a 500-character counter and the Done keyboard bar.
     - **auto-save:** dates save on Done, and the description saves 800ms after typing stops, on blur, and when leaving the page. A "✓ Changes save automatically" / "Saving…" status line sits underneath.
     
     The Home "Set healing date" pill now links straight here, instead of to the Settings tab.
-  - **Shared building block:** `SettingsPickerRow` is the shared chip + native picker (`mode: 'date' | 'time'`). `SettingsTimeRow` ("HH:mm", clamped) and `SettingsDateRow` (local "yyyy-MM-dd", formatted "d MMM yyyy") are thin wrappers over it.
+  - **Shared building block:** `SettingsPickerRow` is the chip + inline native picker (`mode: 'date' | 'time'`), now used only by `SettingsTimeRow` ("HH:mm", clamped). `SettingsDateRow` has its own modal picker (see Injury info).
 
   All settings sub-pages are now in this design.
 - `expo-notifications` is registered as an Expo config plugin in `app.json` alongside `@react-native-community/datetimepicker`.

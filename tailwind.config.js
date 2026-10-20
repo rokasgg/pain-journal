@@ -22,7 +22,9 @@ const colors = {
   selectedTab: '#506873',
   selectedTabColor: '#CDE6F4',
   bone: '#F5F0E6',
-  test: '#CDE6F4'
+  test: '#CDE6F4',
+  accent: '#2F5A41',
+  accentMuted: '#E5EEE7',
 };
 
 module.exports = {
