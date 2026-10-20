@@ -2,6 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { Link } from 'expo-router';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
+
+import { GlowPulse } from '@/components/ui/GlowPulse';
 
 import { useJourney } from '@/hooks/useJourney';
 import { useTodayStatus } from '@/hooks/useTodayStatus';
@@ -42,34 +55,89 @@ function useMinuteTick() {
   return now;
 }
 
+const SHIMMER_WIDTH = 28;
+const SHIMMER_SWEEP_MS = 900;
+const SHIMMER_PAUSE_MS = 2200;
+
+// A soft white band that sweeps across the pill every few seconds — the
+// "glitter" on the check-in that's due right now. Off with reduced motion.
+function Shimmer({ width }: { width: number }) {
+  const reduceMotion = useReducedMotion();
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    if (reduceMotion || width === 0) return;
+    progress.set(
+      withRepeat(
+        withSequence(
+          withTiming(1, { duration: SHIMMER_SWEEP_MS, easing: Easing.inOut(Easing.quad) }),
+          withDelay(SHIMMER_PAUSE_MS, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+      ),
+    );
+    return () => cancelAnimation(progress);
+  }, [reduceMotion, width, progress]);
+
+  const style = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: -SHIMMER_WIDTH + progress.value * (width + SHIMMER_WIDTH * 2) },
+      { skewX: '-20deg' },
+    ],
+  }));
+
+  if (reduceMotion) return null;
+  return (
+    <Animated.View
+      pointerEvents="none"
+      className="absolute bottom-0 top-0 bg-white/35"
+      style={[{ width: SHIMMER_WIDTH }, style]}
+    />
+  );
+}
+
+// "Start" pill. The check-in due right now glows and shimmers, so the eye
+// lands on it without tinting the whole row.
+function StartButton({ glowing }: { glowing: boolean }) {
+  const { t } = useTranslation();
+  const [width, setWidth] = useState(0);
+
+  return (
+    <GlowPulse active={glowing} radiusClassName="rounded-full">
+      <View
+        className="overflow-hidden rounded-full bg-primary px-4 py-2 dark:bg-primaryDark"
+        onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      >
+        <Text className="text-sm font-semibold text-white">{t('home.start')}</Text>
+        {glowing && <Shimmer width={width} />}
+      </View>
+    </GlowPulse>
+  );
+}
+
 interface CheckinRowProps {
   kind: CheckinAction;
   state: RowState;
   subtitle: string;
-  // The check-in to do right now — gets the soft green tint.
-  isNow: boolean;
   accessory: ReactNode;
   isLast?: boolean;
 }
 
-function CheckinRow({ kind, state, subtitle, isNow, accessory, isLast }: CheckinRowProps) {
+function CheckinRow({ kind, state, subtitle, accessory, isLast }: CheckinRowProps) {
   const { t } = useTranslation();
   const meta = ROW_META[kind];
 
   const content = (
-    <View className="relative flex-row gap-3.5 pl-4">
-      {/* Always rendered, shown via style — a tint *class* toggled on/off as
-          the state changes would trigger NativeWind's remount (CLAUDE.md). */}
-      <View pointerEvents="none" className="absolute inset-0 bg-primary/10" style={{ opacity: isNow ? 1 : 0 }} />
-      <View className={`mt-4 h-11 w-11 items-center justify-center rounded-xl ${meta.tile}`}>
+    <View className="flex-row items-center gap-3.5 pl-4">
+      <View className={`h-11 w-11 items-center justify-center rounded-xl ${meta.tile}`}>
         <Ionicons name={meta.icon} size={22} color={meta.iconColor} />
       </View>
       <View
         className={`flex-1 flex-row items-center gap-3 py-4 pr-4 ${isLast ? '' : 'border-b border-borderLight dark:border-borderDark'
           }`}
       >
-        <View className="flex-1 gap-0.5">
-          <Text className="text-md font-semibold text-black dark:text-white">{t(meta.titleKey)}</Text>
+        <View className="flex-1 justify-center gap-0.5">
+          <Text className="text-base font-semibold text-black dark:text-white">{t(meta.titleKey)}</Text>
           <Text className="text-sm text-gray">{subtitle}</Text>
         </View>
         {accessory}
@@ -90,8 +158,8 @@ function CheckinRow({ kind, state, subtitle, isNow, accessory, isLast }: Checkin
 
 // Today's two check-ins in one card (design from assets/possible-app-design/home).
 // Done → filled ✓; evening before it opens → "Opens at 16:00" + countdown chip;
-// ready → "Start". The one that's due right now (getNowAction) gets a soft
-// green tint instead of the old glow ring. A brand-new user in the evening
+// ready → "Start". Both rows share one background; the one that's due right
+// now (getNowAction) has a glowing, shimmering Start pill. A brand-new user in the evening
 // sees the morning one as "optional today" (still startable, never nudged).
 export function CheckinStatusCard() {
   const { t } = useTranslation();
@@ -116,11 +184,6 @@ export function CheckinStatusCard() {
       <Ionicons name="checkmark" size={22} color={colors.white} />
     </View>
   );
-  const startButton = (
-    <View className="rounded-full bg-primary px-4 py-2 dark:bg-primaryDark">
-      <Text className="text-sm font-semibold text-white">{t('home.start')}</Text>
-    </View>
-  );
   const countdownChip = (
     <View className="rounded-full bg-borderLight px-3.5 py-2 dark:bg-borderDark">
       <Text className="text-sm font-semibold text-strongGray dark:text-white">{countdown}</Text>
@@ -135,16 +198,14 @@ export function CheckinStatusCard() {
       <CheckinRow
         kind="morning"
         state={morningState}
-        isNow={nowAction === 'morning'}
         subtitle={
           morningDone ? t('home.done') : morningOptional ? t('home.morningOptionalToday') : t('home.readyForCheckin')
         }
-        accessory={morningDone ? doneBadge : startButton}
+        accessory={morningDone ? doneBadge : <StartButton glowing={nowAction === 'morning'} />}
       />
       <CheckinRow
         kind="evening"
         state={eveningState}
-        isNow={nowAction === 'evening' && eveningUnlocked}
         subtitle={
           eveningDone
             ? t('home.done')
@@ -152,7 +213,9 @@ export function CheckinStatusCard() {
               ? t('home.readyForCheckin')
               : t('home.opensAt', { time: hourToTime(EVENING_UNLOCK_HOUR) })
         }
-        accessory={eveningDone ? doneBadge : eveningUnlocked ? startButton : countdownChip}
+        accessory={
+          eveningDone ? doneBadge : eveningUnlocked ? <StartButton glowing={nowAction === 'evening'} /> : countdownChip
+        }
         isLast
       />
     </View>

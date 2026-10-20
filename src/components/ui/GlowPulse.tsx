@@ -14,6 +14,8 @@ export interface GlowPulseProps {
   active: boolean;
   children: ReactNode;
   className?: string;
+  // Must match the wrapped child's corner radius so the halo follows its outline.
+  radiusClassName?: string;
 }
 
 const HALF_PERIOD_MS = 1400;
@@ -30,7 +32,7 @@ const HALO_SHADOW = '0px 0px 18px 3px rgba(79, 122, 92, 0.55)';
 // offset border-2 ring that pulsed in size, which read as a second, jittery
 // border around the card. Only the halo's opacity breathes. Use on exactly
 // one element at a time. Respects the OS reduce-motion setting (static halo).
-export function GlowPulse({ active, children, className }: GlowPulseProps) {
+export function GlowPulse({ active, children, className, radiusClassName = 'rounded-2xl' }: GlowPulseProps) {
   const reduceMotion = useReducedMotion();
   const progress = useSharedValue(0);
 
@@ -53,9 +55,7 @@ export function GlowPulse({ active, children, className }: GlowPulseProps) {
       {active && (
         <Animated.View
           pointerEvents="none"
-          // Same radius as the cards it wraps (rounded-2xl), so the halo
-          // follows their exact outline.
-          className="absolute inset-0 rounded-2xl"
+          className={`absolute inset-0 ${radiusClassName}`}
           style={[{ boxShadow: HALO_SHADOW }, haloStyle]}
         />
       )}

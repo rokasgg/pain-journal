@@ -4,7 +4,7 @@ export const colors = {
   gray: '#8e8e93',
   borderLight: '#e5e7eb',
   borderDark: '#27272a',
-  background: '#dde0ddc9',
+  background: '#EEF1EE',
   backgroundDark: '#0B1410',
   surface: '#E6F6FF',
   surfaceDark: '#111C16',
@@ -14,11 +14,12 @@ export const colors = {
   primaryMutedDark: '#16232B',
   bgSettings: '#DBF1FE',
   pink: '#FFDAD6',
-  selectedTab: '#506873',
+  selectedTab: '#2F5A41',
   selectedTabColor: '#a8d6f0ff',
   lightGrey: '#c4caceff',
   strongGray: '#416352',
   flameBlue: '#6389daff',
   bone: '#F5F0E6',
+  inActive: '#6B756F',
 
 } as const;

@@ -53,12 +53,12 @@ function TabButton({
       <Ionicons
         name={locked ? 'lock-closed' : name}
         size={size}
-        color={focused && !locked ? colors.selectedTab : colors.lightGrey}
+        color={focused && !locked ? colors.selectedTab : colors.inActive}
       />
 
       <Text
         numberOfLines={1}
-        style={{ color: locked ? colors.lightGrey : colors.selectedTab, fontSize: 12, fontWeight: '600' }}
+        style={{ color: locked ? colors.inActive : colors.selectedTab, fontSize: 12, fontWeight: '600' }}
       >
         {label}
       </Text>

@@ -292,7 +292,8 @@ src/
   - **done:** a filled ✓ and "Done". It's deliberately **not tappable** (explicit decision).
   - **evening before 16:00:** "Opens at 16:00" plus an "in 3 h 51 min" chip, refreshed every minute by a local tick
   - **ready:** a "Start" pill, and the whole row is tappable
-  - **The check-in due right now** (`getNowAction`) gets a **soft green row tint instead of the old `GlowPulse` ring.** The tint is an always-rendered layer toggled by `style.opacity`, never a toggled class.
+  - **Both rows share the card's single background, with no per-row tint.** A green row tint was tried and rejected as ugly, because it split the card into two backgrounds. Instead, **the check-in due right now** (`getNowAction`) gets a glowing Start pill: `GlowPulse` with `radiusClassName="rounded-full"`, plus a white `Shimmer` band that sweeps across it every ~3s. With reduced motion, the halo stays static and there's no shimmer.
+  - Rows are `items-center`, so the icon tile is vertically centred against the text and the accessory.
   - The first-day-evening "optional morning" behaviour is unchanged.
 - **`CheckinWeekCard`:**
   - Mon–Sun, two dots per day (top = morning, bottom = evening), today framed, and "N of 14 check-ins"
