@@ -72,6 +72,8 @@ export const lt: typeof en = {
     start: 'Pradėti',
     setInjuryDate: 'Nurodyti traumos datą',
     daysSinceInjury: '{{days}} d. nuo traumos',
+    healingDayLabel: 'gijimo diena',
+    oakBadgeA11y: 'Gijimo diena {{day}}. Ąžuolas: {{stage}}.',
     setHealingDate: 'Nurodyti gijimo datą',
     exerciseWeekTitle: 'Pratimai šią savaitę',
     topTriggersTitle: 'Dažniausi šios savaitės sukėlėjai',
@@ -82,7 +84,6 @@ export const lt: typeof en = {
     physioFocusTitle: 'Fizioterapijos fokusas',
     physioFocusEmpty: 'Užregistruokite pirmą fizioterapijos vizitą, kad matytumėte savo dabartinį fokusą čia.',
     physioFocusStats: 'Vizitų: {{count}} · Paskutinis {{date}} · silpni: {{weak}}, įsitempę: {{tight}}',
-    oakTitle: 'Jūsų ąžuolas',
     wateringCelebrationText: 'Palaistėte savo ąžuolą!',
   },
   oak: {

@@ -286,14 +286,22 @@ src/
 
 ## Home screen (`src/app/(tabs)/index.tsx`, design: `assets/possible-app-design/home`)
 - **Order, top to bottom** (the user's choices):
-  1. **header:** the date ("Monday, 19 October", `EEEE, d MMMM`) above a big "Today", with the `DaysSinceHealing` pill on the right ("🌱 Day 63 of healing", the same `daysSince + 1` count as Injury info, linking there)
-  2. **`CheckinStatusCard`**
-  3. the temporary prompts: `CareStepCard`, `WrapReadyCard`
-  4. **`CheckinWeekCard`** ("This week")
-  5. `JourneyCard` (unlocks)
-  6. the **red outlined "⚡ Log a flare-up"** button
-  7. **`OakCard`** (the oak mascot), kept low by choice; the mockup omits it
-  8. the opt-in training cards (`TodaysRoutineCard`, weekly goal)
+  1. **header:** the date on its own line ("Trečiadienis, spalio 21 d.", `formatHeadingDate`), then a big "Today" with the `DaysSinceHealing` chip on the same row. The date has its own line so it never wraps next to the chip.
+  2. **`CheckinStatusCard`**: today's job, so it's first.
+  3. the **red outlined "⚡ Log a flare-up"** button. It's **kept high on purpose**: someone in a flare needs it fast, not after scrolling past stats.
+  4. the temporary prompts: `CareStepCard`, `WrapReadyCard`
+  5. **`CheckinWeekCard`** ("This week"). It's passive info, so it sits lower.
+  6. the opt-in training cards (`TodaysRoutineCard`, weekly goal)
+  7. **`JourneyCard`** (unlocks), **last**. It renders nothing once everything is unlocked and announced.
+     - It's usually below the fold now, so `WelcomeGuide`'s `measure()` treats a card that isn't fully on screen as missing. The guide then just fades instead of morphing into an off-screen rect.
+- **There's no separate oak card any more. The oak lives in the header badge** (`DaysSinceHealing`):
+  - **Once a healing date is set**, it's a plain badge to the right of "Today", vertically centred with it. It has no background, ring or clip: the current-stage icon oak at 40pt, then the healing day as a big number (22pt bold) over "day of healing" / "gijimo diena" (13pt).
+    - The day is `daysSince(healing_started_on) + 1`. It never resets and doesn't depend on check-ins.
+    - Tapping opens Injury info. There's no oak sheet yet. The accessibility label is "Gijimo diena 21. Ąžuolas: Sodinukas."
+  - **A ring for today's check-ins, plus a tinted, clipped circle, was tried and removed** as too busy. If it ever comes back, every react-native-svg `<Circle>` needs `fill="none"`, or it fills black.
+  - **Watering hook:** the 40pt oak box registers its ref in **`useOakBadgeStore`**, so a future fly-in can `measure()` it. The watering overlay doesn't fly into it yet. When the celebration ends (`useCelebrationStore.visible` going false), the badge bounces 1 → 1.08 → 1 (250ms), or doesn't with reduced motion.
+  - **Before a date is set**, it shows the old leaf pill, "Set healing date" / "Nurodyti gijimo datą".
+  - The hidden dev long-press, which previews the watering celebration, is on the badge.
 - **`CheckinStatusCard`** has both check-ins in **one card**:
   - an amber sun / indigo moon tile per row
   - **done:** a filled ✓ and "Done". It's deliberately **not tappable** (explicit decision).
@@ -434,14 +442,14 @@ src/
     - The originals are in `assets/possible-app-design/new app icon` and `…/tree icons`.
     - **The icon set exists because the scene art at 56–64pt left the acorn as a speck at the bottom of a mostly empty box.** About 80% of the stage-1 canvas is empty sky, which made the Home card too tall.
   - **`OakTree` takes `variant: 'scene' | 'icon'`** (default `scene`) and renders in a fixed box: `size × size·160/120` for scene, `size × size` for icon.
-    - **Use `icon` for small spots**, meaning the Home `OakCard` (56, on a `bg-primary/10` tile) and `UnlockProgressSheet` (64). Use `scene` where height should show growth.
+    - **Use `icon` for small spots**, meaning the Home header's healing chip (30, inside the check-in ring) and `UnlockProgressSheet` (64). Use `scene` where height should show growth.
     - A stage change crossfades old → new over 300ms, with the new one scaling 0.96 → 1 from the bottom centre. The outgoing stage is derived during render, not in an effect.
     - **`watered` fades the water overlay in *on top of* the current stage for 1.5s**, with a ±2° sway pivoting at the bottom. The overlay sits outside the sway, so the drops fall straight.
     - It replaced a full `oak-watered.svg` that was drawn as a sapling. Crossfading to it made a mighty oak briefly shrink, which broke the never-regresses rule. That file is deleted.
     - The icon variant has no overlay (it's drawn for the scene canvas), so it only sways.
     - With reduced motion, only the fades play.
   - **WebView gotcha (still applies to `ExerciseWeekCalendar`'s flame):** don't add `alignItems`/`justifyContent` to a `View` wrapping a `flex: 1` `WebView`. It collapses to zero width, because the default `stretch` is what gave it a width. Give the `WebView` an explicit `width: '100%', height: '100%'` instead.
-  - It's used on the Home `OakCard`, the splash (stage 5), the watering overlay, `UnlockProgressSheet`, `OnboardingIntro` (stage 1) and the Wrap intro slide. Its accessibility label is `oak.a11y` ("Ąžuolas, Gilė").
+  - It's used in the Home healing chip, the splash (stage 5), the watering overlay, `UnlockProgressSheet`, `OnboardingIntro` (stage 1) and the Wrap intro slide. Its accessibility label is `oak.a11y` ("Ąžuolas, Gilė").
 - **Watering celebration** (`src/store/useCelebrationStore.ts`, `src/components/WateringCelebrationHost.tsx`) fires a short auto-dismissing overlay after a check-in is newly logged — `checkin/[type].tsx` and `checkin/backfill.tsx` call `useCelebrationStore.getState().show()` right after a successful save; `checkin/edit/[id].tsx` deliberately does not, since editing an existing entry isn't a new completion. Like `ToastModalHost`, this is a plain in-tree overlay (`View`, not RN's `<Modal>`) mounted once at root alongside it — a real `Modal` presenting at the same moment the check-in's `Stack.Screen` modal is dismissing (`router.back()`) races the navigator and can freeze touch input, the same problem `ToastModalHost`'s doc comment already covers. The oak gets `watered` when the drop lands (`DROP_LAND_MS`), and `show()` self-clears via `setTimeout` (`WATERING_DURATION_MS` = landing + the oak's 1.5s watered state + 200ms), so there's nothing to tap and the whole overlay is `pointerEvents="none"`.
 - Charts use `victory-native` (`CartesianChart` + `Line`) with `@shopify/react-native-skia` as its native peer — added specifically for `PainTrendChart`/`TrendSparkline`. Data arrays passed to `CartesianChart` need an index signature (e.g. `interface ChartPoint extends Record<string, unknown> { ... }`) or TS rejects the generic.
 - **`PainTrendChart` (History tab) buckets its data and must never unmount on a range switch.** `history.tsx` no longer runs a per-range `useCheckinHistory(rangeDays)`/`useFlareUps(rangeDays)` query: each range had its own query key, so switching briefly returned `[]`, which blanked the stat tiles and made the chart `return null` (the flicker). It filters the existing 365-day calendar fetch client-side with `rangeStartDate()` instead, and passes the chart the full `allCheckins` plus `range: 'week' | 'month' | 'all'`. Bucketing lives in `src/lib/painTrend.ts` (`buildTrend`, pure, `today` injected, tested in `painTrend.test.ts`): Week = 7 daily points with dots, Month = 30 daily points with only the latest point highlighted, All = starts at the first check-in and picks day/week (Monday-start)/month buckets by span (≤45d / ≤180d / longer) to stay at roughly ≤30 points. Every bucket is a mean of *daily* averages (`dailyAverages`, also used for the avg-pain tile). Empty buckets are `null`, `x` is the bucket index across the full range, and the chart uses `connectMissingData`. Smoothness comes from `curveType="monotoneX"` (no overshoot past 0/10) and from `animate` on `Line`/`Area`; victory-native's `useAnimatedPath` normalises paths with different point counts, so ranges morph into each other, but only while the `CartesianChart` stays mounted. The card keeps a fixed height and shows its empty state *inside* the card instead of returning `null`. Dots live in `FadingDots` keyed by `range`, which fades them in after the morph. X labels are plain RN `Text`, positioned from `onScaleChange`'s `xScale`, because victory's built-in x labels can't fade.

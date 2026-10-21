@@ -4,7 +4,6 @@ import { CheckinWeekCard } from '@/components/home/CheckinWeekCard';
 import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
 import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
 import { JourneyCard } from '@/components/home/JourneyCard';
-import { OakCard } from '@/components/home/OakCard';
 import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
 import { WelcomeGuide } from '@/components/home/WelcomeGuide';
 import { WrapReadyCard } from '@/components/home/WrapReadyCard';
@@ -127,24 +126,25 @@ export default function HomeScreen() {
         contentContainerClassName="gap-6 px-6 py-8"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
-        <View className="flex-row items-end justify-between gap-3">
-          <Pressable onLongPress={() => setDebugCheckmarkVisible(true)} delayLongPress={400} className="flex-1">
-            <Text className="text-base text-strongGray dark:text-gray">
-              {formatHeadingDate(new Date(), locale)}
-            </Text>
-            <Text className="text-4xl font-bold text-black dark:text-white">{t('home.title')}</Text>
-          </Pressable>
-          <DaysSinceHealing />
+        {/* Date on its own line so it never wraps next to the (wider, oak +
+            ring) healing chip, which shares the title's row. */}
+        <View>
+          <Text className="text-base text-strongGray dark:text-gray">{formatHeadingDate(new Date(), locale)}</Text>
+          <View className="flex-row items-center justify-between gap-3">
+            <Pressable onLongPress={() => setDebugCheckmarkVisible(true)} delayLongPress={400} className="flex-shrink">
+              <Text className="text-4xl font-bold text-black dark:text-white">{t('home.title')}</Text>
+            </Pressable>
+            <DaysSinceHealing />
+          </View>
         </View>
-        <OakCard />
 
-        {/* Order follows assets/possible-app-design/home: check-ins first,
-            then timely prompts, this week, unlocks, flare-up; the oak and
-            (opt-in) training cards below. */}
+        {/* Order: today's job first, the flare-up button high (someone in a
+            flare needs it fast, not after scrolling past stats), then
+            temporary prompts, passive info, opt-in training, and the unlocks
+            card last (JourneyCard renders nothing once everything is
+            unlocked). The oak lives in the header's healing chip. */}
         <CheckinStatusCard />
-        <CareStepCard />
 
-        <WrapReadyCard />
         <Link href="/flare-up/new" asChild>
           <Pressable
             accessibilityRole="button"
@@ -155,18 +155,11 @@ export default function HomeScreen() {
           </Pressable>
         </Link>
 
+        <CareStepCard />
+
+        <WrapReadyCard />
+
         <CheckinWeekCard />
-
-        <JourneyCard
-          progressCardRef={progressCardRef}
-          onOpenGuide={() => {
-            setWelcomeFromCard(true);
-            setWelcomeVisible(true);
-          }}
-        />
-
-
-
 
         {trainingEnabled && <TodaysRoutineCard />}
 
@@ -177,6 +170,14 @@ export default function HomeScreen() {
             onSelectDate={(date) => router.push(`/history/day/${date}`)}
           />
         )}
+
+        <JourneyCard
+          progressCardRef={progressCardRef}
+          onOpenGuide={() => {
+            setWelcomeFromCard(true);
+            setWelcomeVisible(true);
+          }}
+        />
 
         {/*
         <Link href="/checkin/backfill" asChild>

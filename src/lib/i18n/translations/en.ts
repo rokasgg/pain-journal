@@ -70,6 +70,8 @@ export const en = {
     start: 'Start',
     setInjuryDate: 'Set injury date',
     daysSinceInjury: '{{days}} days since injury',
+    healingDayLabel: 'day of healing',
+    oakBadgeA11y: 'Day {{day}} of healing. Oak: {{stage}}.',
     setHealingDate: 'Set healing date',
     exerciseWeekTitle: 'Exercise this week',
     topTriggersTitle: 'Top Triggers This Week',
@@ -80,7 +82,6 @@ export const en = {
     physioFocusTitle: 'Physio Focus',
     physioFocusEmpty: 'Log your first physio visit to see your current focus here.',
     physioFocusStats: '{{count}} visits · Last {{date}} · {{weak}} weak, {{tight}} tight',
-    oakTitle: 'Your oak',
     wateringCelebrationText: 'You watered your oak!',
   },
   oak: {

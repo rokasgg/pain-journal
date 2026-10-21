@@ -53,11 +53,16 @@ const STEPS: { icon: keyof typeof Ionicons.glyphMap; key: string }[] = [
 
 const PREVIEW_UNLOCKS = JOURNEY_MILESTONES.filter((m) => m.key === 'history' || m.key === 'insights');
 
-function measure(ref: RefObject<View | null>): Promise<Rect | null> {
+// null when the card is missing or not fully on screen (it sits at the bottom
+// of Home, so it can be below the fold) — callers then just fade, rather than
+// morphing into a rect the user can't see.
+function measure(ref: RefObject<View | null>, windowHeight: number): Promise<Rect | null> {
   return new Promise((resolve) => {
     const view = ref.current;
     if (!view) return resolve(null);
-    view.measureInWindow((x, y, width, height) => resolve(width > 0 ? { x, y, width, height } : null));
+    view.measureInWindow((x, y, width, height) =>
+      resolve(width > 0 && y >= 0 && y + height <= windowHeight ? { x, y, width, height } : null),
+    );
   });
 }
 
@@ -105,7 +110,7 @@ export function WelcomeGuide({ visible, targetRef, startWithEvening, expandFromT
       return;
     }
     let cancelled = false;
-    measure(targetRef).then((rect) => {
+    measure(targetRef, screenHeight).then((rect) => {
       if (cancelled) return;
       if (rect && !reduceMotion) {
         top.set(rect.y);
@@ -134,7 +139,7 @@ export function WelcomeGuide({ visible, targetRef, startWithEvening, expandFromT
     if (isClosing) return;
     haptics.tap();
     setIsClosing(true);
-    const rect = await measure(targetRef);
+    const rect = await measure(targetRef, screenHeight);
     if (!rect || reduceMotion) {
       finish();
       return;
