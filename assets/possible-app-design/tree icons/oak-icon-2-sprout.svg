@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+<ellipse cx="32" cy="58.5" rx="22" ry="3" fill="#D3E3D6"/>
+<ellipse cx="32" cy="58" rx="12" ry="2.4" fill="#6E4A33"/>
+<ellipse cx="41.5" cy="56.8" rx="3.2" ry="1.6" fill="#7A563D"/>
+<path d="M32 58 C32 50 32.4 43 32 36" stroke="#4E7D5C" stroke-width="2.4" stroke-linecap="round"/>
+<path d="M0 0 C-3 -1 -5 -3 -4 -5 C-6 -6 -6 -8 -4 -9 C-6 -11 -5 -13 -3 -13 C-3 -15 -1 -16 0 -16 C1 -16 3 -15 3 -13 C5 -13 6 -11 4 -9 C6 -8 6 -6 4 -5 C5 -3 3 -1 0 0 Z" fill="#8DBB97" transform="translate(32 37) rotate(-38) scale(1.3)"/>
+<path d="M0 0 C-3 -1 -5 -3 -4 -5 C-6 -6 -6 -8 -4 -9 C-6 -11 -5 -13 -3 -13 C-3 -15 -1 -16 0 -16 C1 -16 3 -15 3 -13 C5 -13 6 -11 4 -9 C6 -8 6 -6 4 -5 C5 -3 3 -1 0 0 Z" fill="#5E8F6B" transform="translate(32 37) rotate(38) scale(1.3)"/>
+</svg>

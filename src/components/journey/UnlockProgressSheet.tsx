@@ -79,7 +79,7 @@ export function UnlockProgressSheet({ milestone, loggedDays, loggedToday, onClos
           <View className="h-1.5 w-10 rounded-full bg-borderLight dark:bg-borderDark" />
 
           <View className="mt-2 h-24 w-24 items-center justify-center rounded-full bg-primary/10">
-            <OakTree stage={getOakStage(loggedDays)} size={56} />
+            <OakTree stage={getOakStage(loggedDays)} size={64} variant="icon" />
             {loggedToday && (
               <View className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-xl border-2 border-white bg-primary dark:border-surfaceDark dark:bg-primaryDark">
                 <Ionicons name="checkmark" size={16} color={colors.white} />

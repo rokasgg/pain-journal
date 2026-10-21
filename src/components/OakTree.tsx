@@ -18,23 +18,34 @@ import Oak2Sprout from '@/assets/oak/oak-2-sprout.svg';
 import Oak3Sapling from '@/assets/oak/oak-3-sapling.svg';
 import Oak4Young from '@/assets/oak/oak-4-young.svg';
 import Oak5Mighty from '@/assets/oak/oak-5-mighty.svg';
-import OakWatered from '@/assets/oak/oak-watered.svg';
+import OakIcon1Seed from '@/assets/oak/oak-icon-1-seed.svg';
+import OakIcon2Sprout from '@/assets/oak/oak-icon-2-sprout.svg';
+import OakIcon3Sapling from '@/assets/oak/oak-icon-3-sapling.svg';
+import OakIcon4Young from '@/assets/oak/oak-icon-4-young.svg';
+import OakIcon5Mighty from '@/assets/oak/oak-icon-5-mighty.svg';
+import OakWaterOverlay from '@/assets/oak/oak-water-overlay.svg';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { OAK_STAGE_NAME_KEYS, type OakStage } from '@/lib/oak';
 
-const STAGE_SVGS: Record<OakStage, FC<SvgProps>> = {
-  1: Oak1Seed,
-  2: Oak2Sprout,
-  3: Oak3Sapling,
-  4: Oak4Young,
-  5: Oak5Mighty,
+export type OakTreeVariant = 'scene' | 'icon';
+
+// scene: 120×160 canvas, stages to scale on one ground line (growth reads as
+// height). icon: 64×64 redraw where every stage fills the tile, for small
+// spots (Home card, unlock sheet); also on one shared ground line.
+const VARIANT_ART: Record<OakTreeVariant, { svgs: Record<OakStage, FC<SvgProps>>; aspect: number }> = {
+  scene: {
+    svgs: { 1: Oak1Seed, 2: Oak2Sprout, 3: Oak3Sapling, 4: Oak4Young, 5: Oak5Mighty },
+    aspect: 160 / 120,
+  },
+  icon: {
+    svgs: { 1: OakIcon1Seed, 2: OakIcon2Sprout, 3: OakIcon3Sapling, 4: OakIcon4Young, 5: OakIcon5Mighty },
+    aspect: 1,
+  },
 };
 
-// All art is 120×160 on the same ground baseline.
-const ASPECT = 160 / 120;
 const STAGE_FADE_MS = 300;
 const STAGE_START_SCALE = 0.96;
-// Watered: fade in, hold, fade out — 1500 ms in total.
+// Watered: overlay fades in, holds, fades out — 1500 ms in total.
 const WATER_FADE_MS = 300;
 const WATER_HOLD_MS = 900;
 const SWAY_DEGREES = 2;
@@ -48,19 +59,23 @@ export interface OakTreeProps {
   stage: OakStage;
   watered?: boolean;
   size?: number;
+  variant?: OakTreeVariant;
   className?: string;
 }
 
-// The oak mascot. Fixed-size box (width = size, height = size·160/120) so a
-// stage change never shifts layout. A stage change crossfades old → new
-// (new one scales 0.96 → 1 from the ground); `watered` turning true shows
-// the watered art for 1.5 s with a gentle ±2° sway, then returns. With
-// reduced motion only the crossfades play. All animation runs on the UI
-// thread (Reanimated).
-export function OakTree({ stage, watered = false, size = 120, className }: OakTreeProps) {
+// The oak mascot. Fixed-size box (width = size, height = size × the
+// variant's aspect) so a stage change never shifts layout. A stage change
+// crossfades old → new (new one scales 0.96 → 1 from the ground). `watered`
+// turning true fades the water overlay (drops, wet soil) in on top of the
+// current stage for 1.5 s with a gentle ±2° sway — the tree itself never
+// changes, so it can't look like it shrank. The overlay is drawn on the
+// scene canvas, so the icon variant only sways. With reduced motion only
+// the fades play. All animation runs on the UI thread (Reanimated).
+export function OakTree({ stage, watered = false, size = 120, variant = 'scene', className }: OakTreeProps) {
   const { t } = useTranslation();
   const reduceMotion = useReducedMotion();
-  const height = size * ASPECT;
+  const { svgs, aspect } = VARIANT_ART[variant];
+  const height = size * aspect;
 
   // Derive the outgoing stage during render (not in an effect), so both
   // layers are on screen in the same frame the crossfade starts.
@@ -112,16 +127,15 @@ export function OakTree({ stage, watered = false, size = 120, className }: OakTr
   );
 
   const swayStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${sway.value}deg` }] }));
-  const stageGroupStyle = useAnimatedStyle(() => ({ opacity: 1 - water.value }));
-  const wateredStyle = useAnimatedStyle(() => ({ opacity: water.value }));
+  const waterStyle = useAnimatedStyle(() => ({ opacity: water.value }));
   const previousStyle = useAnimatedStyle(() => ({ opacity: 1 - stageProgress.value }));
   const currentStyle = useAnimatedStyle(() => ({
     opacity: stageProgress.value,
     transform: [{ scale: reduceMotion ? 1 : STAGE_START_SCALE + (1 - STAGE_START_SCALE) * stageProgress.value }],
   }));
 
-  const CurrentSvg = STAGE_SVGS[current];
-  const PreviousSvg = previous === null ? null : STAGE_SVGS[previous];
+  const CurrentSvg = svgs[current];
+  const PreviousSvg = previous === null ? null : svgs[previous];
 
   return (
     <View
@@ -132,20 +146,21 @@ export function OakTree({ stage, watered = false, size = 120, className }: OakTr
       style={{ width: size, height }}
     >
       <Animated.View className="absolute inset-0" style={[{ transformOrigin: BOTTOM_CENTER }, swayStyle]}>
-        <Animated.View className="absolute inset-0" style={stageGroupStyle}>
-          {PreviousSvg && (
-            <Animated.View className="absolute inset-0" style={previousStyle}>
-              <PreviousSvg width={size} height={height} />
-            </Animated.View>
-          )}
-          <Animated.View className="absolute inset-0" style={[{ transformOrigin: BOTTOM_CENTER }, currentStyle]}>
-            <CurrentSvg width={size} height={height} />
+        {PreviousSvg && (
+          <Animated.View className="absolute inset-0" style={previousStyle}>
+            <PreviousSvg width={size} height={height} />
           </Animated.View>
-        </Animated.View>
-        <Animated.View className="absolute inset-0" style={wateredStyle}>
-          <OakWatered width={size} height={height} />
+        )}
+        <Animated.View className="absolute inset-0" style={[{ transformOrigin: BOTTOM_CENTER }, currentStyle]}>
+          <CurrentSvg width={size} height={height} />
         </Animated.View>
       </Animated.View>
+      {variant === 'scene' && (
+        // Outside the sway: the drops fall straight and the wet soil stays put.
+        <Animated.View pointerEvents="none" className="absolute inset-0" style={waterStyle}>
+          <OakWaterOverlay width={size} height={height} />
+        </Animated.View>
+      )}
     </View>
   );
 }
