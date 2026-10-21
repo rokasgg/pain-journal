@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="160" viewBox="0 0 120 160" fill="none">
+<ellipse cx="60" cy="147" rx="46" ry="9" fill="#D3E3D6"/>
+<ellipse cx="60" cy="145" rx="24" ry="5" fill="#6E4A33"/>
+<path d="M58.4 145 C58.8 128 59 112 59.4 94 L61.2 94 C61.4 112 61.6 128 62.2 145 Z" fill="#7A563D"/>
+<path d="M60.5 114 C64 110 67 107 70 103" stroke="#7A563D" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+<path d="M0 0 C-3 -1 -5 -3 -4 -5 C-6 -6 -6 -8 -4 -9 C-6 -11 -5 -13 -3 -13 C-3 -15 -1 -16 0 -16 C1 -16 3 -15 3 -13 C5 -13 6 -11 4 -9 C6 -8 6 -6 4 -5 C5 -3 3 -1 0 0 Z" fill="#5E8F6B" transform="translate(70 104) rotate(35) scale(1.05)"/>
+<path d="M0 0 C-3 -1 -5 -3 -4 -5 C-6 -6 -6 -8 -4 -9 C-6 -11 -5 -13 -3 -13 C-3 -15 -1 -16 0 -16 C1 -16 3 -15 3 -13 C5 -13 6 -11 4 -9 C6 -8 6 -6 4 -5 C5 -3 3 -1 0 0 Z" fill="#8DBB97" transform="translate(70 104) rotate(80) scale(0.95)"/>
+<path d="M0 0 C-3 -1 -5 -3 -4 -5 C-6 -6 -6 -8 -4 -9 C-6 -11 -5 -13 -3 -13 C-3 -15 -1 -16 0 -16 C1 -16 3 -15 3 -13 C5 -13 6 -11 4 -9 C6 -8 6 -6 4 -5 C5 -3 3 -1 0 0 Z" fill="#5E8F6B" transform="translate(60 96) rotate(-62) scale(1.2)"/>
+<path d="M0 0 C-3 -1 -5 -3 -4 -5 C-6 -6 -6 -8 -4 -9 C-6 -11 -5 -13 -3 -13 C-3 -15 -1 -16 0 -16 C1 -16 3 -15 3 -13 C5 -13 6 -11 4 -9 C6 -8 6 -6 4 -5 C5 -3 3 -1 0 0 Z" fill="#8DBB97" transform="translate(60 96) rotate(-24) scale(1.25)"/>
+<path d="M0 0 C-3 -1 -5 -3 -4 -5 C-6 -6 -6 -8 -4 -9 C-6 -11 -5 -13 -3 -13 C-3 -15 -1 -16 0 -16 C1 -16 3 -15 3 -13 C5 -13 6 -11 4 -9 C6 -8 6 -6 4 -5 C5 -3 3 -1 0 0 Z" fill="#5E8F6B" transform="translate(60 96) rotate(18) scale(1.25)"/>
+<path d="M0 0 C-3 -1 -5 -3 -4 -5 C-6 -6 -6 -8 -4 -9 C-6 -11 -5 -13 -3 -13 C-3 -15 -1 -16 0 -16 C1 -16 3 -15 3 -13 C5 -13 6 -11 4 -9 C6 -8 6 -6 4 -5 C5 -3 3 -1 0 0 Z" fill="#8DBB97" transform="translate(60 96) rotate(56) scale(1.15)"/>
+</svg>

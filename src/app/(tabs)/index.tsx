@@ -3,7 +3,7 @@ import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
 import { CheckinWeekCard } from '@/components/home/CheckinWeekCard';
 import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
 import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
-import { FlowerHealthCard } from '@/components/home/FlowerHealthCard';
+import { OakCard } from '@/components/home/OakCard';
 import { JourneyCard } from '@/components/home/JourneyCard';
 import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
 import { WelcomeGuide } from '@/components/home/WelcomeGuide';
@@ -139,7 +139,7 @@ export default function HomeScreen() {
         </View>
 
         {/* Order follows assets/possible-app-design/home: check-ins first,
-            then timely prompts, this week, unlocks, flare-up; the flower and
+            then timely prompts, this week, unlocks, flare-up; the oak and
             (opt-in) training cards below. */}
         <CheckinStatusCard />
 
@@ -167,7 +167,7 @@ export default function HomeScreen() {
           </Pressable>
         </Link>
 
-        <FlowerHealthCard />
+        <OakCard />
 
         {trainingEnabled && <TodaysRoutineCard />}
 

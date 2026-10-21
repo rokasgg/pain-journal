@@ -3,10 +3,10 @@ import { format, parseISO } from 'date-fns';
 import { type ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { WebView } from 'react-native-webview';
 
+import { OakTree } from '@/components/OakTree';
 import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
-import { FLOWER_JUMP_SVG } from '@/constants/flowerJumpSvg';
+import { useOakStage } from '@/hooks/useOakStage';
 import { capitalize, currentDateFnsLocale } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -62,8 +62,7 @@ interface SlideContent {
   visual?: ReactNode;
 }
 
-const FLOWER_SIZE = 160;
-const FLOWER_HTML = `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" /><style>html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; } svg { display: block; width: 100%; height: 100%; }</style></head><body>${FLOWER_JUMP_SVG}</body></html>`;
+const OAK_SIZE = 120;
 
 function one(value: number): string {
   return value.toFixed(1);
@@ -81,17 +80,12 @@ function formatDuration(minutes: number, t: TFunction): string {
   return m === 0 ? t('wrap.hoursOnly', { h }) : t('wrap.hours', { h, m });
 }
 
-function Flower() {
+// The user's own oak, as it stands today.
+function Oak() {
+  const { stage } = useOakStage();
   return (
-    <View style={{ width: FLOWER_SIZE, height: FLOWER_SIZE }}>
-      <WebView
-        originWhitelist={['*']}
-        source={{ html: FLOWER_HTML }}
-        scrollEnabled={false}
-        pointerEvents="none"
-        style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
-        containerStyle={{ backgroundColor: 'transparent' }}
-      />
+    <View style={{ width: OAK_SIZE, height: (OAK_SIZE * 160) / 120 }}>
+      {stage !== null && <OakTree stage={stage} size={OAK_SIZE} />}
     </View>
   );
 }
@@ -107,7 +101,7 @@ function slideContent(slide: WrapSlide, month: string, t: TFunction): SlideConte
         eyebrow: t('wrap.introEyebrow'),
         title: t('wrap.introTitle', { month: monthName(month, 'LLLL') }),
         captions: [t('wrap.introCaption', { days: slide.daysLogged })],
-        visual: <Flower />,
+        visual: <Oak />,
       };
     case 'consistency':
       return {

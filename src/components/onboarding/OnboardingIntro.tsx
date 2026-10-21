@@ -1,9 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { WebView } from 'react-native-webview';
 
-import { FLOWER_JUMP_SVG } from '@/constants/flowerJumpSvg';
+import { OakTree } from '@/components/OakTree';
 import { ONBOARDING_TOTAL_STEPS } from '@/constants/onboarding';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -14,8 +13,7 @@ export interface OnboardingIntroProps {
   onStart: () => void;
 }
 
-const FLOWER_SIZE = 150;
-const FLOWER_HTML = `<!DOCTYPE html><html><head><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" /><style>html, body { margin: 0; padding: 0; background: transparent; overflow: hidden; } svg { display: block; width: 100%; height: 100%; }</style></head><body>${FLOWER_JUMP_SVG}</body></html>`;
+const OAK_SIZE = 120;
 
 function MetaChip({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label: string }) {
   return (
@@ -37,17 +35,9 @@ export function OnboardingIntro({ name, onStart }: OnboardingIntroProps) {
   return (
     <View className="flex-1 justify-between px-6 pb-12 pt-6">
       <View className="flex-1 items-center justify-center gap-6">
-        {/* Explicit size on the WebView itself — a flex:1 WebView inside an
-            aligned wrapper collapses to zero width (see CLAUDE.md). */}
-        <Animated.View entering={FadeInDown.duration(500)} style={{ width: FLOWER_SIZE, height: FLOWER_SIZE }}>
-          <WebView
-            originWhitelist={['*']}
-            source={{ html: FLOWER_HTML }}
-            scrollEnabled={false}
-            pointerEvents="none"
-            style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
-            containerStyle={{ backgroundColor: 'transparent' }}
-          />
+        {/* A new account starts at the acorn (0 logged days → stage 1). */}
+        <Animated.View entering={FadeInDown.duration(500)}>
+          <OakTree stage={1} size={OAK_SIZE} />
         </Animated.View>
 
         <View className="gap-4">

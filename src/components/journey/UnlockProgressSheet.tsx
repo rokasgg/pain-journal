@@ -4,11 +4,12 @@ import { Modal, Pressable, Text, View } from 'react-native';
 import Animated, { SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { SproutPotIcon } from '@/components/journey/SproutPotIcon';
+import { OakTree } from '@/components/OakTree';
 import { getNowAction } from '@/lib/checkinTiming';
 import { formatDayCount } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { JOURNEY_MILESTONES } from '@/lib/journey';
+import { getOakStage } from '@/lib/oak';
 import { colors } from '@/lib/theme';
 
 export type LockedTabMilestone = 'history' | 'insights';
@@ -78,7 +79,7 @@ export function UnlockProgressSheet({ milestone, loggedDays, loggedToday, onClos
           <View className="h-1.5 w-10 rounded-full bg-borderLight dark:bg-borderDark" />
 
           <View className="mt-2 h-24 w-24 items-center justify-center rounded-full bg-primary/10">
-            <SproutPotIcon size={52} />
+            <OakTree stage={getOakStage(loggedDays)} size={56} />
             {loggedToday && (
               <View className="absolute -bottom-1 -right-1 h-8 w-8 items-center justify-center rounded-xl border-2 border-white bg-primary dark:border-surfaceDark dark:bg-primaryDark">
                 <Ionicons name="checkmark" size={16} color={colors.white} />
