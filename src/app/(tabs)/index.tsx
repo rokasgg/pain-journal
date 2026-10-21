@@ -3,8 +3,8 @@ import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
 import { CheckinWeekCard } from '@/components/home/CheckinWeekCard';
 import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
 import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
-import { OakCard } from '@/components/home/OakCard';
 import { JourneyCard } from '@/components/home/JourneyCard';
+import { OakCard } from '@/components/home/OakCard';
 import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
 import { WelcomeGuide } from '@/components/home/WelcomeGuide';
 import { WrapReadyCard } from '@/components/home/WrapReadyCard';
@@ -136,15 +136,24 @@ export default function HomeScreen() {
           </Pressable>
           <DaysSinceHealing />
         </View>
+        <OakCard />
 
         {/* Order follows assets/possible-app-design/home: check-ins first,
             then timely prompts, this week, unlocks, flare-up; the oak and
             (opt-in) training cards below. */}
         <CheckinStatusCard />
-
         <CareStepCard />
 
         <WrapReadyCard />
+        <Link href="/flare-up/new" asChild>
+          <Pressable
+            accessibilityRole="button"
+            className="h-[54px] flex-row items-center justify-center gap-2 rounded-3xl border-2 border-red-200 bg-surface active:opacity-80 dark:border-red-900 dark:bg-surfaceDark"
+          >
+            <Ionicons name="flash-outline" size={22} color="#dc2626" />
+            <Text className="text-lg font-bold text-red-700 dark:text-red-400">{t('home.logFlareUp')}</Text>
+          </Pressable>
+        </Link>
 
         <CheckinWeekCard />
 
@@ -156,17 +165,8 @@ export default function HomeScreen() {
           }}
         />
 
-        <Link href="/flare-up/new" asChild>
-          <Pressable
-            accessibilityRole="button"
-            className="h-[54px] flex-row items-center justify-center gap-2 rounded-3xl border-2 border-red-200 bg-surface active:opacity-80 dark:border-red-900 dark:bg-surfaceDark"
-          >
-            <Ionicons name="flash-outline" size={22} color="#dc2626" />
-            <Text className="text-lg font-bold text-red-700 dark:text-red-400">{t('home.logFlareUp')}</Text>
-          </Pressable>
-        </Link>
 
-        <OakCard />
+
 
         {trainingEnabled && <TodaysRoutineCard />}
 
