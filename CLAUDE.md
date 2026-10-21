@@ -316,6 +316,41 @@ src/
   - Its logic is `buildCheckinWeek()` in `src/lib/checkinWeek.ts` (tested), fed by `useCheckinHistory(30)`.
   - Every dot state (grey / dashed "today, not yet" / filled) is a stacked layer shown via opacity, so logging a check-in never swaps classes on a mounted element.
 
+## History tab (`src/app/(tabs)/history.tsx`)
+- **Header:** a big "History" / "Istorija" title (`text-4xl`, the same as Settings), with an `IconSegmentedControl` on the right (`src/components/ui/`).
+  - It switches between a chart icon (**Charts**, the old Overview) and a calendar icon (**Calendar**). It's 48×38 segments on a `segmentTrack` track, and the selected one is a white pill with a shadow and an `accent` icon. The pill is an always-rendered layer, so there's no class swap.
+  - **The view lives in `useHistoryViewStore`** (plain, non-persisted). It survives leaving the tab, and a fresh launch opens on Charts.
+  - **The old "+" menu (past entry / flare-up) and the Overview/Calendar text segmented control were removed.** `checkin/backfill.tsx` still exists but nothing links to it. It allows any past date and doesn't set `logged_late`.
+- **Charts** (stat tiles, `PainTrendChart`, metric and period switchers, Wraps) is unchanged except for colours: every light-blue `primaryMuted` control here now uses `bg-segmentTrack` with a white (`bg-surface`) selected segment.
+- **Calendar** is `HistoryCalendar` (controlled: `visibleMonth`, `selectedDate`), then `SelectedDayPanel`.
+  - **The grid:**
+    - Mon-first, with the month title from `formatMonthTitle` ("2026 m. spalis"). › is disabled on the current month.
+    - Per day: a 36pt circle tinted by average pain (`painTint()` in `src/lib/historyCalendar.ts`, tested: 0 / <4 / <7 / ≥7), two 5pt dots for morning and evening, a red ⚡ badge for flare-ups, a 2pt accent ring on today, and a solid accent circle when selected.
+    - **The dots only show from the user's first check-in on** (`firstCheckinDate`) and never on future days.
+    - **All per-day state is applied through `style`, never className**, because of the NativeWind remount gotcha.
+    - Each cell has a full screen-reader label ("Spalio 19 d., vidutinis skausmas, rytas įrašytas, …").
+  - **Selection:** today is selected by default. Changing month keeps the selection only if it's in the shown month; otherwise nothing is selected and the panel hides.
+  - **`SelectedDayPanel`:**
+    - the heading date, plus "vid. 6/10"
+    - morning and evening cards: logged ones open `history/[kind]/[id]` (unchanged, and its lookback is now 365 days to match the calendar), with an "įrašyta vėliau" tag when `logged_late`
+    - a flare-ups card ("Paūmėjimų nebuvo" when there are none)
+    - the day's notes
+- **Late logging** (`src/lib/lateLogging.ts`, tested). `getSlotStatus()` returns one of:
+  - `logged`
+  - `canLogNow`: today, missing, open. This is the normal flow, "Įrašyti". The spec didn't cover this case; it was added.
+  - `canLogLate`: yesterday or the day before, missing. Shows "Įrašyti vėliau" plus "Galima iki šiandien/rytoj 23:59…". Nothing older is allowed.
+  - `opensLater`: today's evening before `EVENING_UNLOCK_HOUR`.
+  - `missed`, `future`
+
+  **How it saves:**
+  - The button opens **`checkin/[type]?date=yyyy-MM-dd`**. That screen re-checks `canLogLate` and refuses to overwrite an existing entry.
+  - It skips the flare-up follow-up and the routine step, because both are about today, and shows a "logging late" banner.
+  - It saves the real `checkin_date`/`type` plus **`logged_late: true, logged_at: now`**. The columns come from `supabase_late_logging_migration.sql` (repo root; run once).
+  - Edits don't send these fields, so an edit keeps the flag.
+  - Late entries count as normal logged days (oak, unlocks). The existing `['checkins', …]` invalidation refreshes the calendar, the Home week card and the oak.
+  - The window is client-side only; there's no DB constraint.
+- **Tab bar:** History uses `calendar-outline`. While active, it gets a `historyTabTint` (#E0EAE2) pill behind the icon (`TabButton`'s `activeTint`). The other tabs don't have one.
+
 ## Stack headers (`src/app/_layout.tsx`)
 - **Headers blend into the page.** The root `<Stack>`'s `screenOptions` sets defaults for *every* screen:
   - `headerStyle.backgroundColor` = `colors.background`/`backgroundDark`

@@ -31,6 +31,8 @@ function checkin(checkin_date: string, pain_level: number, overrides: Partial<Ch
     symptoms: {},
     triggers: [],
     notes: null,
+    logged_late: false,
+    logged_at: null,
     created_at: '',
     updated_at: '',
     ...overrides,

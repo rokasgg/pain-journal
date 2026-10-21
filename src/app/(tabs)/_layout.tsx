@@ -24,12 +24,15 @@ function TabButton({
   focused,
   size,
   locked = false,
+  activeTint,
 }: {
   name: keyof typeof Ionicons.glyphMap;
   label: string;
   focused: boolean;
   size: number;
   locked?: boolean;
+  // Filled pill behind the icon while this tab is active (History).
+  activeTint?: string;
 }) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -50,11 +53,27 @@ function TabButton({
         minWidth: 100,
       }}
     >
-      <Ionicons
-        name={locked ? 'lock-closed' : name}
-        size={size}
-        color={focused && !locked ? colors.selectedTab : colors.inActive}
-      />
+      <View style={{ alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 3 }}>
+        {activeTint && (
+          <View
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+              borderRadius: 999,
+              backgroundColor: activeTint,
+              opacity: focused && !locked ? 1 : 0,
+            }}
+          />
+        )}
+        <Ionicons
+          name={locked ? 'lock-closed' : name}
+          size={size}
+          color={focused && !locked ? colors.selectedTab : colors.inActive}
+        />
+      </View>
 
       <Text
         numberOfLines={1}
@@ -127,11 +146,12 @@ export default function TabsLayout() {
             title: t('tabs.history'),
             tabBarIcon: ({ focused, size }) => (
               <TabButton
-                name="stats-chart"
+                name="calendar-outline"
                 label={t('tabs.history')}
                 focused={focused}
                 size={size}
                 locked={!isUnlocked('history')}
+                activeTint={isDark ? colors.segmentTrackDark : colors.historyTabTint}
               />
             ),
           }}

@@ -41,6 +41,26 @@ export function formatHeadingDate(date: Date, locale: Locale): string {
   return capitalize(format(date, HEADING_DATE_PATTERNS[locale], { locale: DATE_FNS_LOCALES[locale] }));
 }
 
+// Calendar month title: "October 2026" / "2026 m. spalis" (standalone month).
+const MONTH_TITLE_PATTERNS: Record<Locale, string> = {
+  en: 'LLLL yyyy',
+  lt: "yyyy 'm.' LLLL",
+};
+
+export function formatMonthTitle(date: Date, locale: Locale): string {
+  return format(date, MONTH_TITLE_PATTERNS[locale], { locale: DATE_FNS_LOCALES[locale] });
+}
+
+// Day without weekday, for screen-reader labels: "19 October" / "Spalio 19 d."
+const DAY_LABEL_PATTERNS: Record<Locale, string> = {
+  en: 'd MMMM',
+  lt: "MMMM d 'd.'",
+};
+
+export function formatDayLabel(date: Date, locale: Locale): string {
+  return capitalize(format(date, DAY_LABEL_PATTERNS[locale], { locale: DATE_FNS_LOCALES[locale] }));
+}
+
 export function formatCheckinDate(dateStr: string): string {
   return capitalize(format(parseISO(dateStr), 'EEE, MMM d', { locale: currentDateFnsLocale() }));
 }

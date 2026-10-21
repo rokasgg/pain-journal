@@ -260,7 +260,7 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
         )}
       </View>
 
-      <View className="flex-row rounded-lg bg-primaryMuted p-0.5 dark:bg-primaryMutedDark">
+      <View className="flex-row rounded-lg bg-segmentTrack p-0.5 dark:bg-segmentTrackDark">
         {METRICS.map((option) => {
           const isActive = option === metric;
           return (
@@ -272,7 +272,7 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
               }}
               accessibilityRole="button"
               accessibilityState={{ selected: isActive }}
-              className={`flex-1 items-center rounded-md py-1 ${isActive ? 'bg-background dark:bg-backgroundDark' : ''}`}
+              className={`flex-1 items-center rounded-md py-1 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''}`}
             >
               <Text
                 className={`text-xs font-medium ${isActive ? 'text-black dark:text-white' : 'text-gray-500 dark:text-gray'}`}

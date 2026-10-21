@@ -23,5 +23,11 @@ export const colors = {
   inActive: '#6B756F',
   accent: '#2F5A41',
   accentMuted: '#E5EEE7',
+  // History tab redesign: segmented-control track, primary/secondary ink.
+  segmentTrack: '#E3E8E4',
+  segmentTrackDark: '#1C2620',
+  ink: '#1C2420',
+  inkSecondary: '#5B6660',
+  historyTabTint: '#E0EAE2',
 
 } as const;

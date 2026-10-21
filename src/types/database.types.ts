@@ -37,6 +37,11 @@ export interface Checkin {
   triggers: string[];
   notes: string | null;
 
+  // Added later from the History calendar (supabase_late_logging_migration.sql).
+  logged_late: boolean;
+  // When a late entry was actually entered; null for on-time check-ins.
+  logged_at: string | null;
+
   created_at: string;
   updated_at: string;
 }
@@ -60,8 +65,12 @@ export type CheckinInsert = Omit<
   | 'exercise_notes'
   | 'exercise_hours'
   | 'exercise_intensity'
+  | 'logged_late'
+  | 'logged_at'
 > & {
   id?: string;
+  logged_late?: boolean;
+  logged_at?: string | null;
   checkin_date?: string;
   created_at?: string;
   updated_at?: string;

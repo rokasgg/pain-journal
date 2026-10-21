@@ -22,8 +22,8 @@ export default function HistoryEntryDetailModal() {
   const { kind, id } = useLocalSearchParams<{ kind: 'checkin' | 'flareUp'; id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
-  const { checkins } = useCheckinHistory(90);
-  const { flareUps } = useFlareUps(90);
+  const { checkins } = useCheckinHistory(365);
+  const { flareUps } = useFlareUps(365);
 
   if (kind === 'flareUp') {
     const flareUp = flareUps.find((f) => f.id === id);
