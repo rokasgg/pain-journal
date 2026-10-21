@@ -62,8 +62,6 @@ export const lt: typeof en = {
     opensInMinutes: 'po {{m}} min.',
     thisWeek: 'Ši savaitė',
     weekCount: '{{done}} iš {{total}} registracijų',
-    legendMorning: 'Viršuje: rytas',
-    legendEvening: 'Apačioje: vakaras',
     morningOptionalToday: 'Šiandien neprivaloma. Pirmoji – rytoj',
     title: 'Šiandien',
     logFlareUp: 'Registruoti paūmėjimą',

@@ -60,8 +60,6 @@ export const en = {
     opensInMinutes: 'in {{m}} min',
     thisWeek: 'This week',
     weekCount: '{{done}} of {{total}} check-ins',
-    legendMorning: 'Top: morning',
-    legendEvening: 'Bottom: evening',
     morningOptionalToday: 'Optional today. First one tomorrow',
     title: 'Today',
     logFlareUp: 'Log a flare-up',

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { Text, View } from 'react-native';
 
@@ -6,8 +7,9 @@ import { buildCheckinWeek } from '@/lib/checkinWeek';
 import { todayLocalDate, WEEKDAY_LABELS_BY_LOCALE } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
-const MORNING_LEGEND = '#b45309';
-const EVENING_LEGEND = '#4f46e5';
+// Same amber sun / indigo moon as CheckinStatusCard's row tiles.
+const MORNING_ICON_COLOR = '#d97706';
+const EVENING_ICON_COLOR = '#4f46e5';
 
 // One check-in slot. Every visual state is a layer that's always rendered and
 // shown via `style.opacity` — logging a check-in must not swap classes on a
@@ -29,8 +31,9 @@ function Dot({ logged, pendingToday }: { logged: boolean; pendingToday: boolean 
 }
 
 // "This week" on Home (design from assets/possible-app-design/home): Mon–Sun,
-// two slots per day (top = morning, bottom = evening), today framed, and
-// "N of 14 check-ins". Just shows what was logged — nothing "breaks".
+// two slots per day, today framed, and "N of 14 check-ins". A sun / moon at
+// the start of each row says which row is morning and which is evening, so
+// there's no legend. Just shows what was logged — nothing "breaks".
 export function CheckinWeekCard() {
   const { t, locale } = useTranslation();
   const { checkins } = useCheckinHistory(30);
@@ -45,10 +48,23 @@ export function CheckinWeekCard() {
       </View>
 
       <View className="flex-row">
+        {/* Row markers. Mirrors a day column's geometry (h-5 label row, gap-2,
+            py-2, h-5 dots with gap-2) so each icon centres on its dot row. */}
+        <View className="items-center gap-2">
+          <View className="h-5" />
+          <View className="gap-2 py-2">
+            <View className="h-5 w-5 items-center justify-center" accessibilityLabel={t('home.morning')}>
+              <Ionicons name="sunny" size={14} color={MORNING_ICON_COLOR} />
+            </View>
+            <View className="h-5 w-5 items-center justify-center" accessibilityLabel={t('home.evening')}>
+              <Ionicons name="moon" size={13} color={EVENING_ICON_COLOR} />
+            </View>
+          </View>
+        </View>
         {week.days.map((day, index) => (
           <View key={day.date} className="flex-1 items-center gap-2">
             <Text
-              className="text-sm font-semibold text-black dark:text-white"
+              className="h-5 text-sm font-semibold text-black dark:text-white"
               style={{ opacity: day.isToday ? 1 : 0.45 }}
             >
               {labels[index]}
@@ -64,17 +80,6 @@ export function CheckinWeekCard() {
             </View>
           </View>
         ))}
-      </View>
-
-      <View className="flex-row gap-5">
-        <View className="flex-row items-center gap-1.5">
-          <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: MORNING_LEGEND }} />
-          <Text className="text-sm text-strongGray dark:text-gray">{t('home.legendMorning')}</Text>
-        </View>
-        <View className="flex-row items-center gap-1.5">
-          <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: EVENING_LEGEND }} />
-          <Text className="text-sm text-strongGray dark:text-gray">{t('home.legendEvening')}</Text>
-        </View>
       </View>
     </View>
   );

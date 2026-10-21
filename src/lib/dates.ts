@@ -1,7 +1,7 @@
 import { differenceInCalendarDays, differenceInMinutes, format, parseISO } from 'date-fns';
 import { enUS, lt } from 'date-fns/locale';
 
-import { useLocaleStore } from '@/store/useLocaleStore';
+import { useLocaleStore, type Locale } from '@/store/useLocaleStore';
 
 // checkin_date / injury_started_on are plain `date` columns — always derive
 // them from local wall-clock time, never `toISOString()` (UTC), which can
@@ -24,6 +24,21 @@ export function currentDateFnsLocale() {
 // the first letter so formatted dates read correctly regardless of locale.
 export function capitalize(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+// Standalone heading date: "Wednesday, 21 October" / "Trečiadienis, spalio 21 d.".
+// Lithuanian needs the nominative weekday (`cccc`, not `EEEE`, which gives the
+// accusative "trečiadienį") and the genitive month (`MMMM`). Not Intl:
+// toLocaleDateString('lt') orders it "spalio 21 d., trečiadienis".
+const HEADING_DATE_PATTERNS: Record<Locale, string> = {
+  en: 'EEEE, d MMMM',
+  lt: "cccc, MMMM d 'd.'",
+};
+
+// Takes the locale explicitly, so components pass the reactive `locale` from
+// useTranslation() and the React Compiler re-renders it on a language switch.
+export function formatHeadingDate(date: Date, locale: Locale): string {
+  return capitalize(format(date, HEADING_DATE_PATTERNS[locale], { locale: DATE_FNS_LOCALES[locale] }));
 }
 
 export function formatCheckinDate(dateStr: string): string {

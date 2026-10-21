@@ -14,7 +14,7 @@ import { useJourney } from '@/hooks/useJourney';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
 import { isMorningOptionalToday } from '@/lib/checkinTiming';
-import { capitalize, currentDateFnsLocale, todayLocalDate } from '@/lib/dates';
+import { formatHeadingDate, todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { weeklyTrainingProgress } from '@/lib/trainingInsights';
@@ -24,7 +24,6 @@ import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 import { Ionicons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
 import { Link, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -34,7 +33,7 @@ const POST_TRANSITION_DELAY_MS = 450;
 const WELCOME_OPEN_DELAY_MS = 300;
 
 export default function HomeScreen() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   // New-user journey: training cards only appear once the user opts in (care
@@ -131,7 +130,7 @@ export default function HomeScreen() {
         <View className="flex-row items-end justify-between gap-3">
           <Pressable onLongPress={() => setDebugCheckmarkVisible(true)} delayLongPress={400} className="flex-1">
             <Text className="text-base text-strongGray dark:text-gray">
-              {capitalize(format(new Date(), 'EEEE, d MMMM', { locale: currentDateFnsLocale() }))}
+              {formatHeadingDate(new Date(), locale)}
             </Text>
             <Text className="text-4xl font-bold text-black dark:text-white">{t('home.title')}</Text>
           </Pressable>
@@ -160,7 +159,7 @@ export default function HomeScreen() {
         <Link href="/flare-up/new" asChild>
           <Pressable
             accessibilityRole="button"
-            className="flex-row items-center justify-center gap-2 rounded-3xl border-2 border-red-200 bg-surface py-5 active:opacity-80 dark:border-red-900 dark:bg-surfaceDark"
+            className="h-[54px] flex-row items-center justify-center gap-2 rounded-3xl border-2 border-red-200 bg-surface active:opacity-80 dark:border-red-900 dark:bg-surfaceDark"
           >
             <Ionicons name="flash-outline" size={22} color="#dc2626" />
             <Text className="text-lg font-bold text-red-700 dark:text-red-400">{t('home.logFlareUp')}</Text>
