@@ -2,6 +2,8 @@ import { format, parseISO } from 'date-fns';
 import { Text, View } from 'react-native';
 
 import { FlareUpMarker } from '@/components/history/FlareUpMarker';
+import { FLARE_AREA_LABEL_KEYS, FLARE_SYMPTOM_LABEL_KEYS } from '@/constants/flareUp';
+import { TRIGGER_LABEL_KEYS } from '@/constants/symptoms';
 import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { FlareUp } from '@/types/database.types';
@@ -13,6 +15,21 @@ export interface FlareUpDetailViewProps {
 
 export function FlareUpDetailView({ flareUp, showDate = true }: FlareUpDetailViewProps) {
   const { t } = useTranslation();
+  // Older rows (before supabase_flare_up_details_migration.sql) have no
+  // arrays and only the single likely_cause text.
+  const label = (keys: Record<string, string>, value: string) => (keys[value] ? t(keys[value]) : value);
+  const areas = (flareUp.pain_areas ?? []).map((v) => label(FLARE_AREA_LABEL_KEYS, v));
+  const symptoms = (flareUp.symptoms ?? []).map((v) => label(FLARE_SYMPTOM_LABEL_KEYS, v));
+  const triggers = flareUp.triggers?.length
+    ? flareUp.triggers.map((v) => label(TRIGGER_LABEL_KEYS, v))
+    : flareUp.likely_cause
+      ? [flareUp.likely_cause]
+      : [];
+  const rows: { title: string; values: string[] }[] = [
+    { title: t('flareUp.areasQuestion'), values: areas },
+    { title: t('flareUp.symptomsQuestion'), values: symptoms },
+    { title: t('detail.likelyCause'), values: triggers },
+  ].filter((row) => row.values.length > 0);
 
   return (
     <View className="gap-4">
@@ -32,12 +49,15 @@ export function FlareUpDetailView({ flareUp, showDate = true }: FlareUpDetailVie
           <Text className="text-sm text-gray-500 dark:text-gray">{t('detail.painLevel')}</Text>
           <Text className="text-base text-black dark:text-white">{flareUp.pain_level}</Text>
         </View>
-        {flareUp.likely_cause && (
-          <View className="flex-row items-center justify-between border-b border-gray-200 py-3 dark:border-gray-800">
-            <Text className="text-sm text-gray-500 dark:text-gray">{t('detail.likelyCause')}</Text>
-            <Text className="text-base text-black dark:text-white">{flareUp.likely_cause}</Text>
+        {rows.map((row) => (
+          <View
+            key={row.title}
+            className="flex-row items-start justify-between gap-4 border-b border-gray-200 py-3 dark:border-gray-800"
+          >
+            <Text className="text-sm text-gray-500 dark:text-gray">{row.title}</Text>
+            <Text className="flex-1 text-right text-base text-black dark:text-white">{row.values.join(', ')}</Text>
           </View>
-        )}
+        ))}
       </View>
 
       {flareUp.description && (

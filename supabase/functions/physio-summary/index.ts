@@ -85,7 +85,7 @@ Deno.serve(async (req: Request) => {
       .order("checkin_date"),
     supabase
       .from("flare_ups")
-      .select("occurred_at, pain_level, likely_cause, description, status, resolved_duration_minutes")
+      .select("occurred_at, pain_level, likely_cause, description, status, resolved_duration_minutes, pain_areas, symptoms, triggers")
       .gte("occurred_at", since.toISOString())
       .order("occurred_at"),
     supabase

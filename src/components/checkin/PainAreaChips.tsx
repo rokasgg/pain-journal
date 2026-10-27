@@ -87,7 +87,7 @@ export function PainAreaChips({ value, onChange, className }: PainAreaChipsProps
             accessibilityRole="button"
             className="flex-row items-center gap-1 rounded-full border border-dashed border-gray-400 px-3 py-2 dark:border-gray-600"
           >
-            <Ionicons name="add" size={14} color={colors.gray} />
+            <Ionicons name="add" size={12} color={colors.gray} />
             <Text className="text-sm font-medium text-gray-500 dark:text-gray">{t('common.other')}</Text>
           </Pressable>
         )}

@@ -45,6 +45,11 @@ export default function EditFlareUpModal() {
         pain_level: flareUp.pain_level,
         likely_cause: flareUp.likely_cause,
         description: flareUp.description,
+        // Rows from before supabase_flare_up_details_migration.sql have none.
+        pain_areas: flareUp.pain_areas ?? [],
+        symptoms: flareUp.symptoms ?? [],
+        // Old rows only have the single likely_cause text.
+        triggers: flareUp.triggers?.length ? flareUp.triggers : flareUp.likely_cause ? [flareUp.likely_cause] : [],
         status: flareUp.status,
       }}
       submitLabel={t('flareUp.saveChanges')}

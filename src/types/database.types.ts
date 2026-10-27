@@ -95,6 +95,11 @@ export interface FlareUp {
   pain_level: number;
   likely_cause: string | null;
   description: string | null;
+  // supabase_flare_up_details_migration.sql — stable English identifiers or
+  // custom text, like checkins.triggers. likely_cause mirrors `triggers`.
+  pain_areas: string[];
+  symptoms: string[];
+  triggers: string[];
   status: FlareUpStatus;
   status_updated_at: string;
   resolved_duration_minutes: number | null;
