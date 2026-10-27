@@ -5,6 +5,7 @@ import { Dimensions, Modal, Pressable, Text, View } from 'react-native';
 
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { PAIN_AREA_LABEL_KEYS, TRIGGER_LABEL_KEYS } from '@/constants/symptoms';
+import { EXERCISE_TYPE_LABEL_KEYS } from '@/lib/checkinChoices';
 import { useDeleteCheckin } from '@/hooks/useCheckins';
 import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -85,7 +86,9 @@ export function CheckinDetailView({ checkin, showDate = true, onDeleted }: Check
   const symptomLabels = [
     checkin.symptoms.tingling && t('symptoms.tingling'),
     checkin.symptoms.numbness && t('symptoms.numbness'),
+    checkin.symptoms.weakness && t('symptoms.weakness'),
     checkin.symptoms.headache && t('symptoms.headache'),
+    checkin.symptoms.dizziness && t('symptoms.dizziness'),
     ...(checkin.symptoms.custom ?? []),
   ].filter(Boolean) as string[];
 
@@ -198,6 +201,14 @@ export function CheckinDetailView({ checkin, showDate = true, onDeleted }: Check
                 {checkin.did_exercises ? t('common.yes') : t('common.no')}
               </Text>
             </View>
+            {(checkin.exercise_types ?? []).length > 0 && (
+              <View className="flex-row items-start justify-between gap-4 py-2">
+                <Text className="text-sm text-gray dark:text-gray">{t('detail.exerciseTypes')}</Text>
+                <Text className="flex-1 text-right text-base text-black dark:text-white">
+                  {(checkin.exercise_types ?? []).map((v) => t(EXERCISE_TYPE_LABEL_KEYS[v] ?? v)).join(', ')}
+                </Text>
+              </View>
+            )}
             <DetailRow label={t('detail.exerciseHours')} value={checkin.exercise_hours} />
             <ScaleRow label={t('detail.exerciseIntensity')} value={checkin.exercise_intensity} />
           </Section>

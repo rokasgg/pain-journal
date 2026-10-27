@@ -32,24 +32,23 @@ export interface StepIssueInput {
 }
 
 function hasAnyStep2Answer(type: CheckinType, values: CheckinStepValues): boolean {
-  const hasNote = (values.notes ?? '').trim().length > 0;
   if (type === 'morning') {
+    const hasNote = (values.notes ?? '').trim().length > 0;
     return values.sleep_quality != null || values.sleep_hours != null || values.sleep_position != null || hasNote;
   }
-  return (
-    values.activity_level != null ||
-    values.screen_time_hours != null ||
-    values.did_exercises != null ||
-    hasNote
-  );
+  // Evening notes live on step 3 now (with the symptoms), so they no longer
+  // count here.
+  return values.activity_level != null || values.screen_time_hours != null || values.did_exercises != null;
 }
 
 function hasAnySymptomAnswer(values: CheckinStepValues): boolean {
-  const { tingling, numbness, headache, radiating_to, custom } = values.symptoms;
+  const { tingling, numbness, weakness, headache, dizziness, radiating_to, custom } = values.symptoms;
   return (
     !!tingling ||
     !!numbness ||
+    !!weakness ||
     !!headache ||
+    !!dizziness ||
     (radiating_to ?? '').trim().length > 0 ||
     (custom ?? []).length > 0 ||
     values.triggers.length > 0

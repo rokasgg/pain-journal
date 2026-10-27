@@ -1,21 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Stack } from 'expo-router';
-import { useState, type ReactNode } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Controller, useForm, useWatch, type Control } from 'react-hook-form';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CheckinSymptomsSection } from '@/components/checkin/CheckinSymptomsSection';
 import { EveningFields } from '@/components/checkin/EveningFields';
 import { FlareUpFollowUpStep } from '@/components/checkin/FlareUpFollowUpStep';
 import { MorningFields } from '@/components/checkin/MorningFields';
-import { PainAreaChips } from '@/components/checkin/PainAreaChips';
-import { PainSlider } from '@/components/checkin/PainSlider';
 import { RoutineTrainingStep } from '@/components/checkin/RoutineTrainingStep';
-import { StepDots } from '@/components/checkin/StepDots';
-import { SymptomCheckboxes } from '@/components/checkin/SymptomCheckboxes';
-import { TriggerChips } from '@/components/checkin/TriggerChips';
+import { ScaleSliderCard } from '@/components/checkin/ScaleSliderCard';
+import { StepSegments } from '@/components/checkin/StepSegments';
 import { YesNoField } from '@/components/checkin/YesNoField';
-import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
+import { SectionTitle } from '@/components/ui/SectionTitle';
+import { SYMPTOM_OPTIONS } from '@/constants/symptoms';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useProfile } from '@/hooks/useProfile';
 import { useStepHaptic } from '@/hooks/useStepHaptic';
@@ -27,15 +36,15 @@ import {
   type HintedCheckinField,
 } from '@/lib/checkinHints';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { headerLeftWithoutGlass, headerRightWithoutGlass } from '@/lib/navigation/headerItems';
 import { colors } from '@/lib/theme';
-import { headerRightWithoutGlass } from '@/lib/navigation/headerItems';
 import {
   eveningCheckinSchema,
   morningCheckinSchema,
   type EveningCheckinFormData,
   type MorningCheckinFormData,
 } from '@/lib/validations/checkin';
-import type { CheckinType, FlareUp } from '@/types/database.types';
+import type { CheckinSymptoms, CheckinType, FlareUp } from '@/types/database.types';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 
@@ -63,8 +72,25 @@ function seedFormDefaults(isMorning: boolean, defaultValues: CheckinFormData | u
 
 function hasNoSymptoms(values: CheckinFormData | undefined): boolean {
   if (!values) return false;
-  const { tingling, numbness, headache, radiating_to, custom } = values.symptoms;
-  return !tingling && !numbness && !headache && !radiating_to && (custom ?? []).length === 0 && values.triggers.length === 0;
+  const { tingling, numbness, weakness, headache, dizziness, radiating_to, custom } = values.symptoms;
+  return (
+    !tingling &&
+    !numbness &&
+    !weakness &&
+    !headache &&
+    !dizziness &&
+    !radiating_to &&
+    (custom ?? []).length === 0 &&
+    values.triggers.length === 0
+  );
+}
+
+// Whether a symptoms edit changed the symptom answers themselves — as opposed
+// to only the pain areas, which share the same object but must not clear a
+// confirmed "no symptoms".
+function symptomAnswersChanged(before: CheckinSymptoms, after: CheckinSymptoms): boolean {
+  const flagsChanged = SYMPTOM_OPTIONS.some((option) => !!before[option.value] !== !!after[option.value]);
+  return flagsChanged || (before.custom ?? []).join('\u0001') !== (after.custom ?? []).join('\u0001');
 }
 
 export const morningDefaults: MorningCheckinFormData = {
@@ -90,6 +116,7 @@ export const eveningDefaults: EveningCheckinFormData = {
   activity_level: null,
   screen_time_hours: null,
   did_exercises: null,
+  exercise_types: [],
   exercise_notes: null,
   exercise_hours: null,
   exercise_intensity: null,
@@ -133,6 +160,16 @@ function RequiredMessage({ text }: { text?: string }) {
   );
 }
 
+// Big heading at the top of each step (design: "Kaip jaučiatės?").
+const STEP_TITLE_KEYS: Record<CheckinType, [string, string, string]> = {
+  morning: ['checkin.titleFeel', 'checkin.titleSleepMorning', 'checkin.titleSymptoms'],
+  evening: ['checkin.titleFeel', 'checkin.titleDayEvening', 'checkin.titleSymptoms'],
+};
+
+// The check-in wizard (evening design: assets/possible-app-design/check in -
+// evening; morning shares the pieces until its own mockups arrive). Three
+// steps — how you feel, how the day/night went, symptoms — with a segmented
+// progress bar and "1 iš 3" in the header, and one full-width button.
 export function CheckinForm({
   type,
   checkinDate,
@@ -145,7 +182,9 @@ export function CheckinForm({
   hasRoutinesInRotation,
 }: CheckinFormProps) {
   const { t } = useTranslation();
+  const router = useRouter();
   const { profile } = useProfile();
+  const insets = useSafeAreaInsets();
   const isMorning = type === 'morning';
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -155,21 +194,22 @@ export function CheckinForm({
   useStepHaptic(`${step}-${flareUpStepDone}-${routineStepDone}`);
 
   // Onboarding's "how much time per check-in" answer: 'quick' collapses the
-  // Symptoms/Triggers step into an optional expandable section on step 2
-  // instead of forcing a 3rd required step. 'detailed'/'varies'/unset behave
-  // exactly as before (3 full steps).
+  // Symptoms step into an optional expandable section on step 2 instead of
+  // forcing a 3rd required step. 'detailed'/'varies'/unset behave exactly as
+  // before (3 full steps).
   const isQuickMode = profile?.checkin_depth_preference === 'quick';
 
-  // Display-only "Yesterday: 6" / "Last time: 6" under each slider, from the
-  // previous same-type check-in within 30 days. Never pre-fills a value.
+  // Display-only "Yesterday: 6" / "Last time: 6" on each slider card, plus a
+  // ring on the track, from the previous same-type check-in within 30 days.
+  // Never pre-fills a value.
   const { checkins: recentCheckins } = useCheckinHistory(30);
   const previous = findPreviousCheckin(recentCheckins, type, checkinDate);
+  const previousValues = previous ? previousHintValues(previous.checkin) : {};
   const hints: CheckinSliderHints = {};
   if (previous) {
-    const values = previousHintValues(previous.checkin);
-    for (const field of Object.keys(values) as HintedCheckinField[]) {
+    for (const field of Object.keys(previousValues) as HintedCheckinField[]) {
       hints[field] = t(previous.isYesterday ? 'checkin.hintYesterday' : 'checkin.hintLastTime', {
-        value: values[field] ?? '',
+        value: previousValues[field] ?? '',
       });
     }
   }
@@ -197,8 +237,8 @@ export function CheckinForm({
   const inPainAnswer: boolean | null = isMorning ? (wokeUpWithPain ?? null) : eveningInPain;
   const isInPain = inPainAnswer === true;
 
-  // "No symptoms today" on the symptoms step — a real answer, unlike leaving it
-  // blank. Pre-set when editing a row that was saved with no symptoms.
+  // "None" on the symptoms step — a real answer, unlike leaving it blank.
+  // Pre-set when editing a row that was saved with no symptoms.
   const [noSymptomsConfirmed, setNoSymptomsConfirmed] = useState(() => hasNoSymptoms(defaultValues));
   // Which step the user tried to leave with a missing answer — the inline
   // message only shows after that attempt, and updates live as they answer.
@@ -213,6 +253,17 @@ export function CheckinForm({
     setStep(next);
   };
 
+  // Android's hardware back steps back one page, like the header chevron.
+  useEffect(() => {
+    if (step === 1) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      setAttemptedStep(null);
+      setStep((current) => (current > 1 ? ((current - 1) as 1 | 2) : current));
+      return true;
+    });
+    return () => subscription.remove();
+  }, [step]);
+
   const handleNext = () => {
     if (getStepIssue({ ...completenessInput, step })) {
       setAttemptedStep(step);
@@ -226,9 +277,14 @@ export function CheckinForm({
     if (noSymptomsConfirmed) return;
     haptics.tick();
     setNoSymptomsConfirmed(true);
-    // Clears step-3 answers only — pain_areas belongs to step 1.
+    // Clears the symptom answers only — pain areas are a separate answer.
     setValue('symptoms', { pain_areas: values.symptoms.pain_areas ?? [] });
     setValue('triggers', []);
+  };
+
+  const handleSymptomsChange = (next: CheckinSymptoms) => {
+    if (symptomAnswersChanged(values.symptoms, next)) setNoSymptomsConfirmed(false);
+    setValue('symptoms', next, { shouldDirty: true });
   };
 
   // Re-checks every step, not just the current one, so no path (e.g. a
@@ -271,10 +327,15 @@ export function CheckinForm({
     onSaved?.();
   };
 
+  // Evening gets the design's "Dienos registracija" title; morning keeps the
+  // route's default until it has its own mockups.
+  const titleOptions = isMorning ? {} : { title: t('checkin.eveningTitle') };
+
   if (flareUpCandidate && !flareUpStepDone) {
     return (
       <View className="flex-1 bg-background dark:bg-backgroundDark">
-        <Stack.Screen options={headerRightWithoutGlass(<StepDots step={0} totalSteps={totalSteps} />)} />
+        <Stack.Screen options={titleOptions} />
+        <StepSegments step={0} totalSteps={totalSteps} />
         <FlareUpFollowUpStep flareUp={flareUpCandidate} onDone={() => setFlareUpStepDone(true)} />
       </View>
     );
@@ -283,27 +344,85 @@ export function CheckinForm({
   if (hasRoutinesInRotation && !routineStepDone) {
     return (
       <View className="flex-1 bg-background dark:bg-backgroundDark">
-        <Stack.Screen options={headerRightWithoutGlass(<StepDots step={0} totalSteps={totalSteps} />)} />
+        <Stack.Screen options={titleOptions} />
+        <StepSegments step={0} totalSteps={totalSteps} />
         <RoutineTrainingStep onDone={() => setRoutineStepDone(true)} />
       </View>
     );
   }
 
+  // Header: "‹" steps back one page (and leaves the screen from step 1), and
+  // the step counter sits on the right. The swipe-back gesture is off after
+  // step 1 so it can't throw away a half-filled check-in by accident.
+  const backElement = (
+    <Pressable
+      onPress={() => (step > 1 ? goToStep((step - 1) as 1 | 2) : router.back())}
+      hitSlop={12}
+      accessibilityRole="button"
+      accessibilityLabel={t('common.back')}
+      className="active:opacity-50"
+    >
+      <Ionicons name="chevron-back" size={26} color={colors.accent} />
+    </Pressable>
+  );
+  const counterElement = (
+    <Text className="mr-1 text-[17px] text-inkSecondary dark:text-gray">
+      {t('checkin.stepOf', { step, total: totalSteps })}
+    </Text>
+  );
+
+  const stepTitle = t(STEP_TITLE_KEYS[type][step - 1]);
+  const previousActivity = (previousValues as Partial<Record<HintedCheckinField, number>>).activity_level ?? null;
+
+  const symptomsSection = (
+    <CheckinSymptomsSection
+      symptoms={values.symptoms}
+      onSymptomsChange={handleSymptomsChange}
+      noSymptomsConfirmed={noSymptomsConfirmed}
+      onSelectNoSymptoms={selectNoSymptoms}
+      showAreas={isInPain}
+      triggers={isMorning ? values.triggers : undefined}
+      onTriggersChange={
+        isMorning
+          ? (next) => {
+              setNoSymptomsConfirmed(false);
+              setValue('triggers', next, { shouldDirty: true });
+            }
+          : undefined
+      }
+      notes={isMorning ? undefined : values.notes}
+      onNotesChange={isMorning ? undefined : (next) => setValue('notes', next, { shouldDirty: true })}
+      errorMessage={currentIssue === 'answerSymptoms' ? issueMessage : undefined}
+    />
+  );
+
   return (
-    <View className="flex-1 bg-background dark:bg-backgroundDark">
-      <Stack.Screen options={headerRightWithoutGlass(<StepDots step={step} totalSteps={totalSteps} />)} />
+    <KeyboardAvoidingView
+      className="flex-1 bg-background dark:bg-backgroundDark"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <Stack.Screen
+        options={{
+          ...titleOptions,
+          ...headerLeftWithoutGlass(backElement),
+          ...headerRightWithoutGlass(counterElement),
+          gestureEnabled: step === 1,
+        }}
+      />
+      <StepSegments step={step} totalSteps={totalSteps} />
 
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 px-6 py-6"
+        contentContainerClassName="gap-8 px-5 pb-8 pt-5"
         keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
         keyboardDismissMode="interactive"
       >
+        {step === 1 && header}
+        <Text className="text-[32px] font-bold text-ink dark:text-white">{stepTitle}</Text>
+
         {step === 1 && (
           <>
-            {header}
-
             {isMorning ? (
               <Controller
                 control={control as Control<MorningCheckinFormData>}
@@ -329,67 +448,61 @@ export function CheckinForm({
             )}
 
             {isInPain && (
-              <>
+              <View className="-mt-4 gap-3">
                 <Controller
                   control={control}
                   name="pain_level"
                   render={({ field: { value, onChange } }) => (
-                    <PainSlider
-                      label={t('checkin.painLevel')}
-                      value={value}
+                    <ScaleSliderCard
+                      preset="pain"
+                      // 0 is "not set yet" here: "Yes, in pain" needs a level of 1+.
+                      value={value >= 1 ? value : null}
                       onChange={onChange}
-                      info={t('checkin.painLevelInfo')}
+                      previous={previousValues.pain_level}
                       hint={hints.pain_level}
+                      accessibilityLabel={t('checkin.painLevel')}
                     />
                   )}
                 />
                 {currentIssue === 'setPainLevel' && <RequiredMessage text={issueMessage} />}
-
-                <Controller
-                  control={control}
-                  name="symptoms.pain_areas"
-                  render={({ field: { value, onChange } }) => (
-                    <PainAreaChips value={value ?? []} onChange={onChange} />
-                  )}
-                />
-              </>
+              </View>
             )}
 
-            <Controller
-              control={control}
-              name="stiffness_level"
-              render={({ field: { value, onChange } }) => (
-                <PainSlider
-                  label={t('checkin.stiffness')}
-                  value={value}
-                  onChange={onChange}
-                  minLabel={t('checkin.flexible')}
-                  midLabel={t('checkin.somewhatStiff')}
-                  maxLabel={t('checkin.rigid')}
-                  restAtMidpoint
-                  hint={hints.stiffness_level}
-                  info={t('checkin.stiffnessInfo')}
-                />
-              )}
-            />
+            <View className="gap-3">
+              <SectionTitle title={t('checkin.stiffness')} info={t('checkin.stiffnessInfo')} />
+              <Controller
+                control={control}
+                name="stiffness_level"
+                render={({ field: { value, onChange } }) => (
+                  <ScaleSliderCard
+                    preset="stiffness"
+                    value={value}
+                    onChange={onChange}
+                    previous={previousValues.stiffness_level}
+                    hint={hints.stiffness_level}
+                    accessibilityLabel={t('checkin.stiffness')}
+                  />
+                )}
+              />
+            </View>
 
-            <Controller
-              control={control}
-              name="range_of_motion"
-              render={({ field: { value, onChange } }) => (
-                <PainSlider
-                  label={t('checkin.rangeOfMotion')}
-                  value={value}
-                  onChange={onChange}
-                  minLabel={t('checkin.limited')}
-                  midLabel={t('checkin.somewhatLimited')}
-                  maxLabel={t('checkin.full')}
-                  restAtMidpoint
-                  hint={hints.range_of_motion}
-                  info={t('checkin.rangeOfMotionInfo')}
-                />
-              )}
-            />
+            <View className="gap-3">
+              <SectionTitle title={t('checkin.rangeOfMotion')} info={t('checkin.rangeOfMotionInfo')} />
+              <Controller
+                control={control}
+                name="range_of_motion"
+                render={({ field: { value, onChange } }) => (
+                  <ScaleSliderCard
+                    preset="rangeOfMotion"
+                    value={value}
+                    onChange={onChange}
+                    previous={previousValues.range_of_motion}
+                    hint={hints.range_of_motion}
+                    accessibilityLabel={t('checkin.rangeOfMotion')}
+                  />
+                )}
+              />
+            </View>
           </>
         )}
 
@@ -397,9 +510,17 @@ export function CheckinForm({
           <>
             {currentIssue === 'answerOneQuestion' && <RequiredMessage text={issueMessage} />}
             {isMorning ? (
-              <MorningFields control={control as Control<MorningCheckinFormData>} hints={hints} />
+              <MorningFields
+                control={control as Control<MorningCheckinFormData>}
+                hints={hints}
+                previousSleep={previousValues.sleep_quality ?? null}
+              />
             ) : (
-              <EveningFields control={control as Control<EveningCheckinFormData>} hints={hints} />
+              <EveningFields
+                control={control as Control<EveningCheckinFormData>}
+                hints={hints}
+                previousActivity={previousActivity}
+              />
             )}
 
             {isQuickMode &&
@@ -407,124 +528,39 @@ export function CheckinForm({
                 <Pressable
                   onPress={() => setShowMoreDetails(true)}
                   accessibilityRole="button"
-                  className="items-center rounded-lg border border-dashed border-gray-400 py-3 dark:border-gray-600"
+                  className="items-center rounded-2xl border border-dashed border-gray py-3.5"
                 >
-                  <Text className="text-sm font-medium text-gray-500 dark:text-gray">
+                  <Text className="text-[15px] font-semibold text-inkSecondary dark:text-gray">
                     {t('checkin.addMoreDetails')}
                   </Text>
                 </Pressable>
               ) : (
-                <>
-                  <Controller
-                    control={control}
-                    name="symptoms"
-                    render={({ field: { value, onChange } }) => (
-                      <SymptomCheckboxes value={value} onChange={onChange} />
-                    )}
-                  />
-
-                  {isInPain && (
-                    <Controller
-                      control={control}
-                      name="triggers"
-                      render={({ field: { value, onChange } }) => (
-                        <TriggerChips value={value} onChange={onChange} />
-                      )}
-                    />
-                  )}
-                </>
+                symptomsSection
               ))}
           </>
         )}
 
-        {!isQuickMode && step === 3 && (
-          <>
-            {currentIssue === 'answerSymptoms' && <RequiredMessage text={issueMessage} />}
-
-            <Pressable
-              onPress={selectNoSymptoms}
-              accessibilityRole="button"
-              accessibilityState={{ selected: noSymptomsConfirmed }}
-              className={`flex-row items-center justify-center gap-2 self-start rounded-full px-4 py-2 ${
-                noSymptomsConfirmed ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
-              }`}
-            >
-              <Ionicons
-                name={noSymptomsConfirmed ? 'checkmark-circle' : 'checkmark-circle-outline'}
-                size={16}
-                color={noSymptomsConfirmed ? colors.white : colors.strongGray}
-              />
-              <Text
-                className={`text-sm font-medium ${noSymptomsConfirmed ? 'text-white' : 'text-strongGray dark:text-white'}`}
-              >
-                {t('checkin.noSymptomsToday')}
-              </Text>
-            </Pressable>
-
-            <Controller
-              control={control}
-              name="symptoms"
-              render={({ field: { value, onChange } }) => (
-                <SymptomCheckboxes
-                  value={value}
-                  onChange={(next) => {
-                    setNoSymptomsConfirmed(false);
-                    onChange(next);
-                  }}
-                />
-              )}
-            />
-
-            {isInPain && (
-              <Controller
-                control={control}
-                name="triggers"
-                render={({ field: { value, onChange } }) => (
-                  <TriggerChips
-                    value={value}
-                    onChange={(next) => {
-                      setNoSymptomsConfirmed(false);
-                      onChange(next);
-                    }}
-                  />
-                )}
-              />
-            )}
-          </>
-        )}
+        {!isQuickMode && step === 3 && symptomsSection}
       </ScrollView>
 
-      <WizardFooter>
-        {step > 1 && (
-          <Pressable
-            onPress={() => goToStep((step - 1) as 1 | 2)}
-            className="flex-1 items-center rounded-lg border border-gray-300 py-3 dark:border-gray-700"
-          >
-            <Text className="font-semibold text-black dark:text-white">{t('common.back')}</Text>
-          </Pressable>
-        )}
-
-        {step < totalSteps ? (
-          <Pressable
-            onPress={handleNext}
-            className="flex-1 items-center rounded-lg bg-primary py-3 dark:bg-primaryDark"
-          >
-            <Text className="font-semibold text-white">{t('common.next')}</Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={handleSavePress}
-            disabled={isSubmitting}
-            className="flex-1 items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
-          >
-            {isSubmitting ? (
-              <ActivityIndicator color={colors.white} />
-            ) : (
-              <Text className="font-semibold text-white">{submitLabel}</Text>
-            )}
-          </Pressable>
-        )}
-      </WizardFooter>
-    </View>
+      <View
+        className="border-t border-borderLight bg-background px-5 pt-3 dark:border-borderDark dark:bg-backgroundDark"
+        style={{ paddingBottom: Math.max(insets.bottom, 12) }}
+      >
+        <Pressable
+          onPress={step < totalSteps ? handleNext : handleSavePress}
+          disabled={isSubmitting}
+          accessibilityRole="button"
+          className="h-14 items-center justify-center rounded-2xl bg-accent dark:bg-primaryDark"
+          style={{ opacity: isSubmitting ? 0.6 : 1 }}
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color={colors.white} />
+          ) : (
+            <Text className="text-lg font-bold text-white">{step < totalSteps ? t('common.next') : submitLabel}</Text>
+          )}
+        </Pressable>
+      </View>
+    </KeyboardAvoidingView>
   );
 }

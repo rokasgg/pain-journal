@@ -35,11 +35,11 @@ describe('step 2 — at least one answer', () => {
     expect(issue({ step: 2, values: { ...empty, notes: '  ' } })).toBe('answerOneQuestion');
   });
 
-  it('evening: activity, screen time, exercise or a note counts', () => {
+  it('evening: activity, screen time or exercise counts — a note does not (it lives on step 3)', () => {
     const evening = { step: 2, type: 'evening' as const };
     expect(issue(evening)).toBe('answerOneQuestion');
-    expect(issue({ ...evening, values: { ...empty, notes: '   ' } })).toBe('answerOneQuestion');
-    expect(issue({ ...evening, values: { ...empty, notes: 'long day' } })).toBeNull();
+    expect(issue({ ...evening, values: { ...empty, notes: 'long day' } })).toBe('answerOneQuestion');
+    expect(issue({ ...evening, values: { ...empty, screen_time_hours: 3 } })).toBeNull();
     expect(issue({ ...evening, values: { ...empty, did_exercises: false } })).toBeNull();
     expect(issue({ ...evening, values: { ...empty, activity_level: 0 } })).toBeNull();
   });
@@ -50,11 +50,13 @@ describe('step 3 — symptoms', () => {
     expect(issue({ step: 3 })).toBe('answerSymptoms');
     expect(issue({ step: 3, noSymptomsConfirmed: true })).toBeNull();
     expect(issue({ step: 3, values: { ...empty, symptoms: { headache: true } } })).toBeNull();
+    expect(issue({ step: 3, values: { ...empty, symptoms: { weakness: true } } })).toBeNull();
+    expect(issue({ step: 3, values: { ...empty, symptoms: { dizziness: true } } })).toBeNull();
     expect(issue({ step: 3, values: { ...empty, symptoms: { custom: ['dizzy'] } } })).toBeNull();
     expect(issue({ step: 3, values: { ...empty, triggers: ['stress'] } })).toBeNull();
   });
 
-  it('pain areas alone do not count — they belong to step 1', () => {
+  it('pain areas alone do not count — they are location, not a symptom answer', () => {
     expect(issue({ step: 3, values: { ...empty, symptoms: { pain_areas: ['neck'] } } })).toBe('answerSymptoms');
   });
 

@@ -15,3 +15,16 @@ export function headerRightWithoutGlass(element: ReactElement) {
   }
   return { headerRight: () => element };
 }
+
+// Same idea for the left side: a custom back element without the iOS 26
+// bubble. Used where "back" must do something other than leave the screen
+// (the check-in wizard steps back one page). iOS uses
+// `unstable_headerLeftItems`; elsewhere a plain `headerLeft`.
+export function headerLeftWithoutGlass(element: ReactElement) {
+  if (Platform.OS === 'ios') {
+    return {
+      unstable_headerLeftItems: () => [{ type: 'custom' as const, element, hidesSharedBackground: true }],
+    };
+  }
+  return { headerLeft: () => element };
+}

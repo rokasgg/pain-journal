@@ -5,10 +5,13 @@ export interface Option<T extends string = string> {
   label: string;
 }
 
-export const SYMPTOM_OPTIONS: Option<'tingling' | 'numbness' | 'headache'>[] = [
+// In the order the check-in's symptom chips show them.
+export const SYMPTOM_OPTIONS: Option<'tingling' | 'numbness' | 'weakness' | 'headache' | 'dizziness'>[] = [
   { value: 'tingling', label: 'Tingling' },
   { value: 'numbness', label: 'Numbness' },
+  { value: 'weakness', label: 'Weakness' },
   { value: 'headache', label: 'Headache' },
+  { value: 'dizziness', label: 'Dizziness' },
 ];
 
 export const TRIGGER_OPTIONS: Option[] = [
@@ -22,26 +25,13 @@ export const TRIGGER_OPTIONS: Option[] = [
   { value: 'Unknown', label: 'Unknown' },
 ];
 
-export const PAIN_AREA_OPTIONS: Option[] = [
-  { value: 'Neck', label: 'Neck' },
-  { value: 'Upper back', label: 'Upper back' },
-  { value: 'Mid back', label: 'Mid back' },
-  { value: 'Lower back', label: 'Lower back' },
-  { value: 'Shoulder (left)', label: 'Shoulder (left)' },
-  { value: 'Shoulder (right)', label: 'Shoulder (right)' },
-  { value: 'Head', label: 'Head' },
-  { value: 'Hip', label: 'Hip' },
-  { value: 'Arm', label: 'Arm' },
-  { value: 'Leg', label: 'Leg' },
-];
-
 export const SLEEP_POSITION_OPTIONS: Option<SleepPosition>[] = [
   { value: 'back', label: 'Back' },
   { value: 'side', label: 'Side' },
   { value: 'stomach', label: 'Stomach' },
 ];
 
-// TRIGGER_OPTIONS/PAIN_AREA_OPTIONS values are stored verbatim in the DB
+// TRIGGER_OPTIONS and the pain-area values are stored verbatim in the DB
 // (triggers text[], symptoms.pain_areas), so they stay stable English
 // identifiers — these map each one to its i18n key for display, independent
 // of any custom text the user types in. Shared between the checkin chip
@@ -68,4 +58,10 @@ export const PAIN_AREA_LABEL_KEYS: Record<string, string> = {
   Hip: 'painAreas.hip',
   Arm: 'painAreas.arm',
   Leg: 'painAreas.leg',
+  // Added with the check-in redesign: check-ins now use the same area list as
+  // flare-ups (FLARE_AREA_OPTIONS). The keys above are older values.
+  Shoulders: 'flareUp.areas.shoulders',
+  'Between shoulder blades': 'flareUp.areas.betweenBlades',
+  'Left arm': 'flareUp.areas.leftArm',
+  'Right arm': 'flareUp.areas.rightArm',
 };

@@ -5,7 +5,9 @@ const level = z.number().min(0, 'validation.mustBeBetween0And10').max(10, 'valid
 const symptomsSchema = z.object({
   tingling: z.boolean().optional(),
   numbness: z.boolean().optional(),
+  weakness: z.boolean().optional(),
   headache: z.boolean().optional(),
+  dizziness: z.boolean().optional(),
   radiating_to: z.string().optional(),
   custom: z.array(z.string()).optional(),
   pain_areas: z.array(z.string()).optional(),
@@ -33,6 +35,7 @@ export const eveningCheckinSchema = sharedCheckinFields.extend({
   activity_level: level.nullable(),
   screen_time_hours: z.number().min(0).max(24).nullable(),
   did_exercises: z.boolean().nullable(),
+  exercise_types: z.array(z.string()),
   exercise_notes: z.string().nullable(),
   exercise_hours: z.number().min(0).max(24).nullable(),
   exercise_intensity: level.nullable(),

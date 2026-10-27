@@ -1,9 +1,10 @@
 import { Controller, type Control } from 'react-hook-form';
 import { Pressable, Text, View } from 'react-native';
 
-import { PainSlider } from '@/components/checkin/PainSlider';
+import { ScaleSliderCard } from '@/components/checkin/ScaleSliderCard';
 import { HoursMinutesPickerField } from '@/components/ui/HoursMinutesPickerField';
 import { InfoButton } from '@/components/ui/InfoButton';
+import { SectionTitle } from '@/components/ui/SectionTitle';
 import { Input } from '@/components/ui/Input';
 import { SLEEP_POSITION_OPTIONS } from '@/constants/symptoms';
 import type { CheckinSliderHints } from '@/lib/checkinHints';
@@ -13,28 +14,32 @@ import type { MorningCheckinFormData } from '@/lib/validations/checkin';
 export interface MorningFieldsProps {
   control: Control<MorningCheckinFormData>;
   hints?: CheckinSliderHints;
+  // Previous morning's sleep quality, for the ring on the track.
+  previousSleep?: number | null;
 }
 
-export function MorningFields({ control, hints }: MorningFieldsProps) {
+export function MorningFields({ control, hints, previousSleep }: MorningFieldsProps) {
   const { t } = useTranslation();
 
   return (
     <View className="gap-6">
-      <Controller
-        control={control}
-        name="sleep_quality"
-        render={({ field: { value, onChange } }) => (
-          <PainSlider
-            label={t('checkin.sleepQuality')}
-            value={value}
-            onChange={onChange}
-            minLabel={t('checkin.sleepBad')}
-            maxLabel={t('checkin.sleepGood')}
-            info={t('checkin.sleepQualityInfo')}
-            hint={hints?.sleep_quality}
-          />
-        )}
-      />
+      <View className="gap-3">
+        <SectionTitle title={t('checkin.sleepQuality')} info={t('checkin.sleepQualityInfo')} />
+        <Controller
+          control={control}
+          name="sleep_quality"
+          render={({ field: { value, onChange } }) => (
+            <ScaleSliderCard
+              preset="sleep"
+              value={value}
+              onChange={onChange}
+              previous={previousSleep}
+              hint={hints?.sleep_quality}
+              accessibilityLabel={t('checkin.sleepQuality')}
+            />
+          )}
+        />
+      </View>
 
       <Controller
         control={control}

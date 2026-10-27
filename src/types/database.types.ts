@@ -5,7 +5,9 @@ export type SleepPosition = 'back' | 'side' | 'stomach';
 export interface CheckinSymptoms {
   tingling?: boolean;
   numbness?: boolean;
+  weakness?: boolean;
   headache?: boolean;
+  dizziness?: boolean;
   radiating_to?: string;
   custom?: string[];
   pain_areas?: string[];
@@ -29,6 +31,8 @@ export interface Checkin {
   activity_level: number | null;
   screen_time_hours: number | null;
   did_exercises: boolean | null;
+  // supabase_checkin_redesign_migration.sql — "Kita fizinė veikla" chips.
+  exercise_types: string[];
   exercise_notes: string | null;
   exercise_hours: number | null;
   exercise_intensity: number | null;
@@ -62,6 +66,7 @@ export type CheckinInsert = Omit<
   | 'activity_level'
   | 'screen_time_hours'
   | 'did_exercises'
+  | 'exercise_types'
   | 'exercise_notes'
   | 'exercise_hours'
   | 'exercise_intensity'
@@ -81,6 +86,7 @@ export type CheckinInsert = Omit<
   activity_level?: number | null;
   screen_time_hours?: number | null;
   did_exercises?: boolean | null;
+  exercise_types?: string[];
   exercise_notes?: string | null;
   exercise_hours?: number | null;
   exercise_intensity?: number | null;
