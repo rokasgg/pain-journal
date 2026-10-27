@@ -26,6 +26,7 @@ function checkin(checkin_date: string, pain_level: number, overrides: Partial<Ch
     screen_time_hours: null,
     did_exercises: null,
     exercise_types: [],
+    sleep_positions: [],
     exercise_notes: null,
     exercise_hours: null,
     exercise_intensity: null,

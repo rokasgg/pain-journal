@@ -42,6 +42,19 @@ module.exports = {
   theme: {
     extend: {
       colors,
+      // Named type scale: [size, { lineHeight, fontWeight }]. Extends (doesn't
+      // replace) Tailwind's text-xs … text-4xl.
+      fontSize: {
+        hero: ['52px', { lineHeight: '56px', fontWeight: '700' }], // oak day counter, big stats
+        display: ['34px', { lineHeight: '40px', fontWeight: '700' }], // big numbers (Insights)
+        title: ['24px', { lineHeight: '30px', fontWeight: '700' }], // screen titles: "Kaip jaučiatės?"
+        nav: ['17px', { lineHeight: '22px', fontWeight: '600' }], // header title, primary button
+        heading: ['16px', { lineHeight: '22px', fontWeight: '600' }], // section titles: "Kur skauda?"
+        value: ['18px', { lineHeight: '22px', fontWeight: '600' }], // slider value "5 · noticeable"
+        body: ['16px', { lineHeight: '22px' }], // text, inputs, list rows
+        label: ['14px', { lineHeight: '18px' }], // chips, segmented, secondary buttons
+        caption: ['12px', { lineHeight: '16px' }], // hints, slider ends, "Last time", sources
+      },
     },
   },
   plugins: [],

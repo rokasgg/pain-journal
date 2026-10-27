@@ -15,6 +15,7 @@ export interface CheckinStepValues {
   sleep_quality?: number | null;
   sleep_hours?: number | null;
   sleep_position?: string | null;
+  sleep_positions?: string[];
   activity_level?: number | null;
   screen_time_hours?: number | null;
   did_exercises?: boolean | null;
@@ -34,7 +35,13 @@ export interface StepIssueInput {
 function hasAnyStep2Answer(type: CheckinType, values: CheckinStepValues): boolean {
   if (type === 'morning') {
     const hasNote = (values.notes ?? '').trim().length > 0;
-    return values.sleep_quality != null || values.sleep_hours != null || values.sleep_position != null || hasNote;
+    return (
+      values.sleep_quality != null ||
+      values.sleep_hours != null ||
+      values.sleep_position != null ||
+      (values.sleep_positions ?? []).length > 0 ||
+      hasNote
+    );
   }
   // Evening notes live on step 3 now (with the symptoms), so they no longer
   // count here.

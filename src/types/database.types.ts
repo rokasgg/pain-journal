@@ -27,6 +27,8 @@ export interface Checkin {
   sleep_hours: number | null;
   woke_up_with_pain: boolean | null;
   sleep_position: SleepPosition | null;
+  // supabase_checkin_redesign_migration.sql — several allowed.
+  sleep_positions: string[];
 
   activity_level: number | null;
   screen_time_hours: number | null;
@@ -63,6 +65,7 @@ export type CheckinInsert = Omit<
   | 'sleep_hours'
   | 'woke_up_with_pain'
   | 'sleep_position'
+  | 'sleep_positions'
   | 'activity_level'
   | 'screen_time_hours'
   | 'did_exercises'
@@ -83,6 +86,7 @@ export type CheckinInsert = Omit<
   sleep_hours?: number | null;
   woke_up_with_pain?: boolean | null;
   sleep_position?: string | null;
+  sleep_positions?: string[];
   activity_level?: number | null;
   screen_time_hours?: number | null;
   did_exercises?: boolean | null;

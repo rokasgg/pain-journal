@@ -176,7 +176,13 @@ export function CheckinDetailView({ checkin, showDate = true, onDeleted }: Check
           />
           <DetailRow
             label={t('detail.sleepPosition')}
-            value={checkin.sleep_position ? t(`sleepPosition.${checkin.sleep_position}`) : null}
+            value={
+              (checkin.sleep_positions ?? []).length > 0
+                ? (checkin.sleep_positions ?? []).map((position) => t(`sleepPosition.${position}`)).join(', ')
+                : checkin.sleep_position
+                  ? t(`sleepPosition.${checkin.sleep_position}`)
+                  : null
+            }
           />
         </Section>
       )}

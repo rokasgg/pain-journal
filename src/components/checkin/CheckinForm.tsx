@@ -26,6 +26,7 @@ import { YesNoField } from '@/components/checkin/YesNoField';
 import { SectionTitle } from '@/components/ui/SectionTitle';
 import { SYMPTOM_OPTIONS } from '@/constants/symptoms';
 import { useCheckinHistory } from '@/hooks/useCheckins';
+import { useHealthSleep } from '@/hooks/useHealthSleep';
 import { useProfile } from '@/hooks/useProfile';
 import { useStepHaptic } from '@/hooks/useStepHaptic';
 import { firstIncompleteStep, getStepIssue, type CheckinStepIssue } from '@/lib/checkinCompleteness';
@@ -37,6 +38,7 @@ import {
 } from '@/lib/checkinHints';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { headerLeftWithoutGlass, headerRightWithoutGlass } from '@/lib/navigation/headerItems';
+import { formatDuration, healthAsleepHours } from '@/lib/sleep';
 import { colors } from '@/lib/theme';
 import {
   eveningCheckinSchema,
@@ -104,6 +106,7 @@ export const morningDefaults: MorningCheckinFormData = {
   sleep_hours: null,
   woke_up_with_pain: null,
   sleep_position: null,
+  sleep_positions: [],
 };
 
 export const eveningDefaults: EveningCheckinFormData = {
@@ -213,6 +216,22 @@ export function CheckinForm({
       });
     }
   }
+  // Apple Health's sleep for last night (morning, new check-ins only — an
+  // edited entry keeps what was saved). It's shown on the sleep card, and
+  // counts as the answer if the user doesn't change it: see healthHours below.
+  const healthSleep = useHealthSleep();
+  const health = isMorning && !defaultValues ? healthSleep : null;
+  const healthHours = health ? healthAsleepHours(health) : null;
+  const previousSleepHours = previous?.checkin.sleep_hours ?? null;
+  const durationHint =
+    previous && previousSleepHours !== null
+      ? t(previous.isYesterday ? 'checkin.hintYesterday' : 'checkin.hintLastTime', {
+          value: formatDuration(Math.round(previousSleepHours * 60), {
+            hours: t('checkin.unitHours'),
+            minutes: t('checkin.unitMinutes'),
+          }),
+        })
+      : undefined;
   const totalSteps = isQuickMode ? 2 : TOTAL_STEPS;
   const [showMoreDetails, setShowMoreDetails] = useState(false);
 
@@ -244,7 +263,10 @@ export function CheckinForm({
   // message only shows after that attempt, and updates live as they answer.
   const [attemptedStep, setAttemptedStep] = useState<number | null>(null);
 
-  const completenessInput = { type, isQuickMode, values, inPain: inPainAnswer, noSymptomsConfirmed };
+  // Health's sleep stands in for an unanswered duration (and is saved below).
+  const effectiveValues: CheckinFormData =
+    healthHours !== null && (values as MorningCheckinFormData).sleep_hours == null ? ({ ...values, sleep_hours: healthHours } as CheckinFormData) : values;
+  const completenessInput = { type, isQuickMode, values: effectiveValues, inPain: inPainAnswer, noSymptomsConfirmed };
   const currentIssue = attemptedStep === step ? getStepIssue({ ...completenessInput, step }) : null;
   const issueMessage = currentIssue ? t(STEP_ISSUE_MESSAGES[currentIssue]) : undefined;
 
@@ -301,9 +323,13 @@ export function CheckinForm({
   };
 
   const handleSave = async (data: CheckinFormData) => {
+    const withHealth: CheckinFormData =
+      healthHours !== null && (data as MorningCheckinFormData).sleep_hours == null
+        ? ({ ...data, sleep_hours: healthHours } as CheckinFormData)
+        : data;
     const finalData: CheckinFormData = isInPain
-      ? data
-      : { ...data, pain_level: 0, triggers: [], symptoms: { ...data.symptoms, pain_areas: [] } };
+      ? withHealth
+      : { ...withHealth, pain_level: 0, triggers: [], symptoms: { ...withHealth.symptoms, pain_areas: [] } };
 
     setIsSubmitting(true);
     const result = await onSubmit(finalData);
@@ -327,9 +353,8 @@ export function CheckinForm({
     onSaved?.();
   };
 
-  // Evening gets the design's "Dienos registracija" title; morning keeps the
-  // route's default until it has its own mockups.
-  const titleOptions = isMorning ? {} : { title: t('checkin.eveningTitle') };
+  // "Rytinė registracija" / "Dienos registracija" in the header.
+  const titleOptions = { title: t(isMorning ? 'checkin.morningTitle' : 'checkin.eveningTitle') };
 
   if (flareUpCandidate && !flareUpStepDone) {
     return (
@@ -419,7 +444,7 @@ export function CheckinForm({
         keyboardDismissMode="interactive"
       >
         {step === 1 && header}
-        <Text className="text-[32px] font-bold text-ink dark:text-white">{stepTitle}</Text>
+        <Text className="text-2xl font-bold text-ink dark:text-white">{stepTitle}</Text>
 
         {step === 1 && (
           <>
@@ -514,6 +539,8 @@ export function CheckinForm({
                 control={control as Control<MorningCheckinFormData>}
                 hints={hints}
                 previousSleep={previousValues.sleep_quality ?? null}
+                durationHint={durationHint}
+                health={health}
               />
             ) : (
               <EveningFields

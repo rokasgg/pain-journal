@@ -31,6 +31,8 @@ describe('step 2 — at least one answer', () => {
     expect(issue({ step: 2 })).toBe('answerOneQuestion');
     expect(issue({ step: 2, values: { ...empty, sleep_hours: 0 } })).toBeNull();
     expect(issue({ step: 2, values: { ...empty, sleep_position: 'side' } })).toBeNull();
+    expect(issue({ step: 2, values: { ...empty, sleep_positions: ['side', 'back'] } })).toBeNull();
+    expect(issue({ step: 2, values: { ...empty, sleep_positions: [] } })).toBe('answerOneQuestion');
     expect(issue({ step: 2, values: { ...empty, notes: 'slept badly' } })).toBeNull();
     expect(issue({ step: 2, values: { ...empty, notes: '  ' } })).toBe('answerOneQuestion');
   });

@@ -25,6 +25,12 @@ function toFormData(checkin: Checkin): CheckinFormData {
       sleep_hours: checkin.sleep_hours,
       woke_up_with_pain: checkin.woke_up_with_pain,
       sleep_position: checkin.sleep_position,
+      // Rows from before sleep_positions only have the single position.
+      sleep_positions: checkin.sleep_positions?.length
+        ? checkin.sleep_positions
+        : checkin.sleep_position
+          ? [checkin.sleep_position]
+          : [],
     };
   }
 

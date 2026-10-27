@@ -27,6 +27,7 @@ export const morningCheckinSchema = sharedCheckinFields.extend({
   sleep_hours: z.number().min(0).max(24).nullable(),
   woke_up_with_pain: z.boolean().nullable(),
   sleep_position: z.enum(['back', 'side', 'stomach']).nullable(),
+  sleep_positions: z.array(z.string()),
 });
 
 export type MorningCheckinFormData = z.infer<typeof morningCheckinSchema>;
