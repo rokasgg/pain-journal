@@ -35,6 +35,8 @@ export interface VisitReportInput {
   checkins: Pick<Checkin, 'checkin_date' | 'type' | 'pain_level' | 'notes'>[];
   flareUps: Pick<FlareUp, 'occurred_at' | 'pain_level' | 'likely_cause' | 'description'>[];
   injuryDescription?: string | null;
+  // Chat answers the user added to the summary (usePhysioNotesStore).
+  chatNotes?: { question: string; text: string }[];
   locale: Locale;
   t: Translate;
 }
@@ -48,7 +50,7 @@ export function escapeHtml(text: string): string {
     .replace(/'/g, '&#39;');
 }
 
-export function buildVisitReportHtml({ period, checkins, flareUps, injuryDescription, locale, t }: VisitReportInput): string {
+export function buildVisitReportHtml({ period, checkins, flareUps, injuryDescription, chatNotes = [], locale, t }: VisitReportInput): string {
   const dfLocale = { locale: DATE_FNS_LOCALES[locale] };
   const inPeriod = checkins
     .filter((c) => c.checkin_date >= period.from && c.checkin_date <= period.to)
@@ -95,6 +97,10 @@ export function buildVisitReportHtml({ period, checkins, flareUps, injuryDescrip
           t(c.type === 'morning' ? 'home.morning' : 'home.evening'),
         )}:</b> ${escapeHtml(c.notes!.trim())}</li>`,
     )
+    .join('');
+
+  const chatNoteItems = chatNotes
+    .map((n) => `<li><b>${escapeHtml(n.question)}</b><br/>${escapeHtml(n.text)}</li>`)
     .join('');
 
   const periodText = `${dayLabel(period.from)} – ${dayLabel(period.to)}`;
@@ -150,6 +156,12 @@ export function buildVisitReportHtml({ period, checkins, flareUps, injuryDescrip
 
   <h2>${escapeHtml(t('visitReport.notesSection'))}</h2>
   ${notes ? `<ul>${notes}</ul>` : `<p class="muted">${escapeHtml(t('visitReport.noNotes'))}</p>`}
+
+  ${
+    chatNoteItems
+      ? `<h2>${escapeHtml(t('visitReport.assistantSection'))}</h2><ul>${chatNoteItems}</ul>`
+      : ''
+  }
 
   <p class="muted" style="margin-top: 32px;">${escapeHtml(t('visitReport.footer'))}</p>
 </body>

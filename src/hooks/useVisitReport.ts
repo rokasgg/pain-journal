@@ -6,6 +6,7 @@ import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
 import { useProfile } from '@/hooks/useProfile';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { usePhysioNotesStore } from '@/store/usePhysioNotesStore';
 import { buildVisitReportHtml, visitReportPeriod } from '@/lib/visitReport';
 import { toast } from '@/utils/toast';
 
@@ -19,6 +20,7 @@ export function useVisitReport() {
   const { flareUps } = useFlareUps(365);
   const { assessments } = usePhysioAssessments();
   const { profile } = useProfile();
+  const chatNotes = usePhysioNotesStore((s) => s.notes);
   const [isPreparing, setIsPreparing] = useState(false);
   const period = visitReportPeriod(assessments[0], todayLocalDate());
 
@@ -32,6 +34,7 @@ export function useVisitReport() {
         checkins,
         flareUps,
         injuryDescription: profile?.injury_description,
+        chatNotes,
         locale,
         t,
       });
@@ -45,6 +48,7 @@ export function useVisitReport() {
         UTI: 'com.adobe.pdf',
         dialogTitle: t('visitReport.title'),
       });
+      usePhysioNotesStore.getState().clear();
     } catch {
       toast.error(t('visitReport.failed'));
     } finally {

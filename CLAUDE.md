@@ -463,6 +463,14 @@ src/
   5. **ATASKAITOS (AI on): `ReportsList`.** It starts with "Sukurti naują dėsningumų analizę", which opens **`history/patterns?run=1`** and starts one run. Then come Pattern analysis and Summary for your physio, with full dates in the app language.
      - Physio visits moved into the Physio card. `history/patterns` was once a fully built screen **linked from nowhere**, so **never leave a built screen unreachable**; give every new report a row here.
 
+  **AI assistant** (`src/app/insights/chat.tsx`, design: `assets/possible-app-design/chat`; the Ask AI card and its chips open it):
+  - **Three states.** Empty: heading, a "Duomenys: paskutinės 30 d." chip (7/30/90 days, via `ActionSheet`) and four starter questions. Conversation: user bubbles, and assistant answers. Red flag: a safety card.
+  - **The `chat-about-data` edge function replies in a fixed JSON shape** (`output_config.format` json_schema, not forced `tool_choice`: Opus 5.5 and Fable 5.1 reject forced tool use). `kind: 'answer' | 'red_flag'`, plus `lead`, `body`, `comparison`, `caveat`, `follow_ups` and `red_flag_message`. The client validates it in `parseChatReply()` (`src/lib/chatReply.ts`, tested), and malformed replies show the generic error. It accepts `period_days` (7/30/90) and `stats`. **Redeploy it with `supabase functions deploy chat-about-data`.**
+  - **The comparison card's numbers are never written by the model.** `buildComparisons()` computes them on the phone from `insightFindings.ts` / `trainingInsights.ts` (which take a `days` argument), and the same numbers go to the model as `stats`. The model only picks which card fits (`comparison`), so text and bars always agree.
+  - **Red flag:** the prompt limits it to symptoms needing urgent assessment (new numbness or weakness, loss of coordination, bladder or bowel changes, chest pain, and so on). The card has "Skambinti 112" (`tel:112`) and "Užregistruoti kaip paūmėjimą" (`flare-up/new`), and no data analysis. **The app never diagnoses.**
+  - **"Pridėti prie suvestinės kineziterapeutui"** saves the answer into `usePhysioNotesStore` (persisted per device, no DB column). `buildVisitReportHtml` prints these under "DI asistento pastabos", and `useVisitReport` clears them after the PDF is shared.
+  - The old minimum-data gate was removed from the function, since a red flag needs no data. The model is told to say so when the period is thin.
+
   Other details:
   - `primary_goal: 'prepare_for_appointments'` moves Physio above Training.
   - `TrainingPayoffCard`, `ExerciseFocusCard`, `PhysioFocusCard` and `useExerciseMuscleFocus` were deleted with this redesign.

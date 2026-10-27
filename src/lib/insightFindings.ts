@@ -26,8 +26,10 @@ export interface FindingsWindow {
   to: string; // yyyy-MM-dd, inclusive (today)
 }
 
-export function findingsWindow(today: string): FindingsWindow {
-  return { from: format(subDays(parseISO(today), FINDINGS_WINDOW_DAYS - 1), 'yyyy-MM-dd'), to: today };
+// `days` defaults to the Insights card's week; the AI chat passes its own
+// period (7/30/90).
+export function findingsWindow(today: string, days = FINDINGS_WINDOW_DAYS): FindingsWindow {
+  return { from: format(subDays(parseISO(today), days - 1), 'yyyy-MM-dd'), to: today };
 }
 
 type InWindow = Pick<Checkin, 'checkin_date' | 'type' | 'pain_level' | 'sleep_quality' | 'sleep_hours'>;
@@ -54,8 +56,8 @@ export type MorningVsEvening =
     }
   | NotEnough;
 
-export function morningVsEvening(checkins: InWindow[], today: string): MorningVsEvening {
-  const recent = inWindow(checkins, findingsWindow(today));
+export function morningVsEvening(checkins: InWindow[], today: string, days = FINDINGS_WINDOW_DAYS): MorningVsEvening {
+  const recent = inWindow(checkins, findingsWindow(today, days));
   const mornings = recent.filter((c) => c.type === 'morning').map((c) => c.pain_level);
   const evenings = recent.filter((c) => c.type === 'evening').map((c) => c.pain_level);
   const needed = Math.max(0, MIN_PER_SLOT - mornings.length) + Math.max(0, MIN_PER_SLOT - evenings.length);
@@ -92,8 +94,8 @@ export type SleepVsMorningPain =
   | { status: 'oneSided'; entries: number }
   | NotEnough;
 
-export function sleepVsMorningPain(checkins: InWindow[], today: string): SleepVsMorningPain {
-  const mornings = inWindow(checkins, findingsWindow(today)).filter((c) => c.type === 'morning');
+export function sleepVsMorningPain(checkins: InWindow[], today: string, days = FINDINGS_WINDOW_DAYS): SleepVsMorningPain {
+  const mornings = inWindow(checkins, findingsWindow(today, days)).filter((c) => c.type === 'morning');
   const poor: number[] = [];
   const good: number[] = [];
   for (const morning of mornings) {
