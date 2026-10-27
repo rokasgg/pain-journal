@@ -17,8 +17,8 @@ import {
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScaleSliderCard } from '@/components/checkin/ScaleSliderCard';
 import { ChoiceChips, PillChip } from '@/components/flareup/ChoiceChips';
-import { FlareSeveritySlider } from '@/components/flareup/FlareSeveritySlider';
 import { SettingsTextArea } from '@/components/settings/SettingsTextArea';
 import {
   FLARE_AREA_LABEL_KEYS,
@@ -75,8 +75,8 @@ function SectionTitle({ title, optional, right }: { title: string; optional?: bo
   return (
     <View className="flex-row items-baseline justify-between">
       <View className="flex-row items-baseline gap-2">
-        <Text className="text-md font-bold text-ink dark:text-white">{title}</Text>
-        {optional && <Text className="text-md text-inkSecondary dark:text-gray">{t('flareUp.optional')}</Text>}
+        <Text className="text-heading text-ink dark:text-white">{title}</Text>
+        {optional && <Text className="text-caption text-inkSecondary dark:text-gray">{t('flareUp.optional')}</Text>}
       </View>
       {right}
     </View>
@@ -189,14 +189,14 @@ export function FlareUpForm({ defaultValues, submitLabel, onSubmit, onSaved }: F
     >
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-8 px-5 pb-8 pt-4"
+        contentContainerClassName="gap-5 px-5 pb-8 pt-4"
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
       >
         <View className="gap-3">
           <SectionTitle
             title={t('flareUp.occurredAt')}
-            right={<Text className="text-[14px] text-inkSecondary dark:text-gray">{occurredLabel}</Text>}
+            right={<Text className="text-caption text-inkSecondary dark:text-gray">{occurredLabel}</Text>}
           />
           <View className="flex-row flex-wrap gap-2.5">
             {FLARE_TIME_PRESETS.map((preset) => (
@@ -216,14 +216,13 @@ export function FlareUpForm({ defaultValues, submitLabel, onSubmit, onSaved }: F
           </View>
         </View>
 
-        <View className="gap-3">
-          <SectionTitle title={t('flareUp.severityQuestion')} />
-          <Controller
-            control={control}
-            name="pain_level"
-            render={({ field: { value, onChange } }) => <FlareSeveritySlider value={value} onChange={onChange} />}
-          />
-        </View>
+        <Controller
+          control={control}
+          name="pain_level"
+          render={({ field: { value, onChange } }) => (
+            <ScaleSliderCard preset="pain" title={t('flareUp.severityQuestion')} value={value} onChange={onChange} />
+          )}
+        />
 
         <View className="gap-3">
           <SectionTitle title={t('flareUp.stillOngoingQuestion')} />
@@ -252,7 +251,7 @@ export function FlareUpForm({ defaultValues, submitLabel, onSubmit, onSaved }: F
                         style={{ opacity: isActive ? 1 : 0 }}
                       />
                       <Text
-                        className="text-[14px] text-ink dark:text-white"
+                        className="text-label text-ink dark:text-white"
                         style={{ fontWeight: isActive ? '700' : '400', opacity: isActive ? 1 : 0.7 }}
                       >
                         {t(option.labelKey)}
@@ -264,7 +263,7 @@ export function FlareUpForm({ defaultValues, submitLabel, onSubmit, onSaved }: F
             )}
           />
           {status === 'ongoing' && (
-            <Text className="px-1 text-[15px] text-inkSecondary dark:text-gray">{t('flareUp.ongoingHint')}</Text>
+            <Text className="px-1 text-caption text-inkSecondary dark:text-gray">{t('flareUp.ongoingHint')}</Text>
           )}
         </View>
 
@@ -295,7 +294,7 @@ export function FlareUpForm({ defaultValues, submitLabel, onSubmit, onSaved }: F
             >
               <View className="flex-row gap-3">
                 <Ionicons name="warning-outline" size={22} color="#B42318" />
-                <Text className="flex-1 text-[16px] leading-6 text-ink dark:text-white">
+                <Text className="flex-1 text-body text-ink dark:text-white">
                   {t('flareUp.urgentWarning')}
                 </Text>
               </View>
@@ -305,7 +304,7 @@ export function FlareUpForm({ defaultValues, submitLabel, onSubmit, onSaved }: F
                 hitSlop={8}
                 className="self-start pl-9"
               >
-                <Text className="text-[16px] font-bold text-red-700 dark:text-red-400">{t('flareUp.call112')}</Text>
+                <Text className="text-label font-bold text-red-700 dark:text-red-400">{t('flareUp.call112')}</Text>
               </Pressable>
             </View>
           )}
@@ -360,7 +359,7 @@ export function FlareUpForm({ defaultValues, submitLabel, onSubmit, onSaved }: F
           {isSubmitting ? (
             <ActivityIndicator color={colors.white} />
           ) : (
-            <Text className="text-lg font-bold text-white">{submitLabel}</Text>
+            <Text className="text-nav text-white">{submitLabel}</Text>
           )}
         </Pressable>
       </View>

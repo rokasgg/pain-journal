@@ -29,11 +29,11 @@ export const SettingsTextArea = forwardRef<TextInput, SettingsTextAreaProps>(fun
         value={value}
         placeholderTextColor={colors.gray}
         inputAccessoryViewID={KEYBOARD_DONE_BAR_ID}
-        className="min-h-28 py-0 text-base text-black dark:text-white"
+        className="min-h-28 py-0 text-body text-black dark:text-white"
         {...props}
       />
       {maxLength !== undefined && (
-        <Text className="self-end text-sm text-gray">
+        <Text className="self-end text-caption text-gray">
           {(value ?? '').length} / {maxLength}
         </Text>
       )}

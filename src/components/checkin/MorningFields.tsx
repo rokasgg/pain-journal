@@ -43,24 +43,22 @@ export function MorningFields({ control, hints, previousSleep, durationHint, hea
   };
 
   return (
-    <View className="gap-8">
-      <View className="gap-3">
-        <SectionTitle title={t('checkin.sleepQuality')} info={t('checkin.sleepQualityInfo')} />
-        <Controller
-          control={control}
-          name="sleep_quality"
-          render={({ field: { value, onChange } }) => (
-            <ScaleSliderCard
-              preset="sleep"
-              value={value}
-              onChange={onChange}
-              previous={previousSleep}
-              hint={hints?.sleep_quality}
-              accessibilityLabel={t('checkin.sleepQuality')}
-            />
-          )}
-        />
-      </View>
+    <View className="gap-5">
+      <Controller
+        control={control}
+        name="sleep_quality"
+        render={({ field: { value, onChange } }) => (
+          <ScaleSliderCard
+            preset="sleep"
+            title={t('checkin.sleepQuality')}
+            info={t('checkin.sleepQualityInfo')}
+            value={value}
+            onChange={onChange}
+            previous={previousSleep}
+            hint={hints?.sleep_quality}
+          />
+        )}
+      />
 
       <View className="gap-3">
         <SectionTitle title={t('checkin.howLongSlept')} info={t('checkin.sleepHoursInfo')} />

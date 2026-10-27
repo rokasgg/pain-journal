@@ -51,24 +51,22 @@ export function EveningFields({ control, hints, previousActivity }: EveningField
   };
 
   return (
-    <View className="gap-8">
-      <View className="gap-3">
-        <SectionTitle title={t('checkin.howMuchMoved')} info={t('checkin.activityLevelInfo')} />
-        <Controller
-          control={control}
-          name="activity_level"
-          render={({ field: { value, onChange } }) => (
-            <ScaleSliderCard
-              preset="activity"
-              value={value}
-              onChange={onChange}
-              previous={previousActivity}
-              hint={hints?.activity_level}
-              accessibilityLabel={t('checkin.howMuchMoved')}
-            />
-          )}
-        />
-      </View>
+    <View className="gap-5">
+      <Controller
+        control={control}
+        name="activity_level"
+        render={({ field: { value, onChange } }) => (
+          <ScaleSliderCard
+            preset="activity"
+            title={t('checkin.howMuchMoved')}
+            info={t('checkin.activityLevelInfo')}
+            value={value}
+            onChange={onChange}
+            previous={previousActivity}
+            hint={hints?.activity_level}
+          />
+        )}
+      />
 
       <View className="gap-3">
         <SectionTitle title={t('checkin.otherActivity')} optional info={t('checkin.didExercisesInfo')} />

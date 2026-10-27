@@ -23,7 +23,6 @@ import { RoutineTrainingStep } from '@/components/checkin/RoutineTrainingStep';
 import { ScaleSliderCard } from '@/components/checkin/ScaleSliderCard';
 import { StepSegments } from '@/components/checkin/StepSegments';
 import { YesNoField } from '@/components/checkin/YesNoField';
-import { SectionTitle } from '@/components/ui/SectionTitle';
 import { SYMPTOM_OPTIONS } from '@/constants/symptoms';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useHealthSleep } from '@/hooks/useHealthSleep';
@@ -360,7 +359,6 @@ export function CheckinForm({
     return (
       <View className="flex-1 bg-background dark:bg-backgroundDark">
         <Stack.Screen options={titleOptions} />
-        <StepSegments step={0} totalSteps={totalSteps} />
         <FlareUpFollowUpStep flareUp={flareUpCandidate} onDone={() => setFlareUpStepDone(true)} />
       </View>
     );
@@ -439,7 +437,7 @@ export function CheckinForm({
 
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-8 px-5 pb-8 pt-5"
+        contentContainerClassName="gap-5 px-5 pb-8 pt-5"
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
       >
@@ -473,19 +471,20 @@ export function CheckinForm({
             )}
 
             {isInPain && (
-              <View className="-mt-4 gap-3">
+              <View className="gap-2">
                 <Controller
                   control={control}
                   name="pain_level"
                   render={({ field: { value, onChange } }) => (
                     <ScaleSliderCard
                       preset="pain"
+                      title={t('checkin.painLevel')}
+                      info={t('checkin.painLevelInfo')}
                       // 0 is "not set yet" here: "Yes, in pain" needs a level of 1+.
                       value={value >= 1 ? value : null}
                       onChange={onChange}
                       previous={previousValues.pain_level}
                       hint={hints.pain_level}
-                      accessibilityLabel={t('checkin.painLevel')}
                     />
                   )}
                 />
@@ -493,41 +492,37 @@ export function CheckinForm({
               </View>
             )}
 
-            <View className="gap-3">
-              <SectionTitle title={t('checkin.stiffness')} info={t('checkin.stiffnessInfo')} />
-              <Controller
-                control={control}
-                name="stiffness_level"
-                render={({ field: { value, onChange } }) => (
-                  <ScaleSliderCard
-                    preset="stiffness"
-                    value={value}
-                    onChange={onChange}
-                    previous={previousValues.stiffness_level}
-                    hint={hints.stiffness_level}
-                    accessibilityLabel={t('checkin.stiffness')}
-                  />
-                )}
-              />
-            </View>
+            <Controller
+              control={control}
+              name="stiffness_level"
+              render={({ field: { value, onChange } }) => (
+                <ScaleSliderCard
+                  preset="stiffness"
+                  title={t('checkin.stiffness')}
+                  info={t('checkin.stiffnessInfo')}
+                  value={value}
+                  onChange={onChange}
+                  previous={previousValues.stiffness_level}
+                  hint={hints.stiffness_level}
+                />
+              )}
+            />
 
-            <View className="gap-3">
-              <SectionTitle title={t('checkin.rangeOfMotion')} info={t('checkin.rangeOfMotionInfo')} />
-              <Controller
-                control={control}
-                name="range_of_motion"
-                render={({ field: { value, onChange } }) => (
-                  <ScaleSliderCard
-                    preset="rangeOfMotion"
-                    value={value}
-                    onChange={onChange}
-                    previous={previousValues.range_of_motion}
-                    hint={hints.range_of_motion}
-                    accessibilityLabel={t('checkin.rangeOfMotion')}
-                  />
-                )}
-              />
-            </View>
+            <Controller
+              control={control}
+              name="range_of_motion"
+              render={({ field: { value, onChange } }) => (
+                <ScaleSliderCard
+                  preset="rangeOfMotion"
+                  title={t('checkin.rangeOfMotion')}
+                  info={t('checkin.rangeOfMotionInfo')}
+                  value={value}
+                  onChange={onChange}
+                  previous={previousValues.range_of_motion}
+                  hint={hints.range_of_motion}
+                />
+              )}
+            />
           </>
         )}
 

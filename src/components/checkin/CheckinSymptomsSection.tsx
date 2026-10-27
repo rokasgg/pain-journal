@@ -79,7 +79,7 @@ export function CheckinSymptomsSection({
   ];
 
   return (
-    <View className="gap-8">
+    <View className="gap-5">
       <View className="gap-3">
         <SectionTitle title={t('checkin.hadSymptoms')} info={t('checkin.symptomsInfo')} />
         {errorMessage && <Text className="text-sm text-red-600 dark:text-red-500">{errorMessage}</Text>}

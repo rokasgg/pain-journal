@@ -54,7 +54,7 @@ export function PillChip({ label, selected, onPress, showCheck = false, icon }: 
     >
       {showCheck && selected && <Ionicons name="checkmark" size={16} color={colors.white} />}
       {icon && <Ionicons name={icon} size={16} color={selected ? colors.white : selectedFill} />}
-      <Text className="text-sm font-semibold" style={{ color: textColor }}>
+      <Text className="text-label font-semibold" style={{ color: textColor }}>
         {label}
       </Text>
     </Pressable>
@@ -113,7 +113,7 @@ export function ChoiceChips({ options, value, onChange, allowCustom = false, cus
             style={{ borderColor: selectedFill, backgroundColor: idleFill, opacity: 0.9 }}
           >
             <Ionicons name="add" size={16} color={selectedFill} />
-            <Text className="text-sm font-semibold" style={{ color: selectedFill }}>
+            <Text className="text-label font-semibold" style={{ color: selectedFill }}>
               {t('flareUp.addOther')}
             </Text>
           </Pressable>
@@ -130,14 +130,14 @@ export function ChoiceChips({ options, value, onChange, allowCustom = false, cus
             placeholder={customPlaceholder}
             placeholderTextColor={colors.gray}
             returnKeyType="done"
-            className="flex-1 rounded-xl border border-borderLight bg-surface px-4 py-2.5 text-base text-ink dark:border-borderDark dark:bg-surfaceDark dark:text-white"
+            className="flex-1 rounded-xl border border-borderLight bg-surface px-4 py-2.5 text-body text-ink dark:border-borderDark dark:bg-surfaceDark dark:text-white"
           />
           <Pressable
             onPress={addCustom}
             accessibilityRole="button"
             className="rounded-xl bg-accent px-4 py-2.5 dark:bg-primaryDark"
           >
-            <Text className="text-[15px] font-semibold text-white">{t('common.add')}</Text>
+            <Text className="text-label font-semibold text-white">{t('common.add')}</Text>
           </Pressable>
           <Pressable
             onPress={() => {
