@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -16,8 +17,12 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { toast } from '@/utils/toast';
 
+// `?q=…` (from the Insights card's example chips) sends that question as
+// the first message.
 export default function ChatScreen() {
   const { t } = useTranslation();
+  const { q } = useLocalSearchParams<{ q?: string }>();
+  const sentInitialRef = useRef(false);
   const chatMutation = useChatAboutData();
   const scrollRef = useRef<ScrollView>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -49,6 +54,13 @@ export default function ChatScreen() {
     setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
     requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
   };
+
+  useEffect(() => {
+    if (!q || sentInitialRef.current) return;
+    sentInitialRef.current = true;
+    void sendMessage(q);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on open
+  }, [q]);
 
   return (
     <KeyboardAvoidingView

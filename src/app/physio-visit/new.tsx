@@ -1,4 +1,4 @@
-import { useNavigation, useRouter } from 'expo-router';
+import { useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,8 +18,11 @@ import type { PhysioQuestionFormData } from '@/lib/validations/physioAssessment'
 import { useLocaleStore } from '@/store/useLocaleStore';
 import { toast } from '@/utils/toast';
 
+// `?date=yyyy-MM-dd` (from Insights' "Did your visit on … happen? → Yes")
+// pre-fills the visit date.
 export default function NewPhysioVisitWizard() {
   const router = useRouter();
+  const { date: initialDate } = useLocalSearchParams<{ date?: string }>();
   const navigation = useNavigation();
   const { t } = useTranslation();
   const locale = useLocaleStore((s) => s.locale);
@@ -29,7 +32,7 @@ export default function NewPhysioVisitWizard() {
   const [preVisitDismissed, setPreVisitDismissed] = useState(false);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   useStepHaptic(step);
-  const [visitDate, setVisitDate] = useState(todayLocalDate());
+  const [visitDate, setVisitDate] = useState(() => initialDate ?? todayLocalDate());
   const [physioName, setPhysioName] = useState<string | null>(null);
   const [overallNotes, setOverallNotes] = useState<string | null>(null);
   const [nextVisitDate, setNextVisitDate] = useState<string | null>(null);

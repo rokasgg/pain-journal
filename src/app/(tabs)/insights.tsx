@@ -1,70 +1,96 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
-import { AskAiCta } from '@/components/insights/AskAiCta';
-import { ExerciseFocusCard } from '@/components/insights/ExerciseFocusCard';
-import { PhysioFocusCard } from '@/components/insights/PhysioFocusCard';
+import { AskAiCard } from '@/components/insights/AskAiCard';
+import { WeekFindings } from '@/components/insights/FindingCard';
+import { InsightsTrainingCard } from '@/components/insights/InsightsTrainingCard';
+import { PhysioCard } from '@/components/insights/PhysioCard';
 import { ReportsList } from '@/components/insights/ReportsList';
-import { TrainingPayoffCard } from '@/components/insights/TrainingPayoffCard';
 import { useJourney } from '@/hooks/useJourney';
 import { useProfile } from '@/hooks/useProfile';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 
+function Section({ title, children }: { title?: string; children: ReactNode }) {
+  return (
+    <View className="gap-3">
+      {title && (
+        <Text className="px-1 text-[13px] font-semibold uppercase tracking-wide text-inkSecondary dark:text-gray">
+          {title}
+        </Text>
+      )}
+      {children}
+    </View>
+  );
+}
+
+// Insights (design: assets/possible-app-design/insight). Top to bottom:
+// this week's findings (always), Ask AI (AI on), Training (training on),
+// Physio (training on or seeing a professional), Reports (AI on).
+// "Prepare for appointments" from onboarding moves Physio above Training.
 export default function InsightsScreen() {
   const { t } = useTranslation();
   const { profile } = useProfile();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
 
-  // AI features are opt-in via onboarding (defaultable to true from
-  // Settings' "AI insights" toggle for existing profiles).
   const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
   const { trainingEnabled } = useJourney();
-
-  // Onboarding's "primary goal" answer decides whether the physio-focus
-  // summary leads the tab — "prepare for appointments" cares most about it.
-  // Everything else keeps the standard order.
-  const physioFocusFirst = profile?.primary_goal === 'prepare_for_appointments';
+  const showPhysio = trainingEnabled || profile?.care_status === 'with_professional';
+  const physioFirst = profile?.primary_goal === 'prepare_for_appointments';
 
   const handleRefresh = async () => {
     setRefreshing(true);
     await queryClient.refetchQueries({
       predicate: (query) =>
-        ['profile', 'checkins', 'flareUps', 'physioAssessments'].includes(query.queryKey[0] as string),
+        ['profile', 'checkins', 'flareUps', 'physioAssessments', 'exerciseLogs', 'routines'].includes(
+          query.queryKey[0] as string,
+        ),
     });
     setRefreshing(false);
   };
+
+  const training = trainingEnabled && (
+    <Section key="training" title={t('insights.sectionTraining')}>
+      <InsightsTrainingCard />
+    </Section>
+  );
+  const physio = showPhysio && (
+    <Section key="physio" title={t('insights.sectionPhysio')}>
+      <PhysioCard />
+    </Section>
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top']}>
       <ScrollView
         className="flex-1"
-        contentContainerClassName="gap-6 px-6 py-8"
+        contentContainerClassName="gap-7 px-6 py-8"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       >
-        <View>
-          <Text className="text-2xl font-bold text-black dark:text-white">{t('insights.title')}</Text>
-          <Text className="text-sm text-gray-500 dark:text-gray">{t('insights.subtitle')}</Text>
+        <View className="gap-1 px-1">
+          <Text className="text-4xl font-bold text-black dark:text-white">{t('insights.title')}</Text>
+          <Text className="text-[15px] text-inkSecondary dark:text-gray">{t('insights.subtitle')}</Text>
         </View>
 
-        <View className="gap-3">
-          {trainingEnabled && (
-            <>
-              <TodaysRoutineCard />
-              <TrainingPayoffCard />
-              <ExerciseFocusCard />
-            </>
-          )}
-          {physioFocusFirst && aiInsightsEnabled && <PhysioFocusCard />}
-          {aiInsightsEnabled && <AskAiCta />}
-          {!physioFocusFirst && aiInsightsEnabled && <PhysioFocusCard />}
-          {/* <TopTriggers /> */}
-        </View>
+        <Section title={t('insights.sectionWeek')}>
+          <WeekFindings />
+        </Section>
 
-        <ReportsList />
+        {aiInsightsEnabled && (
+          <Section>
+            <AskAiCard />
+          </Section>
+        )}
+
+        {physioFirst ? [physio, training] : [training, physio]}
+
+        {aiInsightsEnabled && (
+          <Section title={t('insights.reportsTitle')}>
+            <ReportsList />
+          </Section>
+        )}
       </ScrollView>
     </SafeAreaView>
   );

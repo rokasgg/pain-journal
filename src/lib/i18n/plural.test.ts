@@ -1,4 +1,4 @@
-import { formatDayCount } from './plural';
+import { formatCount, formatDayCount } from './plural';
 
 describe('formatDayCount', () => {
   it('handles English singular/plural', () => {
@@ -21,5 +21,22 @@ describe('formatDayCount', () => {
     expect(formatDayCount(1, 'lt', 'accusative')).toBe('1 dieną');
     expect(formatDayCount(2, 'lt', 'accusative')).toBe('2 dienas');
     expect(formatDayCount(15, 'lt', 'accusative')).toBe('15 dienų');
+  });
+});
+
+describe('formatCount', () => {
+  it('Lithuanian forms', () => {
+    expect(formatCount(1, 'visit', 'lt')).toBe('1 vizitas');
+    expect(formatCount(7, 'visit', 'lt')).toBe('7 vizitai');
+    expect(formatCount(11, 'visit', 'lt')).toBe('11 vizitų');
+    expect(formatCount(6, 'exercise', 'lt')).toBe('6 pratimai');
+    expect(formatCount(9, 'entry', 'lt')).toBe('9 įrašais');
+    expect(formatCount(6, 'morning', 'lt')).toBe('6 rytais');
+    expect(formatCount(21, 'routine', 'lt')).toBe('21 treniruotė');
+  });
+
+  it('English forms', () => {
+    expect(formatCount(1, 'visit', 'en')).toBe('1 visit');
+    expect(formatCount(7, 'entry', 'en')).toBe('7 entries');
   });
 });

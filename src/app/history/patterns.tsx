@@ -1,3 +1,5 @@
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { useAnalyzePatterns } from '@/hooks/useAnalyzePatterns';
@@ -16,6 +18,19 @@ export default function PatternsModal() {
     const result = await mutateAsync();
     if (result.error) toast.error(result.error);
   };
+
+  // `?run=1` (Insights → "Create a new pattern analysis") starts a run on
+  // open. It's still an explicit tap, just one screen earlier — runs bill the
+  // model, so nothing else ever triggers one.
+  const { run } = useLocalSearchParams<{ run?: string }>();
+  const startedRef = useRef(false);
+  const aiAllowed = profile?.ai_insights_enabled ?? true;
+  useEffect(() => {
+    if (run !== '1' || startedRef.current || isProfileLoading || !aiAllowed) return;
+    startedRef.current = true;
+    void handleRun();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once, on open
+  }, [run, isProfileLoading, aiAllowed]);
 
   const analysis = profile?.last_pattern_analysis ?? null;
   const analyzedAt = profile?.last_pattern_analysis_at ?? null;

@@ -27,3 +27,34 @@ export function formatDayCount(count: number, locale: Locale, grammaticalCase: D
   if (locale === 'lt') return `${count} ${ltForm(count, LT_DAY_FORMS[grammaticalCase])}`;
   return `${count} ${count === 1 ? 'day' : 'days'}`;
 }
+
+// Other counted nouns shown in Lithuanian copy: "7 vizitai", "6 pratimai".
+export type CountNoun = 'visit' | 'exercise' | 'routine' | 'entry' | 'entryGen' | 'morning' | 'workoutGen';
+
+const LT_NOUN_FORMS: Record<CountNoun, LtForms> = {
+  visit: ['vizitas', 'vizitai', 'vizitų'],
+  exercise: ['pratimas', 'pratimai', 'pratimų'],
+  routine: ['treniruotė', 'treniruotės', 'treniruočių'],
+  // Instrumental, for "Remiasi 9 įrašais" / "Remiasi 6 rytais".
+  entry: ['įrašu', 'įrašais', 'įrašų'],
+  morning: ['rytu', 'rytais', 'rytų'],
+  // Genitive, after "po dar …" / "dar … treniruočių".
+  entryGen: ['įrašo', 'įrašų', 'įrašų'],
+  workoutGen: ['treniruotės', 'treniruočių', 'treniruočių'],
+};
+
+const EN_NOUN_FORMS: Record<CountNoun, [one: string, other: string]> = {
+  visit: ['visit', 'visits'],
+  exercise: ['exercise', 'exercises'],
+  routine: ['routine', 'routines'],
+  entry: ['entry', 'entries'],
+  morning: ['morning', 'mornings'],
+  entryGen: ['entry', 'entries'],
+  workoutGen: ['workout', 'workouts'],
+};
+
+export function formatCount(count: number, noun: CountNoun, locale: Locale): string {
+  if (locale === 'lt') return `${count} ${ltForm(count, LT_NOUN_FORMS[noun])}`;
+  const [one, other] = EN_NOUN_FORMS[noun];
+  return `${count} ${count === 1 ? one : other}`;
+}

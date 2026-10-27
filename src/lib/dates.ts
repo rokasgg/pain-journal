@@ -57,8 +57,40 @@ const DAY_LABEL_PATTERNS: Record<Locale, string> = {
   lt: "MMMM d 'd.'",
 };
 
-export function formatDayLabel(date: Date, locale: Locale): string {
-  return capitalize(format(date, DAY_LABEL_PATTERNS[locale], { locale: DATE_FNS_LOCALES[locale] }));
+export function formatDayLabel(date: Date, locale: Locale, capitalized = true): string {
+  const text = format(date, DAY_LABEL_PATTERNS[locale], { locale: DATE_FNS_LOCALES[locale] });
+  return capitalized ? capitalize(text) : text;
+}
+
+// Compact day: "13 Oct" / "spal. 13 d."
+const SHORT_DAY_LABEL_PATTERNS: Record<Locale, string> = {
+  en: 'd MMM',
+  lt: "MMM d 'd.'",
+};
+
+export function formatShortDayLabel(date: Date, locale: Locale): string {
+  return format(date, SHORT_DAY_LABEL_PATTERNS[locale], { locale: DATE_FNS_LOCALES[locale] });
+}
+
+// Inclusive day range: "21–27 October" / "spalio 21–27 d.", or across a
+// month boundary "28 October – 3 November" / "spalio 28 d. – lapkričio 3 d.".
+export function formatDateRange(from: Date, to: Date, locale: Locale): string {
+  const options = { locale: DATE_FNS_LOCALES[locale] };
+  const sameMonth = format(from, 'yyyy-MM') === format(to, 'yyyy-MM');
+  if (locale === 'lt') {
+    return sameMonth
+      ? `${format(from, 'MMMM', options)} ${format(from, 'd')}–${format(to, 'd')} d.`
+      : `${format(from, "MMMM d 'd.'", options)} – ${format(to, "MMMM d 'd.'", options)}`;
+  }
+  return sameMonth
+    ? `${format(from, 'd')}–${format(to, 'd MMMM', options)}`
+    : `${format(from, 'd MMMM', options)} – ${format(to, 'd MMMM', options)}`;
+}
+
+// One decimal with the locale's separator: "1.5" / "1,5".
+export function formatOneDecimal(value: number, locale: Locale): string {
+  const text = value.toFixed(1);
+  return locale === 'lt' ? text.replace('.', ',') : text;
 }
 
 export function formatCheckinDate(dateStr: string): string {

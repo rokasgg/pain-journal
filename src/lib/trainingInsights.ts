@@ -9,7 +9,7 @@ import type { Checkin, ExerciseLog, Routine } from '@/types/database.types';
 //    unfinished current week can't reset a weeks-in-a-row run;
 //  * the payoff is shown as plain arithmetic over logged data, no AI.
 
-const MIN_RELIEF_SESSIONS = 3;
+export const MIN_RELIEF_SESSIONS = 3;
 const MIN_DAYS_PER_SIDE = 3;
 const MIN_EXERCISE_ENTRIES = 4;
 const MIN_EXERCISE_DROP = 1;
