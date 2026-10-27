@@ -349,7 +349,7 @@ src/
   - Edits don't send these fields, so an edit keeps the flag.
   - Late entries count as normal logged days (oak, unlocks). The existing `['checkins', …]` invalidation refreshes the calendar, the Home week card and the oak.
   - The window is client-side only; there's no DB constraint.
-- **Tab bar:** History uses `calendar-outline`. While active, it gets a `historyTabTint` (#E0EAE2) pill behind the icon (`TabButton`'s `activeTint`). The other tabs don't have one.
+- **Tab bar:** History uses the filled `calendar` icon and changes colour like the other tabs. It had a `historyTabTint` pill and an outline icon, which made it look different from the rest; both were removed.
 
 ## Stack headers (`src/app/_layout.tsx`)
 - **Headers blend into the page.** The root `<Stack>`'s `screenOptions` sets defaults for *every* screen:

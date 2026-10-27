@@ -28,7 +28,6 @@ export const colors = {
   segmentTrackDark: '#1C2620',
   ink: '#1C2420',
   inkSecondary: '#5B6660',
-  historyTabTint: '#E0EAE2',
   // Insights: overdue-visit banner.
   creamTint: '#FBF3E4',
   creamTintDark: '#2A2417',
