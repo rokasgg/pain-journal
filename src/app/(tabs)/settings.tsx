@@ -241,6 +241,7 @@ export default function SettingsScreen() {
         title={t('settings.deleteAccountConfirmTitle')}
         message={t('settings.deleteAccountConfirmMessage')}
         confirmLabel={t('settings.deleteAccountConfirm')}
+        confirmPhrase="DELETE"
         variant="destructive"
         onConfirm={handleConfirmDelete}
         onCancel={() => setIsDeleteModalVisible(false)}

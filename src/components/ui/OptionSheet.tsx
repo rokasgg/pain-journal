@@ -1,4 +1,5 @@
-import { Modal, Pressable, Text, View } from 'react-native';
+import type { ReactNode } from 'react';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, View } from 'react-native';
 import Animated, { SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,12 +9,16 @@ export interface SheetOption {
   label: string;
   onPress: () => void;
   tone?: OptionTone;
+  disabled?: boolean;
 }
 
 export interface OptionSheetProps {
   visible: boolean;
   title?: string;
   message?: string;
+  // Extra header content under the message (e.g. ConfirmModal's typed
+  // confirmation field).
+  children?: ReactNode;
   options: SheetOption[];
   // The separate bottom card. Omit `onCancel` to drop it (e.g. informative
   // dialogs whose single option is already the close action).
@@ -41,17 +46,19 @@ export function OptionSheet({
   visible,
   title,
   message,
+  children,
   options,
   cancelLabel,
   onCancel,
   onDismiss,
 }: OptionSheetProps) {
   const insets = useSafeAreaInsets();
-  const hasHeader = !!title || !!message;
+  const hasHeader = !!title || !!message || !!children;
 
   return (
     <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onDismiss}>
-      <View className="flex-1 justify-end">
+      {/* Keeps the sheet above the keyboard when it holds an input. */}
+      <KeyboardAvoidingView className="flex-1 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <Pressable className="absolute inset-0 bg-black/40" onPress={onDismiss} accessible={false} />
 
         <Animated.View
@@ -66,13 +73,19 @@ export function OptionSheet({
                   <Text className="text-center text-sm font-semibold text-strongGray dark:text-white">{title}</Text>
                 )}
                 {message && <Text className="text-center text-sm text-gray">{message}</Text>}
+                {children}
               </View>
             )}
             {options.map((option, index) => (
               <Pressable
                 key={option.label}
                 onPress={option.onPress}
+                disabled={option.disabled}
                 accessibilityRole="button"
+                accessibilityState={{ disabled: !!option.disabled }}
+                // Disabled is shown through style, not className, so toggling
+                // it never swaps classes on a mounted row (NativeWind upgrade).
+                style={{ opacity: option.disabled ? 0.35 : 1 }}
                 className={`items-center py-4 active:bg-borderLight dark:active:bg-borderDark ${
                   hasHeader || index > 0 ? 'border-t border-borderLight dark:border-borderDark' : ''
                 }`}
@@ -92,7 +105,7 @@ export function OptionSheet({
             </Pressable>
           )}
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

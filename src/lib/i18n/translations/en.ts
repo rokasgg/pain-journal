@@ -1,5 +1,6 @@
 export const en = {
   common: {
+    typeToConfirm: 'Type {{phrase}} to confirm',
     close: 'Close',
     cancel: 'Cancel',
     save: 'Save',

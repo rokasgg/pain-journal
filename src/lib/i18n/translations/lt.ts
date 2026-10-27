@@ -2,6 +2,7 @@ import type { en } from './en';
 
 export const lt: typeof en = {
   common: {
+    typeToConfirm: 'Norėdami patvirtinti, įveskite {{phrase}}',
     close: 'Uždaryti',
     cancel: 'Atšaukti',
     save: 'Išsaugoti',
