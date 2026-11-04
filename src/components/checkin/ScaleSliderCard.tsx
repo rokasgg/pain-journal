@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Text, View, type LayoutChangeEvent } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
 import { InfoButton } from '@/components/ui/InfoButton';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -10,9 +11,11 @@ import { haptics } from '@/utils/haptics';
 // row (the question on the left, the readout "5 · noticeable" on the right with
 // "Last time: 6" under it) and a card holding the gradient track with the two
 // end labels underneath, at the edges. Custom (not the native Slider) because the design needs the
-// ring-bordered thumb and the gradient. A transparent child-less overlay is the
-// touch responder, so `locationX` is relative to the whole track instead of
-// whichever child was touched.
+// ring-bordered thumb and the gradient. Touch is handled by react-native-gesture-handler
+// (not RN's JS responder): a pan that activates on horizontal movement and fails on
+// vertical movement, so dragging the slider never scrolls the form or drags a modal
+// sheet, while a mostly-vertical swipe over it still scrolls as usual. A separate tap
+// gesture handles a plain press. `x` is relative to the strip the detector wraps.
 
 export type ScalePreset = 'pain' | 'stiffness' | 'rangeOfMotion' | 'activity' | 'sleep';
 
@@ -105,6 +108,34 @@ export interface ScaleSliderCardProps {
   hint?: string;
 }
 
+// Pan = drag (activates on horizontal movement, fails on vertical so scrolling and
+// sheet-dismiss still work); Tap = a plain press. The latest handler is read through
+// a ref inside the callbacks, so the gesture objects stay stable across renders.
+function createSliderGesture(handlerRef: { current: (x: number) => void }) {
+  const pan = Gesture.Pan()
+    .runOnJS(true)
+    .activeOffsetX([-6, 6])
+    .failOffsetY([-12, 12])
+    .onUpdate((event) => handlerRef.current(event.x));
+  const tap = Gesture.Tap()
+    .runOnJS(true)
+    .maxDistance(10)
+    .onEnd((event, success) => {
+      if (success) handlerRef.current(event.x);
+    });
+  return Gesture.Race(pan, tap);
+}
+
+function useSliderGesture(onX: (x: number) => void) {
+  const handlerRef = useRef(onX);
+  useEffect(() => {
+    handlerRef.current = onX;
+  });
+  // The ref is only read inside the gesture callbacks (touch events), never during render.
+  // eslint-disable-next-line react-hooks/refs
+  return useMemo(() => createSliderGesture(handlerRef), []);
+}
+
 export function ScaleSliderCard({ preset, title, info, value, onChange, previous = null, hint }: ScaleSliderCardProps) {
   const { t } = useTranslation();
   const config = PRESETS[preset];
@@ -138,6 +169,8 @@ export function ScaleSliderCard({ preset, title, info, value, onChange, previous
     commit(Math.round(MIN + fraction * (MAX - MIN)));
   };
 
+  const gesture = useSliderGesture(setFromX);
+
   const step = (delta: number) => commit(Math.min(MAX, Math.max(MIN, (value ?? MIN - delta) + delta)));
 
   return (
@@ -162,52 +195,55 @@ export function ScaleSliderCard({ preset, title, info, value, onChange, previous
       </View>
 
       <View className="gap-1.5 rounded-2xl bg-surface px-3 py-2.5 dark:bg-surfaceDark">
-        <View
-          onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}
-          accessible
-          accessibilityRole="adjustable"
-          accessibilityLabel={title}
-          accessibilityValue={
-            isUnset ? { min: MIN, max: MAX, text: t('common.notAnswered') } : { min: MIN, max: MAX, now: shown, text: `${shown}, ${word}` }
-          }
-          accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
-          onAccessibilityAction={(event) => step(event.nativeEvent.actionName === 'increment' ? 1 : -1)}
-          // 44pt tall: the whole strip is the touch target, the track itself is 12pt.
-          style={{ height: 44, justifyContent: 'center' }}
-        >
-          <View className="mx-4 h-3 flex-row overflow-hidden rounded-full">
-            {config.track.map((segmentColor, index) => (
-              <View key={index} className="flex-1" style={{ backgroundColor: segmentColor, opacity: isUnset ? 0.55 : 1 }} />
-            ))}
-          </View>
-          {previousLevel !== null && width > 0 && (
-            // Position is a runtime value NativeWind can't express.
+        <GestureDetector gesture={gesture}>
+          <View
+            onLayout={(event: LayoutChangeEvent) => setWidth(event.nativeEvent.layout.width)}
+            accessible
+            accessibilityRole="adjustable"
+            accessibilityLabel={title}
+            accessibilityValue={
+              isUnset
+                ? { min: MIN, max: MAX, text: t('common.notAnswered') }
+                : { min: MIN, max: MAX, now: shown, text: `${shown}, ${word}` }
+            }
+            accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+            onAccessibilityAction={(event) => step(event.nativeEvent.actionName === 'increment' ? 1 : -1)}
+            // 44pt tall: the whole strip is the touch target, the track itself is 12pt.
+            style={{ height: 44, justifyContent: 'center' }}
+          >
+            <View className="mx-4 h-3 flex-row overflow-hidden rounded-full">
+              {config.track.map((segmentColor, index) => (
+                <View
+                  key={index}
+                  className="flex-1"
+                  style={{
+                    backgroundColor: segmentColor,
+                    opacity: isUnset ? 0.55 : 1,
+                  }}
+                />
+              ))}
+            </View>
+            {previousLevel !== null && width > 0 && (
+              // Position is a runtime value NativeWind can't express.
+              <View
+                pointerEvents="none"
+                className="absolute h-2 w-2 rounded-full border-2 border-inkSecondary bg-surface dark:bg-surfaceDark"
+                style={{ left: centerFor(previousLevel) - 4 }}
+              />
+            )}
             <View
               pointerEvents="none"
-              className="absolute h-2 w-2 rounded-full border-2 border-inkSecondary bg-surface dark:bg-surfaceDark"
-              style={{ left: centerFor(previousLevel) - 4 }}
+              className="absolute rounded-full border-[3px] bg-white"
+              style={{
+                width: THUMB,
+                height: THUMB,
+                left: width > 0 ? centerFor(shown) - R : 0,
+                borderColor: color,
+                opacity: width > 0 ? 1 : 0,
+              }}
             />
-          )}
-          <View
-            pointerEvents="none"
-            className="absolute rounded-full border-[3px] bg-white"
-            style={{
-              width: THUMB,
-              height: THUMB,
-              left: width > 0 ? centerFor(shown) - R : 0,
-              borderColor: color,
-              opacity: width > 0 ? 1 : 0,
-            }}
-          />
-          <View
-            className="absolute inset-0"
-            onStartShouldSetResponder={() => true}
-            onMoveShouldSetResponder={() => true}
-            onResponderTerminationRequest={() => false}
-            onResponderGrant={(event) => setFromX(event.nativeEvent.locationX)}
-            onResponderMove={(event) => setFromX(event.nativeEvent.locationX)}
-          />
-        </View>
+          </View>
+        </GestureDetector>
 
         <View className="flex-row justify-between">
           <Text className="text-caption text-inkSecondary dark:text-gray">{t(`${config.namespace}.min`)}</Text>
