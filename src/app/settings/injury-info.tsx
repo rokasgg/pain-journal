@@ -12,6 +12,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import type { Profile, ProfileUpdate } from '@/types/database.types';
 import { toast } from '@/utils/toast';
+import { useKeepFocusedInputVisible } from '@/hooks/useKeepFocusedInputVisible';
 
 const DESCRIPTION_MAX_LENGTH = 500;
 // Save the description this long after typing stops (and on blur / leaving).
@@ -146,10 +147,12 @@ function InjuryInfoForm({ profile }: { profile: Profile | null }) {
 // Settings → Injury info (design from assets/possible-app-design/injury).
 // Pushed page like the other settings sub-pages (src/app/settings/).
 export default function InjuryInfoScreen() {
+  const keepFocusedVisible = useKeepFocusedInputVisible();
   const { profile, isLoading } = useProfile();
 
   return (
     <ScrollView
+      {...keepFocusedVisible}
       className="flex-1 bg-background dark:bg-backgroundDark"
       contentContainerClassName="px-5 pb-12 pt-4"
       keyboardShouldPersistTaps="handled"

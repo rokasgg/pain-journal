@@ -37,6 +37,7 @@ import { colors } from '@/lib/theme';
 import { flareUpSchema, type FlareUpFormData } from '@/lib/validations/flareUp';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
+import { useKeepFocusedInputVisible } from '@/hooks/useKeepFocusedInputVisible';
 
 export interface FlareUpFormProps {
   defaultValues?: FlareUpFormData;
@@ -88,6 +89,7 @@ function SectionTitle({ title, optional, right }: { title: string; optional?: bo
 // other symptoms (+ a warning for hand numbness/weakness), possible triggers,
 // notes, and a pinned save button.
 export function FlareUpForm({ defaultValues, submitLabel, onSubmit, onSaved }: FlareUpFormProps) {
+  const keepFocusedVisible = useKeepFocusedInputVisible();
   const { t, locale } = useTranslation();
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
@@ -188,6 +190,7 @@ export function FlareUpForm({ defaultValues, submitLabel, onSubmit, onSaved }: F
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
       <ScrollView
+        {...keepFocusedVisible}
         className="flex-1"
         contentContainerClassName="gap-5 px-5 pb-8 pt-4"
         keyboardShouldPersistTaps="handled"

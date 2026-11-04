@@ -50,6 +50,7 @@ import {
 import type { CheckinSymptoms, CheckinType, FlareUp } from '@/types/database.types';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
+import { useKeepFocusedInputVisible } from '@/hooks/useKeepFocusedInputVisible';
 
 export type CheckinFormData = MorningCheckinFormData | EveningCheckinFormData;
 
@@ -185,6 +186,7 @@ export function CheckinForm({
   flareUpCandidate,
   hasRoutinesInRotation,
 }: CheckinFormProps) {
+  const keepFocusedVisible = useKeepFocusedInputVisible();
   const { t } = useTranslation();
   const router = useRouter();
   const { profile } = useProfile();
@@ -468,6 +470,7 @@ export function CheckinForm({
       <StepSegments step={step} totalSteps={totalSteps} />
 
       <ScrollView
+        {...keepFocusedVisible}
         className="flex-1"
         contentContainerClassName="gap-5 px-5 pb-8 pt-5"
         keyboardShouldPersistTaps="handled"

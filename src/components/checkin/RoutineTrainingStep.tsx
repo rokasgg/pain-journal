@@ -19,6 +19,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { trainingSavedToastKey } from '@/lib/trainingInsights';
 import { toast } from '@/utils/toast';
+import { useKeepFocusedInputVisible } from '@/hooks/useKeepFocusedInputVisible';
 
 export interface RoutineTrainingStepProps {
   onDone: () => void;
@@ -47,6 +48,7 @@ export interface RoutineTrainingStepProps {
 // Continue just advances with no exercise_logs write — same skip-allowed
 // spirit as FlareUpFollowUpStep.
 export function RoutineTrainingStep({ onDone }: RoutineTrainingStepProps) {
+  const keepFocusedVisible = useKeepFocusedInputVisible();
   const { t } = useTranslation();
   const { routines } = useRoutinesInRotation();
   const routineIds = routines.map((r) => r.id);
@@ -135,7 +137,14 @@ export function RoutineTrainingStep({ onDone }: RoutineTrainingStepProps) {
 
   return (
     <View className="flex-1">
-      <ScrollView className="flex-1" contentContainerClassName="gap-4 px-6 py-6">
+      <ScrollView
+        {...keepFocusedVisible}
+        className="flex-1"
+        contentContainerClassName="gap-4 px-6 py-6"
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
+      >
         {log ? (
           // Already logged today (via routine/complete/[id].tsx or this same
           // step earlier) — offer to append a short follow-up note instead of

@@ -12,6 +12,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { trainingSavedToastKey } from '@/lib/trainingInsights';
 import { toast } from '@/utils/toast';
+import { useKeepFocusedInputVisible } from '@/hooks/useKeepFocusedInputVisible';
 
 // Trains one specific routine — reached from that routine's own
 // routine/[id].tsx detail screen's "Start training" button, which only
@@ -19,6 +20,7 @@ import { toast } from '@/utils/toast';
 // trained this way, not just a single "active" one (see
 // useRoutinesInRotation in useRoutines.ts).
 export default function CompleteRoutineScreen() {
+  const keepFocusedVisible = useKeepFocusedInputVisible();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
@@ -80,6 +82,7 @@ export default function CompleteRoutineScreen() {
   return (
     <View className="flex-1 bg-background dark:bg-backgroundDark">
       <ScrollView
+        {...keepFocusedVisible}
         className="flex-1"
         contentContainerClassName="gap-6 px-6 py-6"
         keyboardShouldPersistTaps="handled"
