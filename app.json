@@ -57,6 +57,13 @@
           "NSHealthUpdateUsageDescription": false,
           "background": false
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Pain Journal uses your photos to set your profile picture and to read exercise sheets from your physio.",
+          "cameraPermission": "Pain Journal uses the camera to photograph exercise sheets from your physio. Photos aren't saved."
+        }
       ]
     ],
     "experiments": {

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { StepDots } from '@/components/checkin/StepDots';
+import { RoutinePhotosPicker } from '@/components/routine/RoutinePhotosPicker';
 import { WizardFooter } from '@/components/physioVisitWizard/WizardFooter';
 import { Input } from '@/components/ui/Input';
 import { useGenerateRoutine, type GenerateRoutineInput } from '@/hooks/useGenerateRoutine';
@@ -16,9 +17,16 @@ import { colors } from '@/lib/theme';
 import { headerRightWithoutGlass } from '@/lib/navigation/headerItems';
 import { usePendingRoutineDraftStore } from '@/store/usePendingRoutineDraftStore';
 import type { Routine } from '@/types/database.types';
+import type { RoutinePhoto } from '@/utils/image';
 import { toast } from '@/utils/toast';
 
-type Source = 'physio_visit' | 'manual_input';
+type Source = 'physio_visit' | 'manual_input' | 'photos';
+
+const SOURCE_LABEL_KEYS: Record<Source, string> = {
+  manual_input: 'routine.sourceManual',
+  physio_visit: 'routine.sourcePhysioVisit',
+  photos: 'routine.sourcePhotos',
+};
 
 const TOTAL_STEPS = 2;
 
@@ -35,6 +43,8 @@ export default function NewRoutineScreen() {
   const [source, setSource] = useState<Source>('manual_input');
   const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
+  // Exercise-sheet photos: kept only in this screen's state, sent once.
+  const [photos, setPhotos] = useState<RoutinePhoto[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // With exactly one routine in rotation, carry forward from it directly
@@ -69,7 +79,11 @@ export default function NewRoutineScreen() {
   };
 
   const canGenerate =
-    source === 'physio_visit' ? !!selectedVisitId : inputText.trim().length > 0;
+    source === 'physio_visit'
+      ? !!selectedVisitId
+      : source === 'photos'
+        ? photos.length > 0
+        : inputText.trim().length > 0;
 
   const handleGenerate = async () => {
     const carryForwardExercises = (currentRoutine?.exercises ?? []).filter((exercise) =>
@@ -79,7 +93,9 @@ export default function NewRoutineScreen() {
     const input: GenerateRoutineInput =
       source === 'physio_visit'
         ? { source: 'physio_visit', physio_visit_id: selectedVisitId! }
-        : { source: 'manual_input', input_text: inputText.trim() };
+        : source === 'photos'
+          ? { source: 'images', images: photos.map((photo) => photo.base64) }
+          : { source: 'manual_input', input_text: inputText.trim() };
 
     setIsGenerating(true);
     const { draft, error } = await generateRoutine.mutateAsync({
@@ -193,19 +209,19 @@ export default function NewRoutineScreen() {
             <View className="gap-2">
               <Text className="text-sm font-medium text-strongGray dark:text-white">{t('routine.sourceLabel')}</Text>
               <View className="flex-row gap-2">
-                {(['manual_input', 'physio_visit'] as const).map((option) => {
+                {(['manual_input', 'physio_visit', 'photos'] as const).map((option) => {
                   const isActive = source === option;
                   return (
                     <Pressable
                       key={option}
                       onPress={() => setSource(option)}
-                      className={`flex-1 items-center rounded-lg py-2.5 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
+                      className={`flex-1 items-center justify-center rounded-lg px-1 py-2.5 ${isActive ? 'bg-primary dark:bg-primaryDark' : 'bg-primaryMuted dark:bg-primaryMutedDark'
                         }`}
                     >
                       <Text
-                        className={`text-sm font-medium ${isActive ? 'text-white' : 'text-strongGray dark:text-white'}`}
+                        className={`text-center text-sm font-medium ${isActive ? 'text-white' : 'text-strongGray dark:text-white'}`}
                       >
-                        {t(option === 'manual_input' ? 'routine.sourceManual' : 'routine.sourcePhysioVisit')}
+                        {t(SOURCE_LABEL_KEYS[option])}
                       </Text>
                     </Pressable>
                   );
@@ -213,7 +229,9 @@ export default function NewRoutineScreen() {
               </View>
             </View>
 
-            {source === 'manual_input' ? (
+            {source === 'photos' ? (
+              <RoutinePhotosPicker photos={photos} onChange={setPhotos} />
+            ) : source === 'manual_input' ? (
               <Input
                 label={t('routine.manualInputLabel')}
                 placeholder={t('routine.manualInputPlaceholder')}

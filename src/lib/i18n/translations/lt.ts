@@ -794,6 +794,8 @@ export const lt: typeof en = {
   },
   image: {
     permissionRequired: 'Būtinas leidimas naudotis nuotraukų biblioteka.',
+    cameraPermissionRequired: 'Būtinas leidimas naudotis kamera.',
+    processFailed: 'Nepavyko paruošti nuotraukos. Bandykite dar kartą.',
   },
   datePicker: {
     selectDate: 'Pasirinkite datą',
@@ -893,6 +895,14 @@ export const lt: typeof en = {
     sourceLabel: 'Šaltinis',
     sourceManual: 'Aprašyti',
     sourcePhysioVisit: 'Iš fizioterapijos vizito',
+    sourcePhotos: 'Nuotraukos',
+    photosHint: 'Kineziterapeuto pratimų lapas ar užrašai. Nuotraukos naudojamos tik pratimams perskaityti ir neišsaugomos.',
+    takePhoto: 'Fotografuoti',
+    choosePhotos: 'Pasirinkti iš galerijos',
+    photosCount: '{{count}} iš {{max}} nuotraukų',
+    removePhoto: 'Pašalinti nuotrauką',
+    photoLabel: 'Nuotrauka {{number}}',
+    noExercisesFound: 'Šiose nuotraukose pratimų nerasta. Pabandykite aiškesnę nuotrauką arba aprašykite pratimus tekstu.',
     manualInputLabel: 'Ką rekomendavo jūsų fizioterapeutas?',
     manualInputPlaceholder: 'pvz. "Kinezas liepė daryti cat-cow ir stoti prie sienos"',
     manualInputInfo: 'Aprašyk savais žodžiais — DI pavers tai struktūrizuota treniruote.',

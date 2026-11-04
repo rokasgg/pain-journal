@@ -1,3 +1,5 @@
 {
-  "NSHealthShareUsageDescription": "Pain Journal skaito jūsų miegą, žingsnius ir treniruotes, kad užpildytų registracijas ir palygintų aktyvumą su skausmu. Į Sveikatą nieko nerašo."
+  "NSHealthShareUsageDescription": "Pain Journal skaito jūsų miegą, žingsnius ir treniruotes, kad užpildytų registracijas ir palygintų aktyvumą su skausmu. Į Sveikatą nieko nerašo.",
+  "NSPhotoLibraryUsageDescription": "Pain Journal naudoja jūsų nuotraukas profilio nuotraukai nustatyti ir kineziterapeuto pratimų lapams perskaityti.",
+  "NSCameraUsageDescription": "Pain Journal naudoja kamerą kineziterapeuto pratimų lapams fotografuoti. Nuotraukos neišsaugomos."
 }

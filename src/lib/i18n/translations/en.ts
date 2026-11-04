@@ -788,6 +788,8 @@ export const en = {
   },
   image: {
     permissionRequired: 'Photo library permission is required.',
+    cameraPermissionRequired: 'Camera permission is required.',
+    processFailed: "Couldn't prepare the photo. Please try again.",
   },
   datePicker: {
     selectDate: 'Select a date',
@@ -886,6 +888,14 @@ export const en = {
     sourceLabel: 'Source',
     sourceManual: 'Describe it',
     sourcePhysioVisit: 'From a physio visit',
+    sourcePhotos: 'Photos',
+    photosHint: "Exercise sheet or notes from your physio. Photos are only used to read the exercises and aren't saved.",
+    takePhoto: 'Take photo',
+    choosePhotos: 'Choose from gallery',
+    photosCount: '{{count}} of {{max}} photos',
+    removePhoto: 'Remove photo',
+    photoLabel: 'Photo {{number}}',
+    noExercisesFound: "Couldn't find exercises in these photos. Try a clearer photo, or describe them in text.",
     manualInputLabel: 'What did your physio recommend?',
     manualInputPlaceholder: 'e.g. "Physio said to do cat-cow stretches and wall stands"',
     manualInputInfo: 'Describe it in your own words — AI will turn it into a structured routine.',

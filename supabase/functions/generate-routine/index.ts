@@ -42,6 +42,21 @@ const LANGUAGE_NAMES: Record<string, string> = {
   lt: "Lithuanian",
 };
 
+// source 'images' (routine/new.tsx → "Photos"): the physio's exercise sheet
+// or handwritten notes. The app resizes each photo to ≈200–400 KB; the cap
+// only rejects anything wildly bigger. Photos are sent to Claude once and are
+// never stored or logged.
+const MAX_IMAGES = 4;
+const MAX_IMAGE_BASE64_LENGTH = 4_000_000;
+
+// A sheet must be transcribed, not padded out — so this overrides guideline 4
+// ("if vague, generate conservative exercises") for photos.
+const IMAGE_INSTRUCTIONS = `The attached photos show an exercise sheet, printout or handwritten notes from the patient's physiotherapist. For photos this OVERRIDES guideline 4:
+- Include ONLY the exercises actually written or drawn in the photos, in the order shown. Never add exercises that aren't there.
+- Copy sets, reps and durations exactly as written. If an exercise has none, use a short "as prescribed" phrase in the response language.
+- Fill "instructions" and "caution_notes" from what the sheet says; if it says nothing, write a short, safe, generic cue.
+- If the photos are unreadable or don't show any exercises, return exactly {"error":"no_exercises_found"} and nothing else.`;
+
 const REQUIRED_EXERCISE_FIELDS = [
   "id",
   "name",
@@ -135,9 +150,9 @@ Deno.serve(async (req: Request) => {
   const locale = typeof body?.locale === "string" && LANGUAGE_NAMES[body.locale] ? body.locale : "en";
 
   const source = body?.source;
-  if (source !== "physio_visit" && source !== "manual_input") {
+  if (source !== "physio_visit" && source !== "manual_input" && source !== "images") {
     return new Response(
-      JSON.stringify({ error: "source must be 'physio_visit' or 'manual_input'." }),
+      JSON.stringify({ error: "source must be 'physio_visit', 'manual_input' or 'images'." }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
@@ -154,8 +169,9 @@ Deno.serve(async (req: Request) => {
 
   const diagnosisOrBodyArea = profile?.injury_description?.trim() || "Not specified";
 
-  let physioNotesOrRawInput: string;
-  let muscleStatesJson: string;
+  let physioNotesOrRawInput = "";
+  let muscleStatesJson = "N/A";
+  let images: string[] = [];
   let physioVisitId: string | null = null;
 
   if (source === "physio_visit") {
@@ -183,7 +199,7 @@ Deno.serve(async (req: Request) => {
 
     physioNotesOrRawInput = assessment.overall_notes?.trim() || "No notes recorded for this visit.";
     muscleStatesJson = JSON.stringify(assessment.muscle_findings ?? []);
-  } else {
+  } else if (source === "manual_input") {
     const inputText = typeof body?.input_text === "string" ? body.input_text.trim() : "";
     if (!inputText) {
       return new Response(JSON.stringify({ error: "input_text is required for source 'manual_input'." }), {
@@ -193,7 +209,18 @@ Deno.serve(async (req: Request) => {
     }
 
     physioNotesOrRawInput = inputText;
-    muscleStatesJson = "N/A";
+  } else {
+    images = Array.isArray(body?.images) ? body.images : [];
+    const valid =
+      images.length >= 1 &&
+      images.length <= MAX_IMAGES &&
+      images.every((image) => typeof image === "string" && image.length > 0 && image.length <= MAX_IMAGE_BASE64_LENGTH);
+    if (!valid) {
+      return new Response(
+        JSON.stringify({ error: `images must be 1–${MAX_IMAGES} base64 JPEG photos.` }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
   }
 
   // Client-supplied exercises to keep from the user's previous routine —
@@ -206,10 +233,29 @@ Deno.serve(async (req: Request) => {
     ? body.carry_forward_exercises.filter(isValidExercise)
     : [];
 
-  const userMessage = `INPUT DATA:
+  const userMessage =
+    source === "images"
+      ? `INPUT DATA:
+- Patient Diagnosis / Main Issue: ${diagnosisOrBodyArea}
+- Physio Visit Notes & Recommendations: see the attached photos.
+
+${IMAGE_INSTRUCTIONS}`
+      : `INPUT DATA:
 - Patient Diagnosis / Main Issue: ${diagnosisOrBodyArea}
 - Physio Visit Notes & Recommendations: ${physioNotesOrRawInput}
 - Muscle States Recorded (if available): ${muscleStatesJson}`;
+
+  // Photos first, then the text, as Claude reads images best that way.
+  const content =
+    source === "images"
+      ? [
+          ...images.map((data) => ({
+            type: "image" as const,
+            source: { type: "base64" as const, media_type: "image/jpeg" as const, data },
+          })),
+          { type: "text" as const, text: userMessage },
+        ]
+      : userMessage;
 
   const anthropic = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY")! });
 
@@ -220,10 +266,11 @@ Deno.serve(async (req: Request) => {
     // Lithuanian) routinely ran past that and got cut off mid-JSON, which is
     // exactly what caused "Failed to parse the generated routine": the
     // response wasn't malformed, it was truncated.
-    max_tokens: 3000,
+    // A photographed sheet can list many exercises, so photos get more room.
+    max_tokens: source === "images" ? 4000 : 3000,
     output_config: { effort: "low" },
     system: `${SYSTEM_PROMPT}\n\nRespond in ${LANGUAGE_NAMES[locale]}.`,
-    messages: [{ role: "user", content: userMessage }],
+    messages: [{ role: "user", content }],
   });
 
   if (response.stop_reason === "refusal") {
@@ -263,6 +310,15 @@ Deno.serve(async (req: Request) => {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
+  }
+
+  // Photos that don't show any exercises: a normal answer, not a failure —
+  // the client shows its own translated message (error_code).
+  if (source === "images" && parsed?.error === "no_exercises_found") {
+    return new Response(
+      JSON.stringify({ error_code: "no_exercises_found", error: "No exercises were found in the photos." }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 
   // Validate shape before writing anything — never insert a routine row
