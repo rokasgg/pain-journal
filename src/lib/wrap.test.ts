@@ -30,6 +30,8 @@ function checkin(checkin_date: string, pain_level: number, overrides: Partial<Ch
     exercise_notes: null,
     exercise_hours: null,
     exercise_intensity: null,
+    steps: null,
+    health_workouts: [],
     symptoms: {},
     triggers: [],
     notes: null,

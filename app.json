@@ -49,7 +49,15 @@
       "expo-notifications",
       "expo-sharing",
       "expo-image",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Pain Journal reads your sleep, steps and workouts to fill in your check-ins and compare activity with your pain. It never writes to Health.",
+          "NSHealthUpdateUsageDescription": false,
+          "background": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
@@ -60,6 +68,9 @@
       "eas": {
         "projectId": "a333e4af-ce93-4a28-ac20-5b13c713192d"
       }
+    },
+    "locales": {
+      "lt": "./locales/lt.json"
     }
   }
 }

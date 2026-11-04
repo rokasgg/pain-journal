@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import { Image } from 'expo-image';
 import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { Linking, Pressable, ScrollView, Switch, Text, View, useColorScheme } from 'react-native';
+import { Linking, Platform, Pressable, ScrollView, Switch, Text, View, useColorScheme } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SettingsRow } from '@/components/settings/SettingsRow';
@@ -14,10 +14,12 @@ import { FEEDBACK_EMAIL } from '@/constants/app';
 import { useJourney } from '@/hooks/useJourney';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
+import { requestHealthAccess } from '@/lib/health/healthkit';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useHapticsStore } from '@/store/useHapticsStore';
+import { useHealthStore } from '@/store/useHealthStore';
 import { useLocaleStore, type Locale } from '@/store/useLocaleStore';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
@@ -40,6 +42,8 @@ export default function SettingsScreen() {
   const isDark = useColorScheme() === 'dark';
   const hapticsEnabled = useHapticsStore((s) => s.enabled);
   const setHapticsEnabled = useHapticsStore((s) => s.setEnabled);
+  const healthEnabled = useHealthStore((s) => s.enabled);
+  const setHealthEnabled = useHealthStore((s) => s.setEnabled);
   const locale = useLocaleStore((s) => s.locale);
   const updateProfileMutation = useUpdateProfile();
   const resetPassword = useAuthStore((state) => state.resetPassword);
@@ -74,6 +78,21 @@ export default function SettingsScreen() {
     haptics.tick();
     const { error } = await updateProfileMutation.mutateAsync({ ai_insights_enabled: value });
     if (error) toast.error(error);
+  };
+
+  // Turning it on shows Apple's permission sheet. Off just stops reading; the
+  // permission itself can only be revoked in the Health app.
+  const handleToggleHealth = async (value: boolean) => {
+    haptics.tick();
+    if (!value) {
+      setHealthEnabled(false);
+      return;
+    }
+    if (!(await requestHealthAccess())) {
+      toast.error(t('settings.appleHealthUnavailable'));
+      return;
+    }
+    setHealthEnabled(true);
   };
 
   const handleChangePassword = async () => {
@@ -183,6 +202,14 @@ export default function SettingsScreen() {
         </SettingsSection>
 
         <SettingsSection title={t('settings.sectionPrivacy')}>
+          {Platform.OS === 'ios' && (
+            <SettingsRow
+              icon="heart-outline"
+              title={t('settings.appleHealth')}
+              subtitle={t('settings.appleHealthInfo')}
+              accessory={<Switch value={healthEnabled} onValueChange={handleToggleHealth} {...switchColors} />}
+            />
+          )}
           <SettingsRow
             icon="sparkles-outline"
             title={t('settings.aiInsights')}

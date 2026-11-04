@@ -1,13 +1,22 @@
+import { useQuery } from '@tanstack/react-query';
+
+import { todayLocalDate } from '@/lib/dates';
+import { readLastNightSleep } from '@/lib/health/healthkit';
 import type { HealthSleep } from '@/lib/sleep';
+import { useHealthStore } from '@/store/useHealthStore';
 
 // Last night's sleep from Apple Health, for the morning check-in's "Kiek
-// miegojote?" card (design: "Rytas – miegas (Apple Sveikata)").
-//
-// Not wired to HealthKit yet: it needs a native module (+ config plugin,
-// HealthKit entitlement, NSHealthShareUsageDescription and a dev/EAS build),
-// so for now this returns null and the card shows the plain −/+ stepper. When
-// the integration lands, return the sample here — the card, the form's
-// prefill and the "Pataisyti" flow already handle it.
+// miegojote?" card (design: "Rytas – miegas (Apple Sveikata)"). null when
+// Health isn't connected (Settings → Apple Health), unavailable (Android, old
+// builds) or has nothing for last night: the card then shows the −/+ stepper.
 export function useHealthSleep(): HealthSleep | null {
-  return null;
+  const enabled = useHealthStore((s) => s.enabled);
+  const today = todayLocalDate();
+  const { data } = useQuery({
+    queryKey: ['health', 'sleep', today],
+    queryFn: () => readLastNightSleep(new Date()),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  });
+  return enabled ? (data ?? null) : null;
 }

@@ -62,6 +62,7 @@ describe('buildComparisons', () => {
     pain_level: pain,
     sleep_quality: quality,
     sleep_hours: null,
+    steps: null,
   });
 
   it('builds the sleep comparison over the chosen period only', () => {
@@ -95,5 +96,33 @@ describe('buildComparisons', () => {
       mornings: 4,
     });
     expect(comparisonsForModel(cards).training_vs_rest).toBeUndefined();
+    // No Apple Health steps → no activity comparison.
+    expect(cards.activity_vs_next_morning_pain).toBeUndefined();
+  });
+
+  it('adds the activity comparison when evenings have Apple Health steps', () => {
+    const evening = (date: string, steps: number) => ({
+      checkin_date: date,
+      type: 'evening' as const,
+      pain_level: 3,
+      sleep_quality: null,
+      sleep_hours: null,
+      steps,
+    });
+    const checkins = [
+      evening('2026-10-15', 2000), morning('2026-10-16', 6, 5),
+      evening('2026-10-16', 3000), morning('2026-10-17', 6, 5),
+      evening('2026-10-17', 4000), morning('2026-10-18', 6, 5),
+      evening('2026-10-18', 9000), morning('2026-10-19', 3, 5),
+      evening('2026-10-19', 9500), morning('2026-10-20', 3, 5),
+      evening('2026-10-20', 12000), morning('2026-10-21', 3, 5),
+    ];
+    const cards = buildComparisons(checkins, [], TODAY, 30);
+    expect(cards.activity_vs_next_morning_pain?.rows.map((r) => r.value)).toEqual([6, 3]);
+    expect(comparisonsForModel(cards).activity_vs_next_morning_pain).toEqual({
+      next_morning_pain_after_quieter_days: 6,
+      next_morning_pain_after_more_active_days: 3,
+      days: 6,
+    });
   });
 });

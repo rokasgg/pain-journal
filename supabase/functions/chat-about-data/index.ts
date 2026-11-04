@@ -22,7 +22,7 @@ Reply by filling the JSON schema. Choose "kind":
 2. "answer" — everything else.
    - "lead": a short bold opening that answers the question directly ("Yes, it looks that way." / "Not clearly."). May be empty.
    - "body": 1-3 conversational sentences using the data. Describe patterns; never claim a cause, never diagnose, never suggest treatment or medication.
-   - "comparison": the stat that best backs your answer ("sleep_vs_morning_pain", "morning_vs_evening", "training_vs_rest"), only if it is present in "stats" and relevant; otherwise "none".
+   - "comparison": the stat that best backs your answer ("sleep_vs_morning_pain", "morning_vs_evening", "training_vs_rest", "activity_vs_next_morning_pain"), only if it is present in "stats" and relevant; otherwise "none".
    - "caveat": one sentence on what the data can't show (correlation isn't cause; suggest discussing it with their physio). May be empty.
    - "follow_ups": 0-2 short natural follow-up questions the user could ask next that this data can answer.
    If the data is too sparse or noisy, say so plainly in "body" instead of speculating.`;
@@ -35,7 +35,7 @@ const REPLY_SCHEMA = {
     body: { type: "string" },
     comparison: {
       type: "string",
-      enum: ["sleep_vs_morning_pain", "morning_vs_evening", "training_vs_rest", "none"],
+      enum: ["sleep_vs_morning_pain", "morning_vs_evening", "training_vs_rest", "activity_vs_next_morning_pain", "none"],
     },
     caveat: { type: "string" },
     follow_ups: { type: "array", items: { type: "string" } },
@@ -128,7 +128,7 @@ Deno.serve(async (req: Request) => {
     supabase
       .from("checkins")
       .select(
-        "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, activity_level, screen_time_hours, did_exercises, exercise_hours, exercise_intensity, symptoms, triggers, notes",
+        "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, sleep_positions, activity_level, screen_time_hours, did_exercises, exercise_types, exercise_hours, exercise_intensity, steps, health_workouts, symptoms, triggers, notes",
       )
       .gte("checkin_date", sinceDate)
       .order("checkin_date"),

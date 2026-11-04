@@ -40,6 +40,11 @@ export const eveningCheckinSchema = sharedCheckinFields.extend({
   exercise_notes: z.string().nullable(),
   exercise_hours: z.number().min(0).max(24).nullable(),
   exercise_intensity: level.nullable(),
+  // From Apple Health (new evening check-ins only); null/[] when not connected.
+  steps: z.number().int().min(0).nullable().optional(),
+  health_workouts: z
+    .array(z.object({ type: z.string(), minutes: z.number().min(0), source: z.string() }))
+    .optional(),
 });
 
 export type EveningCheckinFormData = z.infer<typeof eveningCheckinSchema>;

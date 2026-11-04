@@ -1,4 +1,4 @@
-import { morningVsEvening, sleepVsMorningPain } from '@/lib/insightFindings';
+import { morningVsEvening, sleepVsMorningPain, stepsVsNextMorningPain } from '@/lib/insightFindings';
 import { trainingVsRestNextDayPain } from '@/lib/trainingInsights';
 import type { Checkin, ExerciseLog } from '@/types/database.types';
 
@@ -17,7 +17,12 @@ export const CHAT_PERIODS = [7, 30, 90] as const;
 export type ChatPeriod = (typeof CHAT_PERIODS)[number];
 export const DEFAULT_CHAT_PERIOD: ChatPeriod = 30;
 
-export const COMPARISON_IDS = ['sleep_vs_morning_pain', 'morning_vs_evening', 'training_vs_rest'] as const;
+export const COMPARISON_IDS = [
+  'sleep_vs_morning_pain',
+  'morning_vs_evening',
+  'training_vs_rest',
+  'activity_vs_next_morning_pain',
+] as const;
 export type ComparisonId = (typeof COMPARISON_IDS)[number];
 
 export interface ChatAnswer {
@@ -83,10 +88,10 @@ export interface ComparisonCard {
   rows: [ComparisonRow, ComparisonRow];
   entries: number;
   // CountNoun for the "Based on N …" line
-  entriesNoun: 'morning' | 'entry';
+  entriesNoun: 'morning' | 'entry' | 'day';
 }
 
-type StatsCheckin = Pick<Checkin, 'checkin_date' | 'type' | 'pain_level' | 'sleep_quality' | 'sleep_hours'>;
+type StatsCheckin = Pick<Checkin, 'checkin_date' | 'type' | 'pain_level' | 'sleep_quality' | 'sleep_hours' | 'steps'>;
 
 // Every comparison that has enough data in the period. Sent to the model as
 // `stats` and used to draw the card for whichever one it picks.
@@ -140,6 +145,21 @@ export function buildComparisons(
     };
   }
 
+  // Only exists for users who connected Apple Health (needs synced steps).
+  const activity = stepsVsNextMorningPain(checkins, today, days);
+  if (activity.status === 'ready') {
+    cards.activity_vs_next_morning_pain = {
+      id: 'activity_vs_next_morning_pain',
+      titleKey: 'chat.cmpActivityTitle',
+      rows: [
+        { labelKey: 'chat.cmpQuietDays', value: activity.afterQuiet, tone: 'warm' },
+        { labelKey: 'chat.cmpActiveDays', value: activity.afterActive, tone: 'calm' },
+      ],
+      entries: activity.entries,
+      entriesNoun: 'day',
+    };
+  }
+
   return cards;
 }
 
@@ -162,6 +182,11 @@ export function comparisonsForModel(cards: Partial<Record<ComparisonId, Comparis
       next_day_pain_after_rest: round(cards.training_vs_rest.rows[0].value),
       next_day_pain_after_training: round(cards.training_vs_rest.rows[1].value),
       days: cards.training_vs_rest.entries,
+    },
+    activity_vs_next_morning_pain: cards.activity_vs_next_morning_pain && {
+      next_morning_pain_after_quieter_days: round(cards.activity_vs_next_morning_pain.rows[0].value),
+      next_morning_pain_after_more_active_days: round(cards.activity_vs_next_morning_pain.rows[1].value),
+      days: cards.activity_vs_next_morning_pain.entries,
     },
   };
 }

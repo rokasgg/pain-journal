@@ -4,13 +4,19 @@
 // "Kita fizinė veikla" — other physical activity. Stored in
 // checkins.exercise_types as these English values (or custom text); "none"
 // is did_exercises = false with an empty list.
-export const EXERCISE_TYPE_OPTIONS = ['Walking', 'Swimming', 'Gym', 'Cycling'] as const;
+export const EXERCISE_TYPE_OPTIONS = ['Walking', 'Running', 'Swimming', 'Gym', 'Cycling', 'Yoga'] as const;
+
+export type ExerciseType = (typeof EXERCISE_TYPE_OPTIONS)[number];
 
 export const EXERCISE_TYPE_LABEL_KEYS: Record<string, string> = {
   Walking: 'checkin.activities.walking',
+  Running: 'checkin.activities.running',
   Swimming: 'checkin.activities.swimming',
   Gym: 'checkin.activities.gym',
   Cycling: 'checkin.activities.cycling',
+  Yoga: 'checkin.activities.yoga',
+  // Apple Health workouts with no matching chip (src/lib/health/healthMapping.ts).
+  Other: 'checkin.activities.otherWorkout',
 };
 
 // "Laikas prie ekrano" — checkins.screen_time_hours stays a number (the

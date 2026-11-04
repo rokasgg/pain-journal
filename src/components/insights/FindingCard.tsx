@@ -8,12 +8,19 @@ import { useCheckinHistory } from '@/hooks/useCheckins';
 import { formatDateRange, formatOneDecimal, todayLocalDate } from '@/lib/dates';
 import { formatCount } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { findingsWindow, morningVsEvening, sleepVsMorningPain } from '@/lib/insightFindings';
+import { findingsWindow, morningVsEvening, sleepVsMorningPain, stepsVsNextMorningPain } from '@/lib/insightFindings';
+import { colors } from '@/lib/theme';
+import { useHealthStore } from '@/store/useHealthStore';
 
 // Same amber sun / indigo moon as Home's check-in card.
 const MORNING_COLOR = '#d97706';
 const EVENING_COLOR = '#4f46e5';
 const SCALE_MAX = 10;
+const SIMILARITY_WORD_KEYS = {
+  higher: 'insights.sleepHigher',
+  lower: 'insights.sleepLower',
+  similar: 'insights.sleepSimilar',
+} as const;
 
 function Card({ children }: { children: ReactNode }) {
   return <View className="gap-3 rounded-[18px] bg-surface p-4 dark:bg-surfaceDark">{children}</View>;
@@ -55,17 +62,21 @@ function SlotBar({
 
 // Insights → "This week's insights": morning vs evening pain, and sleep vs
 // morning pain, over the last 7 days (src/lib/insightFindings.ts). Each card
-// says what it's based on; with too little data it says so instead.
+// says what it's based on; with too little data it says so instead. A third
+// card, activity vs next-morning pain, shows only once Apple Health is
+// connected (it needs synced steps).
 export function WeekFindings() {
   const { t, locale } = useTranslation();
   const { checkins } = useCheckinHistory(30);
+  const healthConnected = useHealthStore((s) => s.enabled);
   const today = todayLocalDate();
 
-  const { slots, sleep, range } = useMemo(() => {
+  const { slots, sleep, activity, range } = useMemo(() => {
     const window = findingsWindow(today);
     return {
       slots: morningVsEvening(checkins, today),
       sleep: sleepVsMorningPain(checkins, today),
+      activity: stepsVsNextMorningPain(checkins, today),
       range: formatDateRange(parseISO(window.from), parseISO(window.to), locale),
     };
   }, [checkins, today, locale]);
@@ -141,6 +152,38 @@ export function WeekFindings() {
           </View>
         </View>
       </Card>
+
+      {healthConnected && (
+        <Card>
+          <View className="flex-row gap-3">
+            <View className="h-11 w-11 items-center justify-center rounded-xl bg-accentMuted dark:bg-primaryMutedDark">
+              <Ionicons name="walk-outline" size={22} color={colors.accent} />
+            </View>
+            <View className="flex-1 gap-1">
+              {activity.status === 'ready' ? (
+                <TextWithBold
+                  className="text-[17px] font-semibold leading-6 text-ink dark:text-white"
+                  text={t('insights.activityFinding', {
+                    steps: new Intl.NumberFormat(locale === 'lt' ? 'lt-LT' : 'en-GB').format(activity.threshold),
+                    word: BOLD_MARK,
+                  })}
+                  bold={t(SIMILARITY_WORD_KEYS[activity.direction])}
+                />
+              ) : (
+                <Text className="text-[17px] font-semibold text-ink dark:text-white">{t('insights.activityTitle')}</Text>
+              )}
+              <Footnote>
+                {activity.status === 'ready'
+                  ? t('insights.basedOn', {
+                    count: formatCount(activity.entries, 'day', locale),
+                    detail: t('insights.activityDetail'),
+                  })
+                  : t('insights.activityNotEnough', { count: formatCount(activity.needed, 'dayGen', locale) })}
+              </Footnote>
+            </View>
+          </View>
+        </Card>
+      )}
     </View>
   );
 }

@@ -25,6 +25,7 @@ import { StepSegments } from '@/components/checkin/StepSegments';
 import { YesNoField } from '@/components/checkin/YesNoField';
 import { SYMPTOM_OPTIONS } from '@/constants/symptoms';
 import { useCheckinHistory } from '@/hooks/useCheckins';
+import { useHealthActivity } from '@/hooks/useHealthActivity';
 import { useHealthSleep } from '@/hooks/useHealthSleep';
 import { useProfile } from '@/hooks/useProfile';
 import { useStepHaptic } from '@/hooks/useStepHaptic';
@@ -37,6 +38,7 @@ import {
 } from '@/lib/checkinHints';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { headerLeftWithoutGlass, headerRightWithoutGlass } from '@/lib/navigation/headerItems';
+import { exerciseTypesFromWorkouts } from '@/lib/health/healthMapping';
 import { formatDuration, healthAsleepHours } from '@/lib/sleep';
 import { colors } from '@/lib/theme';
 import {
@@ -231,6 +233,13 @@ export function CheckinForm({
           }),
         })
       : undefined;
+  // Apple Health's steps and workouts for this check-in's day (evening, new
+  // check-ins only). Not connected → null, and step 2 is exactly as before.
+  const healthActivityForDay = useHealthActivity(checkinDate);
+  const healthActivity = !isMorning && !defaultValues ? healthActivityForDay : null;
+  // Once the user taps any activity chip, their choice wins — even clearing
+  // everything never brings Health's selection back.
+  const [activityTouched, setActivityTouched] = useState(false);
   const totalSteps = isQuickMode ? 2 : TOTAL_STEPS;
   const [showMoreDetails, setShowMoreDetails] = useState(false);
 
@@ -239,6 +248,15 @@ export function CheckinForm({
     defaultValues: seedFormDefaults(isMorning, defaultValues),
   });
   const values = useWatch({ control }) as CheckinFormData;
+  const healthWorkoutTypes = healthActivity ? exerciseTypesFromWorkouts(healthActivity.workouts) : [];
+  const eveningValues = values as EveningCheckinFormData;
+  const healthChipValues =
+    healthWorkoutTypes.length > 0 &&
+    !activityTouched &&
+    eveningValues.did_exercises == null &&
+    (eveningValues.exercise_types ?? []).length === 0
+      ? healthWorkoutTypes
+      : null;
 
   // Morning has a real persisted gate (`woke_up_with_pain`); evening has no DB
   // equivalent, so its gate is local UI state. Both are tri-state: null means
@@ -262,9 +280,26 @@ export function CheckinForm({
   // message only shows after that attempt, and updates live as they answer.
   const [attemptedStep, setAttemptedStep] = useState<number | null>(null);
 
-  // Health's sleep stands in for an unanswered duration (and is saved below).
-  const effectiveValues: CheckinFormData =
-    healthHours !== null && (values as MorningCheckinFormData).sleep_hours == null ? ({ ...values, sleep_hours: healthHours } as CheckinFormData) : values;
+  // Apple Health answers: morning sleep stands in for an unanswered duration,
+  // and evening workouts for untouched activity chips. One helper, so the
+  // completeness check and the save always agree.
+  const withHealthAnswers = (data: CheckinFormData): CheckinFormData => {
+    if (isMorning) {
+      return healthHours !== null && (data as MorningCheckinFormData).sleep_hours == null
+        ? ({ ...data, sleep_hours: healthHours } as CheckinFormData)
+        : data;
+    }
+    // Nothing synced for the day → don't send the Health columns at all.
+    if (!healthActivity || (healthActivity.steps === null && healthActivity.workouts.length === 0)) return data;
+    const evening = data as EveningCheckinFormData;
+    return {
+      ...evening,
+      ...(healthChipValues ? { did_exercises: true, exercise_types: healthChipValues } : {}),
+      steps: healthActivity.steps,
+      health_workouts: healthActivity.workouts,
+    };
+  };
+  const effectiveValues = withHealthAnswers(values);
   const completenessInput = { type, isQuickMode, values: effectiveValues, inPain: inPainAnswer, noSymptomsConfirmed };
   const currentIssue = attemptedStep === step ? getStepIssue({ ...completenessInput, step }) : null;
   const issueMessage = currentIssue ? t(STEP_ISSUE_MESSAGES[currentIssue]) : undefined;
@@ -322,10 +357,7 @@ export function CheckinForm({
   };
 
   const handleSave = async (data: CheckinFormData) => {
-    const withHealth: CheckinFormData =
-      healthHours !== null && (data as MorningCheckinFormData).sleep_hours == null
-        ? ({ ...data, sleep_hours: healthHours } as CheckinFormData)
-        : data;
+    const withHealth = withHealthAnswers(data);
     const finalData: CheckinFormData = isInPain
       ? withHealth
       : { ...withHealth, pain_level: 0, triggers: [], symptoms: { ...withHealth.symptoms, pain_areas: [] } };
@@ -542,6 +574,9 @@ export function CheckinForm({
                 control={control as Control<EveningCheckinFormData>}
                 hints={hints}
                 previousActivity={previousActivity}
+                healthActivity={healthActivity}
+                healthChipValues={healthChipValues}
+                onActivityTouched={() => setActivityTouched(true)}
               />
             )}
 

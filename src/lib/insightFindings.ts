@@ -1,4 +1,4 @@
-import { format, parseISO, subDays } from 'date-fns';
+import { addDays, format, parseISO, subDays } from 'date-fns';
 
 import type { Checkin } from '@/types/database.types';
 
@@ -119,4 +119,61 @@ export function sleepVsMorningPain(checkins: InWindow[], today: string, days = F
   }
   if (entries >= MIN_NIGHTS_PER_SIDE * 2) return { status: 'oneSided', entries };
   return { status: 'notEnough', needed: MIN_NIGHTS_PER_SIDE * 2 - entries };
+}
+
+// Activity (Apple Health steps on evening check-ins) vs the NEXT morning's
+// pain. Steps only exist on synced days, so this looks at a longer window than
+// the weekly cards. Days are split at the user's own median, not a fixed
+// "10,000 steps": what counts as an active day differs a lot between people.
+export const ACTIVITY_WINDOW_DAYS = 30;
+const MIN_DAYS_PER_SIDE = 3;
+const SIMILAR_ACTIVITY_GAP = 0.5;
+
+type ActivityInput = Pick<Checkin, 'checkin_date' | 'type' | 'pain_level' | 'steps'>;
+
+export type StepsVsNextMorningPain =
+  | {
+      status: 'ready';
+      afterActive: number;
+      afterQuiet: number;
+      // Fewest steps among the "active" days, rounded down to the hundred.
+      threshold: number;
+      direction: 'higher' | 'lower' | 'similar'; // pain after active days vs quieter ones
+      entries: number; // days with steps and a next-morning check-in
+    }
+  | NotEnough;
+
+export function stepsVsNextMorningPain(
+  checkins: ActivityInput[],
+  today: string,
+  days = ACTIVITY_WINDOW_DAYS,
+): StepsVsNextMorningPain {
+  const recent = inWindow(checkins, findingsWindow(today, days));
+  const mornings = new Map(recent.filter((c) => c.type === 'morning').map((c) => [c.checkin_date, c.pain_level]));
+  const pairs: { steps: number; nextPain: number }[] = [];
+  for (const evening of recent) {
+    if (evening.type !== 'evening' || evening.steps == null) continue;
+    const next = format(addDays(parseISO(evening.checkin_date), 1), 'yyyy-MM-dd');
+    const nextPain = mornings.get(next);
+    if (nextPain !== undefined) pairs.push({ steps: evening.steps, nextPain });
+  }
+
+  const needed = MIN_DAYS_PER_SIDE * 2 - pairs.length;
+  if (needed > 0) return { status: 'notEnough', needed };
+
+  pairs.sort((a, b) => a.steps - b.steps);
+  const half = Math.floor(pairs.length / 2);
+  const quiet = pairs.slice(0, half);
+  const active = pairs.slice(half);
+  const afterQuiet = mean(quiet.map((p) => p.nextPain));
+  const afterActive = mean(active.map((p) => p.nextPain));
+  const gap = afterActive - afterQuiet;
+  return {
+    status: 'ready',
+    afterActive,
+    afterQuiet,
+    threshold: Math.floor(active[0].steps / 100) * 100,
+    direction: Math.abs(gap) < SIMILAR_ACTIVITY_GAP ? 'similar' : gap > 0 ? 'higher' : 'lower',
+    entries: pairs.length,
+  };
 }

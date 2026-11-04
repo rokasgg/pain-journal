@@ -1,4 +1,4 @@
-import { findingsWindow, isPoorNight, morningVsEvening, sleepVsMorningPain } from '@/lib/insightFindings';
+import { findingsWindow, isPoorNight, morningVsEvening, sleepVsMorningPain, stepsVsNextMorningPain } from '@/lib/insightFindings';
 import type { Checkin } from '@/types/database.types';
 
 const TODAY = '2026-10-27';
@@ -115,5 +115,55 @@ describe('sleepVsMorningPain', () => {
   it('not enough, skipping mornings without sleep answers', () => {
     const rows = [c('2026-10-24', 'morning', 3, { quality: 2 }), c('2026-10-25', 'morning', 3)];
     expect(sleepVsMorningPain(rows, TODAY)).toEqual({ status: 'notEnough', needed: 3 });
+  });
+});
+
+describe('stepsVsNextMorningPain', () => {
+  // An evening with steps on `day`, and the next morning's pain.
+  const day = (date: string, steps: number | null, nextMorning: string, nextPain: number) => [
+    { checkin_date: date, type: 'evening' as const, pain_level: 3, steps },
+    { checkin_date: nextMorning, type: 'morning' as const, pain_level: nextPain, steps: null },
+  ];
+
+  it('needs 3 days on each side with a next-morning check-in', () => {
+    const data = [...day('2026-10-20', 9000, '2026-10-21', 2), ...day('2026-10-21', 3000, '2026-10-22', 5)];
+    expect(stepsVsNextMorningPain(data, TODAY)).toEqual({ status: 'notEnough', needed: 4 });
+  });
+
+  it('skips evenings without steps or without a next morning', () => {
+    const data = [
+      { checkin_date: '2026-10-20', type: 'evening' as const, pain_level: 3, steps: 8000 }, // no next morning
+      ...day('2026-10-21', null, '2026-10-22', 4), // Health not synced
+    ];
+    expect(stepsVsNextMorningPain(data, TODAY)).toEqual({ status: 'notEnough', needed: 6 });
+  });
+
+  it('compares the more active half of days with the quieter half', () => {
+    const data = [
+      ...day('2026-10-15', 2000, '2026-10-16', 6),
+      ...day('2026-10-16', 3000, '2026-10-17', 5),
+      ...day('2026-10-17', 4000, '2026-10-18', 6),
+      ...day('2026-10-18', 8250, '2026-10-19', 3),
+      ...day('2026-10-19', 9000, '2026-10-20', 4),
+      ...day('2026-10-20', 12000, '2026-10-21', 2),
+    ];
+    const result = stepsVsNextMorningPain(data, TODAY);
+    expect(result).toMatchObject({ status: 'ready', threshold: 8200, direction: 'lower', entries: 6 });
+    if (result.status === 'ready') {
+      expect(result.afterQuiet).toBeCloseTo(17 / 3);
+      expect(result.afterActive).toBeCloseTo(3);
+    }
+  });
+
+  it('reads a gap under half a point as similar', () => {
+    const data = [
+      ...day('2026-10-15', 2000, '2026-10-16', 4),
+      ...day('2026-10-16', 3000, '2026-10-17', 4),
+      ...day('2026-10-17', 4000, '2026-10-18', 4),
+      ...day('2026-10-18', 8000, '2026-10-19', 4),
+      ...day('2026-10-19', 9000, '2026-10-20', 4),
+      ...day('2026-10-20', 12000, '2026-10-21', 5),
+    ];
+    expect(stepsVsNextMorningPain(data, TODAY)).toMatchObject({ status: 'ready', direction: 'similar' });
   });
 });

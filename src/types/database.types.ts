@@ -13,6 +13,15 @@ export interface CheckinSymptoms {
   pain_areas?: string[];
 }
 
+// One workout read from Apple Health (any app that writes there: Strava,
+// Apple Watch, Garmin…). `type` is an EXERCISE_TYPE_OPTIONS value or a stable
+// English name for other activities.
+export interface HealthWorkout {
+  type: string;
+  minutes: number;
+  source: string;
+}
+
 export interface Checkin {
   id: string;
   user_id: string;
@@ -38,6 +47,9 @@ export interface Checkin {
   exercise_notes: string | null;
   exercise_hours: number | null;
   exercise_intensity: number | null;
+  // supabase_health_activity_migration.sql — from Apple Health, evening only.
+  steps: number | null;
+  health_workouts: HealthWorkout[];
 
   symptoms: CheckinSymptoms;
   triggers: string[];
@@ -73,6 +85,8 @@ export type CheckinInsert = Omit<
   | 'exercise_notes'
   | 'exercise_hours'
   | 'exercise_intensity'
+  | 'steps'
+  | 'health_workouts'
   | 'logged_late'
   | 'logged_at'
 > & {
@@ -94,6 +108,8 @@ export type CheckinInsert = Omit<
   exercise_notes?: string | null;
   exercise_hours?: number | null;
   exercise_intensity?: number | null;
+  steps?: number | null;
+  health_workouts?: HealthWorkout[];
 };
 
 export type FlareUpStatus = 'resolved' | 'ongoing' | 'unknown';

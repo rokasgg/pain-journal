@@ -1,11 +1,10 @@
 import { Text, View } from 'react-native';
 
-import { TriggerChips } from '@/components/checkin/TriggerChips';
 import { SettingsTextArea } from '@/components/settings/SettingsTextArea';
 import { ChoiceChips } from '@/components/flareup/ChoiceChips';
 import { SectionTitle } from '@/components/ui/SectionTitle';
-import { FLARE_AREA_LABEL_KEYS, FLARE_AREA_OPTIONS } from '@/constants/flareUp';
-import { PAIN_AREA_LABEL_KEYS, SYMPTOM_OPTIONS } from '@/constants/symptoms';
+import { FLARE_AREA_LABEL_KEYS, FLARE_AREA_OPTIONS, FLARE_TRIGGER_ORDER } from '@/constants/flareUp';
+import { PAIN_AREA_LABEL_KEYS, SYMPTOM_OPTIONS, TRIGGER_LABEL_KEYS } from '@/constants/symptoms';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { CheckinSymptoms } from '@/types/database.types';
 
@@ -78,6 +77,10 @@ export function CheckinSymptomsSection({
       .map((value) => ({ value, label: t(PAIN_AREA_LABEL_KEYS[value]) })),
   ];
 
+  // Same chips as the flare-up form's "Kas galėjo išprovokuoti?"; custom
+  // triggers are typed text and show as their own chips.
+  const triggerOptions = FLARE_TRIGGER_ORDER.map((value) => ({ value: value as string, label: t(TRIGGER_LABEL_KEYS[value]) }));
+
   return (
     <View className="gap-5">
       <View className="gap-3">
@@ -103,7 +106,18 @@ export function CheckinSymptomsSection({
         </View>
       )}
 
-      {triggers && onTriggersChange && showAreas && <TriggerChips value={triggers} onChange={onTriggersChange} />}
+      {triggers && onTriggersChange && showAreas && (
+        <View className="gap-3">
+          <SectionTitle title={t('checkin.triggers')} info={t('checkin.triggersInfo')} />
+          <ChoiceChips
+            options={triggerOptions}
+            value={triggers}
+            onChange={onTriggersChange}
+            allowCustom
+            customPlaceholder={t('checkin.addCustomPlaceholder')}
+          />
+        </View>
+      )}
 
       {onNotesChange && (
         <View className="gap-3">

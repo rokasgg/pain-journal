@@ -79,7 +79,7 @@ Deno.serve(async (req: Request) => {
     supabase
       .from("checkins")
       .select(
-        "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, activity_level, screen_time_hours, did_exercises, exercise_hours, exercise_intensity, symptoms, triggers, notes",
+        "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, sleep_positions, activity_level, screen_time_hours, did_exercises, exercise_types, exercise_hours, exercise_intensity, steps, health_workouts, symptoms, triggers, notes",
       )
       .gte("checkin_date", sinceDate)
       .order("checkin_date"),
