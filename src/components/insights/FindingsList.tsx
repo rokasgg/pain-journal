@@ -15,6 +15,8 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 
 const ICONS: Record<Finding['kind'], { name: keyof typeof Ionicons.glyphMap; color: string }> = {
+  progress: { name: 'trending-up-outline', color: colors.accent },
+  stress: { name: 'pulse-outline', color: '#7c3aed' },
   flare: { name: 'flash-outline', color: '#B4532A' },
   experiment: { name: 'flask-outline', color: colors.accent },
   trainingRelief: { name: 'barbell-outline', color: colors.accent },
@@ -44,6 +46,31 @@ function useRowContent() {
 
   return (finding: Finding): RowContent => {
     switch (finding.kind) {
+      case 'progress':
+        return {
+          // Never framed as failure: a higher trend is something to bring to a visit.
+          text: t(finding.direction === 'better' ? 'insights.found.progressBetter' : 'insights.found.progressWorse', {
+            start: formatOneDecimal(finding.start, locale),
+            now: BOLD_MARK,
+          }),
+          bold: formatOneDecimal(finding.now, locale),
+          footnote: basedOn(
+            formatCount(finding.loggedDays, 'day', locale),
+            t('insights.found.progressDetail', { count: finding.windowDays }),
+          ),
+        };
+      case 'stress':
+        return {
+          text: t('insights.found.stress', { word: BOLD_MARK }),
+          bold: t(finding.direction === 'higher' ? 'insights.found.higher' : 'insights.found.lower'),
+          footnote: basedOn(
+            formatCount(finding.entries, 'entry', locale),
+            t('insights.found.stressValues', {
+              stressful: formatOneDecimal(finding.stressful, locale),
+              calm: formatOneDecimal(finding.calm, locale),
+            }),
+          ),
+        };
       case 'flare':
         return {
           text: t('insights.flares.patternSentence', {

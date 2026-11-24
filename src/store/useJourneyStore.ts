@@ -16,9 +16,13 @@ interface JourneyStoreState {
   // account, not per device, so every account gets it on its first time in
   // the app — including a second person signing in on the same phone.
   welcomeSeenBy: string[];
+  // User ids that closed or answered the Home "Tell us about your
+  // day-to-day" card (AboutMeCard), so it's shown at most once per account.
+  aboutMeNudgeDoneBy: string[];
   initialize: (alreadyUnlocked: MilestoneKey[]) => void;
   markAnnounced: (key: MilestoneKey) => void;
   markWelcomeSeen: (userId: string) => void;
+  markAboutMeNudgeDone: (userId: string) => void;
 }
 
 export const useJourneyStore = create<JourneyStoreState>()(
@@ -27,12 +31,21 @@ export const useJourneyStore = create<JourneyStoreState>()(
       initialized: false,
       announced: [],
       welcomeSeenBy: [],
+      aboutMeNudgeDoneBy: [],
       initialize: (alreadyUnlocked) =>
         set((state) => (state.initialized ? state : { initialized: true, announced: alreadyUnlocked })),
       markAnnounced: (key) =>
         set((state) => (state.announced.includes(key) ? state : { announced: [...state.announced, key] })),
       markWelcomeSeen: (userId) =>
-        set((state) => (state.welcomeSeenBy.includes(userId) ? state : { welcomeSeenBy: [...state.welcomeSeenBy, userId] })),
+        set((state) =>
+          state.welcomeSeenBy.includes(userId) ? state : { welcomeSeenBy: [...state.welcomeSeenBy, userId] },
+        ),
+      markAboutMeNudgeDone: (userId) =>
+        set((state) =>
+          state.aboutMeNudgeDoneBy.includes(userId)
+            ? state
+            : { aboutMeNudgeDoneBy: [...state.aboutMeNudgeDoneBy, userId] },
+        ),
     }),
     {
       name: 'journey-storage',

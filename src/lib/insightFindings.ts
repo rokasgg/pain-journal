@@ -1,5 +1,7 @@
 import { addDays, format, parseISO, subDays } from 'date-fns';
 
+import { STRESSFUL_LEVEL } from '@/lib/checkinChoices';
+import { dailyAverages } from '@/lib/painTrend';
 import type { Checkin } from '@/types/database.types';
 
 // Insights tab → "This week's insights". Plain arithmetic over the user's own
@@ -94,7 +96,11 @@ export type SleepVsMorningPain =
   | { status: 'oneSided'; entries: number }
   | NotEnough;
 
-export function sleepVsMorningPain(checkins: InWindow[], today: string, days = FINDINGS_WINDOW_DAYS): SleepVsMorningPain {
+export function sleepVsMorningPain(
+  checkins: InWindow[],
+  today: string,
+  days = FINDINGS_WINDOW_DAYS,
+): SleepVsMorningPain {
   const mornings = inWindow(checkins, findingsWindow(today, days)).filter((c) => c.type === 'morning');
   const poor: number[] = [];
   const good: number[] = [];
@@ -175,5 +181,109 @@ export function stepsVsNextMorningPain(
     threshold: Math.floor(active[0].steps / 100) * 100,
     direction: Math.abs(gap) < SIMILAR_ACTIVITY_GAP ? 'similar' : gap > 0 ? 'higher' : 'lower',
     entries: pairs.length,
+  };
+}
+
+// Daily stress (evening "How stressful was your day?", 1–4) vs that evening's
+// pain: stressful days (≥ STRESSFUL_LEVEL) against calm or normal ones.
+const MIN_STRESS_DAYS_PER_SIDE = 3;
+const SIMILAR_STRESS_GAP = 0.5;
+
+type StressInput = Pick<Checkin, 'checkin_date' | 'type' | 'pain_level' | 'stress_level'>;
+
+export type StressVsEveningPain =
+  | {
+      status: 'ready';
+      stressful: number; // mean evening pain on stressful days
+      calm: number; // … on calm or normal days
+      direction: 'higher' | 'lower' | 'similar'; // pain on stressful days vs calm ones
+      entries: number;
+    }
+  | NotEnough;
+
+export function stressVsEveningPain(checkins: StressInput[], today: string, days = 30): StressVsEveningPain {
+  const evenings = inWindow(checkins, findingsWindow(today, days)).filter(
+    (c) => c.type === 'evening' && c.stress_level != null,
+  );
+  const stressful = evenings.filter((c) => (c.stress_level ?? 0) >= STRESSFUL_LEVEL).map((c) => c.pain_level);
+  const calm = evenings.filter((c) => (c.stress_level ?? 0) < STRESSFUL_LEVEL).map((c) => c.pain_level);
+
+  const needed =
+    Math.max(0, MIN_STRESS_DAYS_PER_SIDE - stressful.length) + Math.max(0, MIN_STRESS_DAYS_PER_SIDE - calm.length);
+  if (needed > 0) return { status: 'notEnough', needed };
+
+  const gap = mean(stressful) - mean(calm);
+  return {
+    status: 'ready',
+    stressful: mean(stressful),
+    calm: mean(calm),
+    direction: Math.abs(gap) < SIMILAR_STRESS_GAP ? 'similar' : gap > 0 ? 'higher' : 'lower',
+    entries: stressful.length + calm.length,
+  };
+}
+
+// "Progress since you started": the first logged days against the latest
+// ones. The two windows never share a day: 14 + 14 from 28 logged days, and
+// 7 + 7 between 21 and 27 (with 14 + 14 those would overlap and partly
+// compare the data with itself). Under 21 logged days there's nothing yet.
+export const PROGRESS_MIN_DAYS = 21;
+const PROGRESS_FULL_DAYS = 28;
+const PROGRESS_MIN_METRIC_DAYS = 5; // per window, for stiffness / range of motion
+const SIMILAR_PROGRESS_GAP = 0.3;
+
+type ProgressInput = Pick<Checkin, 'checkin_date' | 'pain_level' | 'stiffness_level' | 'range_of_motion'>;
+
+export interface MetricProgress {
+  start: number;
+  now: number;
+}
+
+export type ProgressSinceStart =
+  | {
+      status: 'ready';
+      windowDays: 7 | 14;
+      pain: MetricProgress;
+      stiffness: MetricProgress | null;
+      rangeOfMotion: MetricProgress | null; // higher is better
+      // Pain only: lower now is "better". Never framed as failure when higher.
+      direction: 'better' | 'worse' | 'steady';
+      loggedDays: number;
+      startedOn: string; // first logged day
+    }
+  | NotEnough;
+
+function windowMean(averages: Map<string, number>, dates: string[]): number | null {
+  const values = dates.map((d) => averages.get(d)).filter((v): v is number => v !== undefined);
+  return values.length >= PROGRESS_MIN_METRIC_DAYS ? mean(values) : null;
+}
+
+export function progressSinceStart(checkins: ProgressInput[]): ProgressSinceStart {
+  const pain = dailyAverages(checkins);
+  const dates = [...pain.keys()].sort();
+  if (dates.length < PROGRESS_MIN_DAYS) return { status: 'notEnough', needed: PROGRESS_MIN_DAYS - dates.length };
+
+  const windowDays = dates.length >= PROGRESS_FULL_DAYS ? 14 : 7;
+  const first = dates.slice(0, windowDays);
+  const last = dates.slice(-windowDays);
+  const metric = (averages: Map<string, number>): MetricProgress | null => {
+    const start = windowMean(averages, first);
+    const now = windowMean(averages, last);
+    return start === null || now === null ? null : { start, now };
+  };
+
+  const painProgress = {
+    start: mean(first.map((d) => pain.get(d) ?? 0)),
+    now: mean(last.map((d) => pain.get(d) ?? 0)),
+  };
+  const gap = painProgress.now - painProgress.start;
+  return {
+    status: 'ready',
+    windowDays,
+    pain: painProgress,
+    stiffness: metric(dailyAverages(checkins, 'stiffness_level')),
+    rangeOfMotion: metric(dailyAverages(checkins, 'range_of_motion')),
+    direction: Math.abs(gap) < SIMILAR_PROGRESS_GAP ? 'steady' : gap < 0 ? 'better' : 'worse',
+    loggedDays: dates.length,
+    startedOn: dates[0],
   };
 }

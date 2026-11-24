@@ -166,6 +166,14 @@ function RootLayoutNav() {
           }}
         />
         <Stack.Screen
+          name="settings/about-me"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.aboutMe'),
+            headerBackTitle: t('tabs.settings'),
+          }}
+        />
+        <Stack.Screen
           name="settings/injury-info"
           options={{
             headerShown: true,

@@ -113,6 +113,37 @@ describe('analyzeFlareUps', () => {
     expect(sleep).toMatchObject({ hits: 3, total: 3, usual: 7.5 });
   });
 
+  it('finds stressful days before flare-ups, against a calm-to-normal usual', () => {
+    const flareDays = [day(10), day(25), day(40)];
+    // Ordinary evenings are "normal" (2); the evening before each flare-up is
+    // "very stressful" (4). Sleep and screens stay ordinary throughout.
+    const stressedEvenings = new Set(flareDays.map((d) => format(addDays(parseISO(d), -1), 'yyyy-MM-dd')));
+    const checkins = history([]).map((c) =>
+      c.type === 'evening' ? { ...c, stress_level: stressedEvenings.has(c.checkin_date) ? 4 : 2 } : c,
+    );
+    const result = analyzeFlareUps({
+      checkins,
+      flareUps: flareDays.map((d, i) => flare(String(i), d)),
+      trainedDays: null,
+      today: TODAY,
+    });
+    expect(result.status === 'ready' && result.patterns.map((p) => `${p.factor}:${p.direction}`)).toEqual([
+      'stress:high',
+    ]);
+  });
+
+  it('does not flag a "stressful" day when stressful is the usual', () => {
+    const checkins = history([]).map((c) => (c.type === 'evening' ? { ...c, stress_level: 3 } : c));
+    const flareDays = [day(10), day(25), day(40)];
+    const result = analyzeFlareUps({
+      checkins,
+      flareUps: flareDays.map((d, i) => flare(String(i), d)),
+      trainedDays: null,
+      today: TODAY,
+    });
+    expect(result.status === 'ready' && result.patterns).toEqual([]);
+  });
+
   it('does not call something a pattern when it is off on ordinary days too', () => {
     // Every night is short, so a short night before a flare-up says nothing.
     const checkins = history([]).map((c) => (c.type === 'morning' ? { ...c, sleep_hours: 5 } : c));
@@ -175,7 +206,7 @@ describe('flareLeadUp', () => {
     expect(lead.checked).toBeGreaterThan(0);
   });
 
-  it("leaves out the morning answers given after a morning flare-up", () => {
+  it('leaves out the morning answers given after a morning flare-up', () => {
     const early = flare('x', day(20), '07:00');
     const late = morning(day(20), 5, { stiffness_level: 9, created_at: `${day(20)}T09:00:00` });
     const data = checkins.map((c) => (c.type === 'morning' && c.checkin_date === day(20) ? late : c));

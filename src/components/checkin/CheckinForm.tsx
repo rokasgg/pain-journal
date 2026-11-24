@@ -121,6 +121,7 @@ export const eveningDefaults: EveningCheckinFormData = {
   notes: null,
   activity_level: null,
   screen_time_hours: null,
+  stress_level: null,
   did_exercises: null,
   exercise_types: [],
   exercise_notes: null,

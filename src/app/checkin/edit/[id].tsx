@@ -38,6 +38,7 @@ function toFormData(checkin: Checkin): CheckinFormData {
     ...shared,
     activity_level: checkin.activity_level,
     screen_time_hours: checkin.screen_time_hours,
+    stress_level: checkin.stress_level ?? null,
     did_exercises: checkin.did_exercises,
     exercise_types: checkin.exercise_types ?? [],
     exercise_notes: checkin.exercise_notes,

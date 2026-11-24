@@ -39,6 +39,18 @@ const full: FindingsInput = {
   sleep: { status: 'ready', afterPoor: 5, afterGood: 3, direction: 'higher', entries: 12 },
   steps: { status: 'ready', afterActive: 3, afterQuiet: 4, threshold: 8000, direction: 'lower', entries: 10 },
   slots: { status: 'ready', morning: 5, evening: 3, diff: 2, direction: 'morningHigher', entries: 20 },
+  stress: { status: 'ready', stressful: 6, calm: 3, direction: 'higher', entries: 12 },
+  progress: {
+    status: 'ready',
+    windowDays: 14,
+    pain: { start: 6, now: 3.5 },
+    stiffness: null,
+    rangeOfMotion: null,
+    direction: 'better',
+    loggedDays: 40,
+    startedOn: '2026-09-01',
+  },
+  progressFirst: false,
 };
 
 describe('buildFindings', () => {
@@ -49,7 +61,9 @@ describe('buildFindings', () => {
       'experiment',
       'trainingRelief',
       'trainingNextDay',
+      'progress',
       'sleep',
+      'stress',
       'steps',
       'slots',
     ]);
@@ -66,9 +80,16 @@ describe('buildFindings', () => {
       sleep: { ...full.sleep, direction: 'similar' } as FindingsInput['sleep'],
       steps: { ...full.steps, direction: 'similar' } as FindingsInput['steps'],
       slots: { ...full.slots, direction: 'similar' } as FindingsInput['slots'],
+      stress: { ...full.stress, direction: 'similar' } as FindingsInput['stress'],
+      progress: { ...full.progress, direction: 'steady' } as FindingsInput['progress'],
     });
     expect(findings).toEqual([]);
     expect(pending).toBe(0);
+  });
+
+  it('puts progress since the start first for someone tracking their recovery', () => {
+    const { findings } = buildFindings({ ...full, progressFirst: true });
+    expect(findings[0]).toMatchObject({ kind: 'progress', direction: 'better', start: 6, now: 3.5 });
   });
 
   it('counts sources still waiting for data', () => {
@@ -79,9 +100,12 @@ describe('buildFindings', () => {
       sleep: { status: 'oneSided', entries: 6 },
       steps: { status: 'notEnough', needed: 3 },
       slots: { status: 'notEnough', needed: 2 },
+      stress: { status: 'notEnough', needed: 3 },
+      progress: { status: 'notEnough', needed: 10 },
+      progressFirst: false,
     });
     expect(findings).toEqual([]);
-    expect(pending).toBe(6);
+    expect(pending).toBe(8);
   });
 
   it('leaves out training and steps when they are not tracked, and no flare-ups is not pending', () => {
@@ -91,7 +115,7 @@ describe('buildFindings', () => {
       training: null,
       steps: null,
     });
-    expect(findings.map((f) => f.kind)).toEqual(['experiment', 'sleep', 'slots']);
+    expect(findings.map((f) => f.kind)).toEqual(['experiment', 'progress', 'sleep', 'stress', 'slots']);
     expect(pending).toBe(0);
   });
 

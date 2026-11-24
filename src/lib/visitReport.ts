@@ -19,10 +19,26 @@ import {
   formatFlareDuration,
 } from '@/lib/flareDetectiveText';
 import { formatCount, formatDayCount } from '@/lib/i18n/plural';
-import { sleepVsMorningPain } from '@/lib/insightFindings';
+import { progressSinceStart, sleepVsMorningPain } from '@/lib/insightFindings';
 import { dailyAverages, meanOfDays } from '@/lib/painTrend';
 import { trainedDaySet, trainingReliefSummary } from '@/lib/trainingInsights';
-import type { Checkin, ExerciseLog, FlareUp, PhysioAssessment } from '@/types/database.types';
+import {
+  DIAGNOSED_BY_OPTIONS,
+  LIFE_STRESS_OPTIONS,
+  SUSPECTED_TRIGGER_OPTIONS,
+  WORK_HOURS_OPTIONS,
+  WORK_TYPE_OPTIONS,
+} from '@/constants/onboarding';
+import type {
+  Checkin,
+  DiagnosedBy,
+  ExerciseLog,
+  FlareUp,
+  LifeStress,
+  PhysioAssessment,
+  WorkHours,
+  WorkType,
+} from '@/types/database.types';
 import type { Locale } from '@/store/useLocaleStore';
 
 // "Prepare a summary for the visit" (Insights → Physio): the user's own data
@@ -64,6 +80,15 @@ export interface VisitReportInput {
   checkins: ReportCheckin[];
   flareUps: ReportFlareUp[];
   injuryDescription?: string | null;
+  // The professional's diagnosis as the user recorded it (Injury info).
+  diagnosis?: { text: string; by: DiagnosedBy | null; on: string | null; notes: string | null } | null;
+  // Settings → About me: one "About me" line, left out when nothing's answered.
+  aboutMe?: {
+    workType: WorkType | null;
+    workHours: WorkHours | null;
+    lifeStress: LifeStress | null;
+    suspectedTriggers: string[];
+  } | null;
   // Chat answers the user added to the summary (usePhysioNotesStore).
   chatNotes?: { question: string; text: string }[];
   // Questions still open from the last visit's question list.
@@ -107,7 +132,9 @@ export function painChartSvg(
   const plotHeight = CHART_HEIGHT - CHART_TOP - CHART_BOTTOM;
   const x = (day: string) =>
     CHART_LEFT +
-    (totalDays <= 1 ? plotWidth / 2 : (differenceInCalendarDays(parseISO(day), parseISO(period.from)) / (totalDays - 1)) * plotWidth);
+    (totalDays <= 1
+      ? plotWidth / 2
+      : (differenceInCalendarDays(parseISO(day), parseISO(period.from)) / (totalDays - 1)) * plotWidth);
   const y = (value: number) => CHART_TOP + plotHeight - (value / 10) * plotHeight;
 
   const segments: string[][] = [];
@@ -164,11 +191,79 @@ function previousWindow(period: VisitReportPeriod): { from: string; to: string; 
 
 const MIN_DAYS_TO_COMPARE = 3;
 
+const labelOf = <T extends string>(options: { value: T; labelKey: string }[], value: T | null, t: Translate) => {
+  const option = options.find((o) => o.value === value);
+  return option ? t(option.labelKey) : null;
+};
+
+// "Diagnosis (per physiotherapist, 12 Oct 2026): C5–C6 disc protrusion",
+// exactly as the user recorded it, plus their notes.
+function diagnosisHtml(
+  diagnosis: VisitReportInput['diagnosis'],
+  t: Translate,
+  dfLocale: { locale: (typeof DATE_FNS_LOCALES)[Locale] },
+): string {
+  if (!diagnosis?.text.trim()) return '';
+  const by = labelOf(DIAGNOSED_BY_OPTIONS, diagnosis.by, t)?.toLocaleLowerCase();
+  const on = diagnosis.on ? format(parseISO(diagnosis.on), 'd MMM yyyy', dfLocale) : null;
+  const label =
+    by && on
+      ? t('visitReport.diagnosisByOn', { by, date: on })
+      : by
+        ? t('visitReport.diagnosisBy', { by })
+        : on
+          ? t('visitReport.diagnosisOn', { date: on })
+          : t('visitReport.diagnosis');
+  const notes = diagnosis.notes?.trim() ? `<div class="muted">${escapeHtml(diagnosis.notes.trim())}</div>` : '';
+  return `<p><b>${escapeHtml(label)}:</b> ${escapeHtml(diagnosis.text.trim())}${notes}</p>`;
+}
+
+// "About me: Mostly sitting, 8 h or more · usual stress: high · thinks
+// sitting, screens make it worse".
+function aboutMeHtml(aboutMe: VisitReportInput['aboutMe'], t: Translate): string {
+  if (!aboutMe) return '';
+  const parts: string[] = [];
+  const work = labelOf(WORK_TYPE_OPTIONS, aboutMe.workType, t);
+  const hours = labelOf(WORK_HOURS_OPTIONS, aboutMe.workHours, t);
+  if (work) parts.push(hours ? `${work}, ${hours.toLocaleLowerCase()}` : work);
+  const stress = labelOf(LIFE_STRESS_OPTIONS, aboutMe.lifeStress, t);
+  if (stress) parts.push(t('visitReport.usualStress', { level: stress.toLocaleLowerCase() }));
+  const hunches = aboutMe.suspectedTriggers
+    .filter((h) => h !== 'dont_know')
+    .map((h) => labelOf(SUSPECTED_TRIGGER_OPTIONS, h, t)?.toLocaleLowerCase())
+    .filter((h): h is string => !!h);
+  if (hunches.length > 0) parts.push(t('visitReport.thinksWorse', { list: hunches.join(', ') }));
+  if (parts.length === 0) return '';
+  return `<p class="muted">${escapeHtml(t('visitReport.aboutMe', { text: parts.join(' · ') }))}</p>`;
+}
+
+// "Since starting the journal (1 Sep): average pain 5.8 → 3.4", from the same
+// progressSinceStart() as the Insights finding.
+function sinceStartHtml(
+  checkins: ReportCheckin[],
+  t: Translate,
+  locale: Locale,
+  dfLocale: { locale: (typeof DATE_FNS_LOCALES)[Locale] },
+): string {
+  const progress = progressSinceStart(checkins);
+  if (progress.status !== 'ready') return '';
+  return `<p>${escapeHtml(
+    t('visitReport.sinceStart', {
+      date: format(parseISO(progress.startedOn), 'd MMM yyyy', dfLocale),
+      start: formatOneDecimal(progress.pain.start, locale),
+      now: formatOneDecimal(progress.pain.now, locale),
+      count: progress.windowDays,
+    }),
+  )}</p>`;
+}
+
 export function buildVisitReportHtml({
   period,
   checkins,
   flareUps,
   injuryDescription,
+  diagnosis,
+  aboutMe,
   chatNotes = [],
   openQuestions = [],
   exerciseLogs,
@@ -316,7 +411,13 @@ export function buildVisitReportHtml({
     helpItems.push(
       `<li>${escapeHtml(
         t('insights.sleepFinding', {
-          word: t(sleep.direction === 'higher' ? 'insights.sleepHigher' : sleep.direction === 'lower' ? 'insights.sleepLower' : 'insights.sleepSimilar'),
+          word: t(
+            sleep.direction === 'higher'
+              ? 'insights.sleepHigher'
+              : sleep.direction === 'lower'
+                ? 'insights.sleepLower'
+                : 'insights.sleepSimilar',
+          ),
         }),
       )} <span class="muted">(${escapeHtml(formatOneDecimal(sleep.afterPoor, locale))} / ${escapeHtml(
         formatOneDecimal(sleep.afterGood, locale),
@@ -392,6 +493,8 @@ export function buildVisitReportHtml({
   <div class="muted">${escapeHtml(
     t(period.sinceLastVisit ? 'visitReport.periodSinceVisit' : 'visitReport.periodLast30', { period: periodText }),
   )}</div>
+  ${diagnosisHtml(diagnosis, t, dfLocale)}
+  ${aboutMeHtml(aboutMe, t)}
   ${injuryDescription?.trim() ? `<p>${escapeHtml(injuryDescription.trim())}</p>` : ''}
 
   ${section('visitReport.glanceSection')}
@@ -413,6 +516,7 @@ export function buildVisitReportHtml({
         : ''
     }
   </div>
+  ${sinceStartHtml(checkins, t, locale, dfLocale)}
   ${
     canCompare
       ? `<p class="muted">${escapeHtml(t('visitReport.beforeExplained', { count: formatDayCount(previous.days, locale) }))}</p>`

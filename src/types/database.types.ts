@@ -41,6 +41,10 @@ export interface Checkin {
 
   activity_level: number | null;
   screen_time_hours: number | null;
+  // supabase_profile_lifestyle_migration.sql — evening "How stressful was
+  // your day?": 1 calm · 2 normal · 3 stressful · 4 very stressful. Optional
+  // so rows fetched before the migration still type-check.
+  stress_level?: number | null;
   did_exercises: boolean | null;
   // supabase_checkin_redesign_migration.sql — "Kita fizinė veikla" chips.
   exercise_types: string[];
@@ -224,13 +228,25 @@ export type ReminderSettingsUpsert = Partial<Omit<ReminderSettings, 'user_id' | 
 export type InjuryOnsetPeriod = 'this_week' | 'month_ago' | 'months_ago' | 'year_plus' | 'unknown';
 export type PainRadiates = 'yes' | 'no' | 'sometimes';
 export type WorstTimeOfDay = 'morning' | 'evening' | 'after_activity' | 'no_pattern';
+// What the user wants from the app (onboarding step 0). The first three are
+// current; the rest are older answers, still read: identify_triggers counts as
+// understand_pain and track_progress as track_recovery (src/lib/profileAnswers.ts).
 export type PrimaryGoal =
+  | 'track_recovery'
+  | 'understand_pain'
+  | 'both'
   | 'track_progress'
   | 'identify_triggers'
   | 'prepare_for_appointments'
   | 'track_exercises'
   | 'just_journal';
 export type CheckinDepthPreference = 'quick' | 'detailed' | 'varies';
+export type DiagnosisStatus = 'yes' | 'not_yet' | 'unsure';
+export type DiagnosedBy = 'family_doctor' | 'specialist' | 'physio' | 'chiropractor' | 'other';
+export type WorkType = 'sitting' | 'standing' | 'physical' | 'mixed' | 'not_working';
+export type WorkHours = 'under_4' | '4_6' | '6_8' | '8_plus';
+export type LifeStress = 'low' | 'moderate' | 'high';
+export type ExerciseFrequency = 'rarely' | 'weekly_1_2' | 'weekly_3_plus';
 // Answer to the journey's day-7 care step (supabase_journey_migration.sql).
 export type CareStatus = 'with_professional' | 'not_yet' | 'just_tracking';
 
@@ -249,8 +265,6 @@ export interface Profile {
 
   // Onboarding wizard answers — see src/app/onboarding.tsx.
   onboarding_completed: boolean;
-  injury_onset_date: string | null;
-  injury_onset_period: InjuryOnsetPeriod | null;
   pain_locations: string[];
   pain_character: string[];
   pain_radiates: PainRadiates | null;
@@ -269,6 +283,25 @@ export interface Profile {
   // null/undefined = not decided; see resolveTrainingEnabled() in lib/journey.ts.
   training_enabled?: boolean | null;
 
+  // supabase_profile_lifestyle_migration.sql — optional so profiles fetched
+  // before it ran still type-check.
+  // true when injury_started_on came from a rough period ("about").
+  injury_started_approx?: boolean;
+  // The professional's diagnosis, recorded as the user was told it. The app
+  // never suggests or changes one.
+  diagnosis_status?: DiagnosisStatus | null;
+  diagnosis_text?: string | null;
+  diagnosed_by?: DiagnosedBy | null;
+  diagnosed_on?: string | null;
+  diagnosis_notes?: string | null;
+  // "About me": usual day-to-day (not daily values — see checkins.stress_level).
+  work_type?: WorkType | null;
+  work_hours?: WorkHours | null;
+  life_stress?: LifeStress | null;
+  exercise_frequency?: ExerciseFrequency | null;
+  // The user's own hunches about what makes it worse — checked, never assumed.
+  suspected_triggers?: string[];
+
   created_at: string;
   updated_at: string;
 }
@@ -281,8 +314,6 @@ export type ProfileUpdate = Partial<
     | 'injury_description'
     | 'healing_started_on'
     | 'onboarding_completed'
-    | 'injury_onset_date'
-    | 'injury_onset_period'
     | 'pain_locations'
     | 'pain_character'
     | 'pain_radiates'
@@ -294,6 +325,17 @@ export type ProfileUpdate = Partial<
     | 'care_status'
     | 'care_status_answered_at'
     | 'training_enabled'
+    | 'injury_started_approx'
+    | 'diagnosis_status'
+    | 'diagnosis_text'
+    | 'diagnosed_by'
+    | 'diagnosed_on'
+    | 'diagnosis_notes'
+    | 'work_type'
+    | 'work_hours'
+    | 'life_stress'
+    | 'exercise_frequency'
+    | 'suspected_triggers'
   >
 >;
 

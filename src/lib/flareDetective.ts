@@ -1,5 +1,6 @@
 import { format, getHours, parseISO, subDays } from 'date-fns';
 
+import { STRESSFUL_LEVEL } from '@/lib/checkinChoices';
 import { toLocalDate } from '@/lib/dates';
 import type { Checkin, FlareUp } from '@/types/database.types';
 
@@ -31,6 +32,7 @@ export type FactorId =
   | 'morningStiffness'
   | 'eveningPain'
   | 'screenTime'
+  | 'stress'
   | 'activity'
   | 'steps'
   | 'trained';
@@ -51,6 +53,9 @@ function deviation(factor: FactorId, value: number, usual: number): Direction | 
     case 'screenTime':
       // Buckets are saved as 1/3/5/7/9 h, so +2 is the next bucket up.
       return value >= usual + 2 ? 'high' : null;
+    case 'stress':
+      // 1 calm … 4 very stressful: a step above usual, and at least "stressful".
+      return value >= usual + 1 && value >= STRESSFUL_LEVEL ? 'high' : null;
     case 'activity':
       if (value >= usual + 3) return 'high';
       if (value <= usual - 3) return 'low';
@@ -72,6 +77,7 @@ const FACTORS: FactorId[] = [
   'morningStiffness',
   'eveningPain',
   'screenTime',
+  'stress',
   'activity',
   'steps',
   'trained',
@@ -86,6 +92,7 @@ export type DetectiveCheckin = Pick<
   | 'sleep_hours'
   | 'sleep_quality'
   | 'screen_time_hours'
+  | 'stress_level'
   | 'activity_level'
   | 'steps'
   | 'created_at'
@@ -118,12 +125,7 @@ function dayBefore(date: string): string {
 // morning's stiffness, and the previous day (evening pain, screen time,
 // activity, steps, training). For a flare-up, `flareAt` keeps answers given
 // AFTER it (and so possibly caused by it) out.
-function leadUpValues(
-  day: string,
-  index: DayIndex,
-  trainedDays: Set<string> | null,
-  flareAt?: Date,
-): FactorValues {
+function leadUpValues(day: string, index: DayIndex, trainedDays: Set<string> | null, flareAt?: Date): FactorValues {
   const values: FactorValues = {};
   const previous = dayBefore(day);
 
@@ -142,6 +144,7 @@ function leadUpValues(
   if (evening) {
     values.eveningPain = evening.pain_level;
     if (evening.screen_time_hours != null) values.screenTime = evening.screen_time_hours;
+    if (evening.stress_level != null) values.stress = evening.stress_level;
     if (evening.activity_level != null) values.activity = evening.activity_level;
     if (evening.steps != null) values.steps = evening.steps;
   }
@@ -314,7 +317,9 @@ export function analyzeFlareUps(input: DetectiveInput): FlareDetective {
     }).length;
     if (total < MIN_FLARES_FOR_PATTERNS) continue;
     for (const direction of ['low', 'high'] as const) {
-      const hits = leadUps.filter((l) => l.deviations.some((d) => d.factor === factor && d.direction === direction)).length;
+      const hits = leadUps.filter((l) =>
+        l.deviations.some((d) => d.factor === factor && d.direction === direction),
+      ).length;
       const ordinaryRate = baseline.ordinaryRate[`${factor}:${direction}`] ?? 0;
       const share = hits / total;
       if (hits >= MIN_PATTERN_HITS && share >= MIN_PATTERN_SHARE && share - ordinaryRate >= MIN_PATTERN_LIFT) {
@@ -344,9 +349,7 @@ export function analyzeFlareUps(input: DetectiveInput): FlareDetective {
   const [topSlot, topCount] = [...timeCounts.entries()].sort((a, b) => b[1] - a[1])[0];
   const timeOfDay = topCount / flares.length >= MIN_PATTERN_SHARE && topCount >= MIN_PATTERN_HITS ? topSlot : null;
 
-  const durations = flares
-    .map((f) => f.resolved_duration_minutes)
-    .filter((m): m is number => m != null && m > 0);
+  const durations = flares.map((f) => f.resolved_duration_minutes).filter((m): m is number => m != null && m > 0);
   const avgDurationMinutes = durations.length >= 2 ? mean(durations) : null;
 
   return {

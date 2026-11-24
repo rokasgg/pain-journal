@@ -1,6 +1,8 @@
 import Anthropic from "npm:@anthropic-ai/sdk@^0.68";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import { ABOUT_PROFILE_COLUMNS, ABOUT_PROMPT, buildAbout, TODAYS_STRESS_SELECT } from "../_shared/about.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -9,7 +11,7 @@ const corsHeaders = {
 const CHAT_SYSTEM_PROMPT = `You are the assistant inside a pain-journal app. The user asks about their own pain data; answer from that data only.
 
 You will receive JSON with:
-- "injury": the user's self-reported injury context (may be null).
+- "about": background on the user (see below).
 - "period_days": how many days back the data covers.
 - "checkins": twice-daily entries (morning/evening) with pain_level, stiffness_level, range_of_motion, sleep fields (morning only), activity/exercise fields (evening only), symptoms, triggers, notes.
 - "flareUps": ad-hoc pain-spike events.
@@ -25,7 +27,9 @@ Reply by filling the JSON schema. Choose "kind":
    - "comparison": the stat that best backs your answer ("sleep_vs_morning_pain", "morning_vs_evening", "training_vs_rest", "activity_vs_next_morning_pain"), only if it is present in "stats" and relevant; otherwise "none".
    - "caveat": one sentence on what the data can't show (correlation isn't cause; suggest discussing it with their physio). May be empty.
    - "follow_ups": 0-2 short natural follow-up questions the user could ask next that this data can answer.
-   If the data is too sparse or noisy, say so plainly in "body" instead of speculating.`;
+   If the data is too sparse or noisy, say so plainly in "body" instead of speculating.
+
+${ABOUT_PROMPT}`;
 
 const REPLY_SCHEMA = {
   type: "object",
@@ -128,7 +132,7 @@ Deno.serve(async (req: Request) => {
     supabase
       .from("checkins")
       .select(
-        "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, sleep_positions, activity_level, screen_time_hours, did_exercises, exercise_types, exercise_hours, exercise_intensity, steps, health_workouts, symptoms, triggers, notes",
+        `type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, sleep_positions, activity_level, screen_time_hours, ${TODAYS_STRESS_SELECT}, did_exercises, exercise_types, exercise_hours, exercise_intensity, steps, health_workouts, symptoms, triggers, notes`,
       )
       .gte("checkin_date", sinceDate)
       .order("checkin_date"),
@@ -139,7 +143,7 @@ Deno.serve(async (req: Request) => {
       .order("occurred_at"),
     supabase
       .from("profiles")
-      .select("injury_started_on, injury_description")
+      .select(ABOUT_PROFILE_COLUMNS)
       .eq("id", user.id)
       .single(),
   ]);
@@ -172,7 +176,7 @@ Deno.serve(async (req: Request) => {
         effort: "medium",
         format: { type: "json_schema", schema: REPLY_SCHEMA },
       },
-      system: `${CHAT_SYSTEM_PROMPT}\n\nUser's data as JSON:\n${JSON.stringify({ injury: profile ?? null, period_days: periodDays, entry_count: entryCount, checkins, flareUps, stats })}\n\nWrite every string value in ${LANGUAGE_NAMES[locale]}.`,
+      system: `${CHAT_SYSTEM_PROMPT}\n\nUser's data as JSON:\n${JSON.stringify({ about: buildAbout(profile as Record<string, unknown> | null), period_days: periodDays, entry_count: entryCount, checkins, flareUps, stats })}\n\nWrite every string value in ${LANGUAGE_NAMES[locale]}.`,
       messages,
     });
   } catch (apiError) {

@@ -1,6 +1,8 @@
 import Anthropic from "npm:@anthropic-ai/sdk@^0.68";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import { ABOUT_PROFILE_COLUMNS, ABOUT_PROMPT, buildAbout, TODAYS_STRESS_SELECT } from "../_shared/about.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -11,7 +13,7 @@ const REPORT_WINDOW_DAYS = 30;
 const SYSTEM_PROMPT = `You are writing a clinical handoff summary of a patient's self-reported neck/back pain journal, to be read by their physiotherapist before or during an appointment. The clinician should be able to skim it in under 15 seconds and get an accurate, concrete picture of the last ${REPORT_WINDOW_DAYS} days.
 
 You will receive JSON with:
-- "injury": the patient's self-reported injury context, if any (injury_started_on, injury_description — may mention specific levels/areas, e.g. cervical disc levels). May be null if not filled in. Mention it only if it changes how the clinician should read the rest of the summary.
+- "about": background on the patient (see below). Mention it only if it changes how the clinician should read the rest of the summary.
 - "checkins": twice-daily entries (morning/evening) with pain_level, stiffness_level, range_of_motion, sleep fields (morning only), activity/exercise fields including exercise_hours and exercise_intensity (evening only), symptoms, triggers, notes.
 - "flareUps": ad-hoc pain-spike events with pain_level, likely_cause, description, occurred_at.
 
@@ -21,7 +23,9 @@ WHAT CHANGED — 2-3 sentences: the pain/stiffness/range-of-motion trend across 
 
 WHAT TO MENTION TO THE PHYSIO — a bullet list, max 4-5 bullets, each one short line. Merge flare-ups and trigger patterns into one practical list (e.g. "3 flare-ups in 2 weeks, all on the right side", "Correlates with poor sleep — 2 of 3 cases"). Each flare-up has a "status" ("resolved"/"ongoing"/"unknown") and, when resolved, "resolved_duration_minutes". When multiple flare-ups have a known duration, report the average duration alongside frequency (e.g. "3 flare-ups in 2 weeks, avg 1.5 days") instead of frequency alone — convert minutes to hours/days for readability. Only include a bullet if the data actually supports it — fewer, sharper bullets beat padding to reach 5.
 
-Hard limits: each section is at most 3 sentences or 5 bullets, whichever applies. Be concrete and terse — no throat-clearing, no restating the same point twice, no generic filler phrases ("it is important to note that", "overall it seems", etc). Only report patterns clearly supported by the data — do not invent correlations from too few data points. End with one plain sentence stating this is patient-reported data, not a diagnosis.`;
+Hard limits: each section is at most 3 sentences or 5 bullets, whichever applies. Be concrete and terse — no throat-clearing, no restating the same point twice, no generic filler phrases ("it is important to note that", "overall it seems", etc). Only report patterns clearly supported by the data — do not invent correlations from too few data points. End with one plain sentence stating this is patient-reported data, not a diagnosis.
+
+${ABOUT_PROMPT}`;
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English",
@@ -79,7 +83,7 @@ Deno.serve(async (req: Request) => {
     supabase
       .from("checkins")
       .select(
-        "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, sleep_positions, activity_level, screen_time_hours, did_exercises, exercise_types, exercise_hours, exercise_intensity, steps, health_workouts, symptoms, triggers, notes",
+        `type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, sleep_positions, activity_level, screen_time_hours, ${TODAYS_STRESS_SELECT}, did_exercises, exercise_types, exercise_hours, exercise_intensity, steps, health_workouts, symptoms, triggers, notes`,
       )
       .gte("checkin_date", sinceDate)
       .order("checkin_date"),
@@ -90,7 +94,7 @@ Deno.serve(async (req: Request) => {
       .order("occurred_at"),
     supabase
       .from("profiles")
-      .select("injury_started_on, injury_description")
+      .select(ABOUT_PROFILE_COLUMNS)
       .eq("id", user.id)
       .single(),
   ]);
@@ -122,7 +126,7 @@ Deno.serve(async (req: Request) => {
     max_tokens: 900,
     output_config: { effort: "low" },
     system: `${SYSTEM_PROMPT}\n\nRespond in ${LANGUAGE_NAMES[locale]}.`,
-    messages: [{ role: "user", content: JSON.stringify({ injury: profile ?? null, checkins, flareUps }) }],
+    messages: [{ role: "user", content: JSON.stringify({ about: buildAbout(profile as Record<string, unknown> | null), checkins, flareUps }) }],
   });
 
   if (response.stop_reason === "refusal") {

@@ -3,14 +3,18 @@ import { format, parseISO } from 'date-fns';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 
+import { MultiSelectChips } from '@/components/onboarding/MultiSelectChips';
+import { SingleSelectList } from '@/components/onboarding/SingleSelectList';
 import { SettingsDateRow } from '@/components/settings/SettingsDateRow';
+import { SettingsFieldRow } from '@/components/settings/SettingsFieldRow';
 import { SettingsSection } from '@/components/settings/SettingsSection';
 import { SettingsTextArea } from '@/components/settings/SettingsTextArea';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { currentDateFnsLocale, daysSince } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
-import type { Profile, ProfileUpdate } from '@/types/database.types';
+import { DIAGNOSED_BY_OPTIONS, DIAGNOSIS_STATUS_OPTIONS } from '@/constants/onboarding';
+import type { DiagnosedBy, DiagnosisStatus, Profile, ProfileUpdate } from '@/types/database.types';
 import { toast } from '@/utils/toast';
 import { useKeepFocusedInputVisible } from '@/hooks/useKeepFocusedInputVisible';
 
@@ -42,11 +46,116 @@ function HealingHero({ healingStartedOn }: { healingStartedOn: string }) {
   );
 }
 
+// A text field that saves on blur and when the page closes, only if changed.
+function useBlurSavedText(initial: string | null | undefined, onSave: (value: string | null) => void) {
+  const [value, setState] = useState(initial ?? '');
+  const savedRef = useRef(initial ?? '');
+  const valueRef = useRef(value);
+  const setValue = (next: string) => {
+    valueRef.current = next;
+    setState(next);
+  };
+  const flush = () => {
+    if (valueRef.current === savedRef.current) return;
+    savedRef.current = valueRef.current;
+    onSave(valueRef.current.trim() || null);
+  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => () => flush(), []);
+  return { value, setValue, flush };
+}
+
+// The professional's diagnosis, recorded exactly as the user was told it.
+// Same columns as onboarding's diagnosis step; the app never suggests one.
+function DiagnosisCard({
+  profile,
+  save,
+}: {
+  profile: Profile | null;
+  save: (updates: ProfileUpdate) => Promise<boolean>;
+}) {
+  const { t } = useTranslation();
+  const [status, setStatus] = useState<DiagnosisStatus | null>(profile?.diagnosis_status ?? null);
+  const [diagnosedBy, setDiagnosedBy] = useState<DiagnosedBy | null>(profile?.diagnosed_by ?? null);
+  const [diagnosedOn, setDiagnosedOn] = useState<string | null>(profile?.diagnosed_on ?? null);
+  const text = useBlurSavedText(profile?.diagnosis_text, (value) => void save({ diagnosis_text: value }));
+  const notes = useBlurSavedText(profile?.diagnosis_notes, (value) => void save({ diagnosis_notes: value }));
+
+  return (
+    <SettingsSection title={t('injuryInfo.diagnosisTitle')} footer={t('onboarding.diagnosisHint')} bare>
+      <SingleSelectList
+        options={DIAGNOSIS_STATUS_OPTIONS}
+        value={status}
+        onChange={(value) => {
+          setStatus(value);
+          void save({
+            diagnosis_status: value,
+            // Answering "yes" here also answers the Home care step.
+            ...(value === 'yes' && profile?.care_status !== 'with_professional'
+              ? { care_status: 'with_professional' as const, care_status_answered_at: new Date().toISOString() }
+              : {}),
+          });
+        }}
+      />
+      {status === 'yes' && (
+        <View className="gap-4">
+          <View className="overflow-hidden rounded-[18px] bg-surface dark:bg-surfaceDark">
+            <SettingsFieldRow
+              label={t('injuryInfo.diagnosisName')}
+              value={text.value}
+              onChangeText={text.setValue}
+              onBlur={text.flush}
+              placeholder={t('onboarding.diagnosisTextPlaceholder')}
+              maxLength={200}
+            />
+            <SettingsDateRow
+              icon="calendar-outline"
+              title={t('injuryInfo.diagnosedOn')}
+              accessibilityName={t('injuryInfo.diagnosedOn')}
+              value={diagnosedOn}
+              placeholder={t('injuryInfo.setDate')}
+              maximumDate={new Date()}
+              onChange={(date) => {
+                setDiagnosedOn(date);
+                void save({ diagnosed_on: date });
+              }}
+              isLast
+            />
+          </View>
+          <View className="gap-2">
+            <Text className="px-1 text-[13px] font-semibold uppercase tracking-wide text-inkSecondary dark:text-gray">
+              {t('onboarding.diagnosedByQuestion')}
+            </Text>
+            <MultiSelectChips
+              options={DIAGNOSED_BY_OPTIONS}
+              value={diagnosedBy ? [diagnosedBy] : []}
+              onChange={(values) => {
+                const next = (values.at(-1) as DiagnosedBy | undefined) ?? null;
+                setDiagnosedBy(next);
+                void save({ diagnosed_by: next });
+              }}
+            />
+          </View>
+          <SettingsTextArea
+            value={notes.value}
+            onChangeText={notes.setValue}
+            onBlur={notes.flush}
+            placeholder={t('onboarding.diagnosisNotesPlaceholder')}
+            maxLength={DESCRIPTION_MAX_LENGTH}
+          />
+        </View>
+      )}
+    </SettingsSection>
+  );
+}
+
 // Keyed by profile id from the parent so it mounts with the loaded values.
 function InjuryInfoForm({ profile }: { profile: Profile | null }) {
   const { t } = useTranslation();
   const updateProfile = useUpdateProfile();
   const [injuryStartedOn, setInjuryStartedOn] = useState<string | null>(profile?.injury_started_on ?? null);
+  // From a rough onboarding period ("a month ago"): shown as "about".
+  const [startApprox, setStartApprox] = useState(profile?.injury_started_approx ?? false);
   const [healingStartedOn, setHealingStartedOn] = useState<string | null>(profile?.healing_started_on ?? null);
   const [description, setDescription] = useState(profile?.injury_description ?? '');
   const savedDescriptionRef = useRef(profile?.injury_description ?? '');
@@ -88,7 +197,7 @@ function InjuryInfoForm({ profile }: { profile: Profile | null }) {
       <SettingsSection title={t('injuryInfo.datesTitle')} footer={t('injuryInfo.healingHint')}>
         <SettingsDateRow
           icon="flash-outline"
-          title={t('injuryInfo.injuryHappened')}
+          title={t(startApprox ? 'injuryInfo.injuryHappenedApprox' : 'injuryInfo.injuryHappened')}
           accessibilityName={t('injuryInfo.injuryDateA11y')}
           iconTileClassName="bg-red-100 dark:bg-red-950"
           iconColor="#dc2626"
@@ -97,12 +206,13 @@ function InjuryInfoForm({ profile }: { profile: Profile | null }) {
           maximumDate={today}
           onChange={(date) => {
             setInjuryStartedOn(date);
+            setStartApprox(false);
             // Moving the injury past the healing start invalidates it ("yyyy-MM-dd" compares lexically).
             if (healingStartedOn && date > healingStartedOn) {
               setHealingStartedOn(null);
-              void save({ injury_started_on: date, healing_started_on: null });
+              void save({ injury_started_on: date, injury_started_approx: false, healing_started_on: null });
             } else {
-              void save({ injury_started_on: date });
+              void save({ injury_started_on: date, injury_started_approx: false });
             }
           }}
         />
@@ -120,6 +230,8 @@ function InjuryInfoForm({ profile }: { profile: Profile | null }) {
           }}
         />
       </SettingsSection>
+
+      <DiagnosisCard profile={profile} save={save} />
 
       <SettingsSection title={t('injuryInfo.whatHappenedTitle')} bare>
         <SettingsTextArea

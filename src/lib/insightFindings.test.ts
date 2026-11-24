@@ -1,4 +1,14 @@
-import { findingsWindow, isPoorNight, morningVsEvening, sleepVsMorningPain, stepsVsNextMorningPain } from '@/lib/insightFindings';
+import { addDays, format, parseISO } from 'date-fns';
+
+import {
+  findingsWindow,
+  isPoorNight,
+  morningVsEvening,
+  progressSinceStart,
+  sleepVsMorningPain,
+  stepsVsNextMorningPain,
+  stressVsEveningPain,
+} from '@/lib/insightFindings';
 import type { Checkin } from '@/types/database.types';
 
 const TODAY = '2026-10-27';
@@ -37,7 +47,10 @@ describe('morningVsEvening', () => {
   });
 
   it('flips when evenings hurt more', () => {
-    const flipped = week.map((x) => ({ ...x, type: x.type === 'morning' ? ('evening' as const) : ('morning' as const) }));
+    const flipped = week.map((x) => ({
+      ...x,
+      type: x.type === 'morning' ? ('evening' as const) : ('morning' as const),
+    }));
     expect(morningVsEvening(flipped, TODAY)).toMatchObject({ direction: 'eveningHigher' });
   });
 
@@ -165,5 +178,76 @@ describe('stepsVsNextMorningPain', () => {
       ...day('2026-10-20', 12000, '2026-10-21', 5),
     ];
     expect(stepsVsNextMorningPain(data, TODAY)).toMatchObject({ status: 'ready', direction: 'similar' });
+  });
+});
+
+describe('stressVsEveningPain', () => {
+  const evening = (checkin_date: string, stress_level: number | null, pain_level: number) => ({
+    checkin_date,
+    type: 'evening' as const,
+    pain_level,
+    stress_level,
+  });
+
+  it('needs three stressful and three calm evenings', () => {
+    const rows = [evening('2026-11-01', 4, 6), evening('2026-11-02', 1, 2), evening('2026-11-03', null, 9)];
+    expect(stressVsEveningPain(rows, '2026-11-10')).toEqual({ status: 'notEnough', needed: 4 });
+  });
+
+  it('compares pain on stressful and calm evenings', () => {
+    const rows = [
+      evening('2026-11-01', 4, 6),
+      evening('2026-11-02', 3, 5),
+      evening('2026-11-03', 3, 7),
+      evening('2026-11-04', 1, 2),
+      evening('2026-11-05', 2, 3),
+      evening('2026-11-06', 2, 1),
+    ];
+    expect(stressVsEveningPain(rows, '2026-11-10')).toMatchObject({
+      status: 'ready',
+      stressful: 6,
+      calm: 2,
+      direction: 'higher',
+      entries: 6,
+    });
+  });
+});
+
+describe('progressSinceStart', () => {
+  // `count` consecutive logged days from 1 Sep, pain stepping from `from` to `to`.
+  const days = (count: number, painAt: (i: number) => number) =>
+    Array.from({ length: count }, (_, i) => ({
+      checkin_date: format(addDays(parseISO('2026-09-01'), i), 'yyyy-MM-dd'),
+      pain_level: painAt(i),
+      stiffness_level: null,
+      range_of_motion: null,
+    }));
+
+  it('waits for 21 logged days', () => {
+    expect(progressSinceStart(days(20, () => 5))).toEqual({ status: 'notEnough', needed: 1 });
+  });
+
+  it('uses 7-day windows between 21 and 27 days, so they never overlap', () => {
+    // Pain 6 for the first 7 days, 3 for the last 7, and 9 in between: a
+    // window that reached into the middle would change the result.
+    const at = (count: number) => (i: number) => (i < 7 ? 6 : i >= count - 7 ? 3 : 9);
+    for (const count of [21, 27]) {
+      expect(progressSinceStart(days(count, at(count)))).toMatchObject({
+        status: 'ready',
+        windowDays: 7,
+        pain: { start: 6, now: 3 },
+        direction: 'better',
+      });
+    }
+  });
+
+  it('uses 14-day windows from 28 days', () => {
+    const result = progressSinceStart(days(28, (i) => (i < 14 ? 4 : 6)));
+    expect(result).toMatchObject({ status: 'ready', windowDays: 14, pain: { start: 4, now: 6 }, direction: 'worse' });
+  });
+
+  it('calls a small change steady and leaves out metrics with too few answers', () => {
+    const result = progressSinceStart(days(30, () => 5));
+    expect(result).toMatchObject({ direction: 'steady', stiffness: null, rangeOfMotion: null });
   });
 });

@@ -3,10 +3,18 @@ import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
 import { useExperimentResults } from '@/hooks/useExperiments';
 import { useFlareDetective } from '@/hooks/useFlareDetective';
 import { useJourney } from '@/hooks/useJourney';
+import { useProfile } from '@/hooks/useProfile';
 
 import { isFinished } from '@/lib/experimentResult';
 import { buildFindings } from '@/lib/findings';
-import { morningVsEvening, sleepVsMorningPain, stepsVsNextMorningPain } from '@/lib/insightFindings';
+import {
+  morningVsEvening,
+  progressSinceStart,
+  sleepVsMorningPain,
+  stepsVsNextMorningPain,
+  stressVsEveningPain,
+} from '@/lib/insightFindings';
+import { purposeOf, wantsRecovery } from '@/lib/profileAnswers';
 import { trainingReliefSummary, trainingVsRestNextDayPain } from '@/lib/trainingInsights';
 import { useHealthStore } from '@/store/useHealthStore';
 import { useToday } from '@/store/useTodayStore';
@@ -25,6 +33,7 @@ export function useFindings() {
   const { trainingEnabled } = useJourney();
   const { logs } = useExerciseLogHistory(TRAINING_LOOKBACK_DAYS);
   const healthConnected = useHealthStore((s) => s.enabled);
+  const { profile } = useProfile();
   const today = useToday();
 
   // No manual memo: resultFor also depends on the daily experiment answers,
@@ -45,6 +54,10 @@ export function useFindings() {
     sleep: sleepVsMorningPain(checkins, today, FINDINGS_DAYS),
     steps: healthConnected ? stepsVsNextMorningPain(checkins, today) : null,
     slots: morningVsEvening(checkins, today, FINDINGS_DAYS),
+    stress: stressVsEveningPain(checkins, today, FINDINGS_DAYS),
+    // Over the 365-day history cache: "since you started" within the last year.
+    progress: progressSinceStart(checkins),
+    progressFirst: wantsRecovery(purposeOf(profile?.primary_goal)),
   });
 
   return {

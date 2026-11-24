@@ -1,4 +1,4 @@
-import { SCREEN_TIME_BUCKETS, screenTimeBucketId } from '@/lib/checkinChoices';
+import { SCREEN_TIME_BUCKETS, screenTimeBucketId, STRESS_LEVELS } from '@/lib/checkinChoices';
 import { formatOneDecimal } from '@/lib/dates';
 import type { Deviation, Direction, FactorId } from '@/lib/flareDetective';
 import { formatDuration } from '@/lib/sleep';
@@ -28,10 +28,17 @@ export function formatFactorValue(factor: FactorId, value: number, t: Translate,
     case 'morningStiffness':
     case 'eveningPain':
     case 'activity':
-      return t('insights.flares.outOfTen', { value: Number.isInteger(value) ? value : formatOneDecimal(value, locale) });
+      return t('insights.flares.outOfTen', {
+        value: Number.isInteger(value) ? value : formatOneDecimal(value, locale),
+      });
     case 'screenTime': {
       const bucket = SCREEN_TIME_BUCKETS.find((b) => b.id === screenTimeBucketId(value));
       return bucket ? t(bucket.labelKey) : String(value);
+    }
+    case 'stress': {
+      // Usual values are medians: round to the nearest level.
+      const level = STRESS_LEVELS.find((l) => l.value === Math.round(value));
+      return level ? t(level.labelKey) : String(value);
     }
     case 'steps':
       return t('insights.flares.steps', {

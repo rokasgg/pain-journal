@@ -1,6 +1,8 @@
 import Anthropic from "npm:@anthropic-ai/sdk@^0.68";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+import { ABOUT_PROFILE_COLUMNS, ABOUT_PROMPT, buildAbout, TODAYS_STRESS_SELECT } from "../_shared/about.ts";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -9,13 +11,15 @@ const corsHeaders = {
 const SYSTEM_PROMPT = `You are analyzing a personal neck/back pain journal for patterns the user may not notice by eyeballing a chart.
 
 You will receive JSON with:
-- "injury": the user's self-reported injury context, if any (injury_started_on, injury_description — may mention specific levels/areas, e.g. cervical disc levels). Use this as background to interpret the data, e.g. relate symptoms/triggers back to the described injury area when relevant. It may be null if the user hasn't filled it in.
+- "about": background on the user (see below). Use it to interpret the data, e.g. relate symptoms/triggers back to the injury area, or check the user's hunches against their entries.
 - "checkins": twice-daily entries (morning/evening) with pain_level, stiffness_level, range_of_motion, sleep fields (morning only), activity/exercise fields including exercise_hours and exercise_intensity (evening only), symptoms, triggers, notes.
 - "flareUps": ad-hoc pain-spike events with pain_level, likely_cause, description, occurred_at.
 
 Find concrete, evidence-based correlations — e.g. "pain is consistently higher the morning after >6hrs of screen time," "flare-ups cluster on days logged with poor sleep or a specific trigger," "sleeping on the stomach precedes higher morning stiffness." Only report patterns actually supported by the data provided — do not invent correlations from too few data points, and say so if the data is too sparse or noisy to conclude anything.
 
-Respond in plain text with a short bulleted list (max 6 bullets), each bullet one or two sentences. No preamble, no markdown headers.`;
+Respond in plain text with a short bulleted list (max 6 bullets), each bullet one or two sentences. No preamble, no markdown headers.
+
+${ABOUT_PROMPT}`;
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: "English",
@@ -73,7 +77,7 @@ Deno.serve(async (req: Request) => {
     supabase
       .from("checkins")
       .select(
-        "type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, sleep_positions, activity_level, screen_time_hours, did_exercises, exercise_types, exercise_hours, exercise_intensity, steps, health_workouts, symptoms, triggers, notes",
+        `type, checkin_date, pain_level, stiffness_level, range_of_motion, sleep_quality, sleep_hours, woke_up_with_pain, sleep_position, sleep_positions, activity_level, screen_time_hours, ${TODAYS_STRESS_SELECT}, did_exercises, exercise_types, exercise_hours, exercise_intensity, steps, health_workouts, symptoms, triggers, notes`,
       )
       .gte("checkin_date", sinceDate)
       .order("checkin_date"),
@@ -84,7 +88,7 @@ Deno.serve(async (req: Request) => {
       .order("occurred_at"),
     supabase
       .from("profiles")
-      .select("injury_started_on, injury_description")
+      .select(ABOUT_PROFILE_COLUMNS)
       .eq("id", user.id)
       .single(),
   ]);
@@ -116,7 +120,7 @@ Deno.serve(async (req: Request) => {
     max_tokens: 1024,
     output_config: { effort: "medium" },
     system: `${SYSTEM_PROMPT}\n\nRespond in ${LANGUAGE_NAMES[locale]}.`,
-    messages: [{ role: "user", content: JSON.stringify({ injury: profile ?? null, checkins, flareUps }) }],
+    messages: [{ role: "user", content: JSON.stringify({ about: buildAbout(profile as Record<string, unknown> | null), checkins, flareUps }) }],
   });
 
   if (response.stop_reason === "refusal") {

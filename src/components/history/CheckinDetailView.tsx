@@ -5,7 +5,7 @@ import { Dimensions, Modal, Pressable, Text, View } from 'react-native';
 
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { PAIN_AREA_LABEL_KEYS, TRIGGER_LABEL_KEYS } from '@/constants/symptoms';
-import { EXERCISE_TYPE_LABEL_KEYS } from '@/lib/checkinChoices';
+import { EXERCISE_TYPE_LABEL_KEYS, STRESS_LEVELS } from '@/lib/checkinChoices';
 import { useDeleteCheckin } from '@/hooks/useCheckins';
 import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -92,9 +92,7 @@ export function CheckinDetailView({ checkin, showDate = true, onDeleted }: Check
     ...(checkin.symptoms.custom ?? []),
   ].filter(Boolean) as string[];
 
-  const painAreaLabels = (checkin.symptoms.pain_areas ?? []).map(
-    (area) => t(PAIN_AREA_LABEL_KEYS[area] ?? area),
-  );
+  const painAreaLabels = (checkin.symptoms.pain_areas ?? []).map((area) => t(PAIN_AREA_LABEL_KEYS[area] ?? area));
 
   return (
     <View className="gap-4">
@@ -105,9 +103,7 @@ export function CheckinDetailView({ checkin, showDate = true, onDeleted }: Check
 
         <View className="flex-row items-center gap-3">
           {showDate && (
-            <Text className="text-sm text-strongGray dark:text-white">
-              {formatCheckinDate(checkin.checkin_date)}
-            </Text>
+            <Text className="text-sm text-strongGray dark:text-white">{formatCheckinDate(checkin.checkin_date)}</Text>
           )}
           <Pressable ref={menuButtonRef} onPress={openMenu} hitSlop={8} accessibilityRole="button">
             <Ionicons name="ellipsis-horizontal" size={20} color={colors.gray} />
@@ -115,12 +111,7 @@ export function CheckinDetailView({ checkin, showDate = true, onDeleted }: Check
         </View>
       </View>
 
-      <Modal
-        visible={isMenuOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsMenuOpen(false)}
-      >
+      <Modal visible={isMenuOpen} transparent animationType="fade" onRequestClose={() => setIsMenuOpen(false)}>
         <Pressable className="flex-1" onPress={() => setIsMenuOpen(false)}>
           {menuPosition && (
             <View
@@ -192,6 +183,12 @@ export function CheckinDetailView({ checkin, showDate = true, onDeleted }: Check
           <Section title={t('detail.lifestyleSection')}>
             <ScaleRow label={t('detail.activityLevel')} value={checkin.activity_level} />
             <DetailRow label={t('detail.screenTimeHours')} value={checkin.screen_time_hours} />
+            {checkin.stress_level != null && (
+              <DetailRow
+                label={t('detail.stress')}
+                value={t(STRESS_LEVELS.find((l) => l.value === checkin.stress_level)?.labelKey ?? '')}
+              />
+            )}
           </Section>
 
           <Section title={t('detail.exercisesSection')}>
@@ -223,9 +220,7 @@ export function CheckinDetailView({ checkin, showDate = true, onDeleted }: Check
 
       {symptomLabels.length > 0 && (
         <View className="gap-1 ml-4">
-          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">
-            {t('detail.symptoms')}
-          </Text>
+          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">{t('detail.symptoms')}</Text>
           <Text className="text-base text-strongGray dark:text-white">{symptomLabels.join(', ')}</Text>
           {checkin.symptoms.radiating_to && (
             <Text className="text-sm text-gray dark:text-gray">
@@ -237,18 +232,14 @@ export function CheckinDetailView({ checkin, showDate = true, onDeleted }: Check
 
       {painAreaLabels.length > 0 && (
         <View className="gap-1 ml-4">
-          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">
-            {t('detail.painAreas')}
-          </Text>
+          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">{t('detail.painAreas')}</Text>
           <Text className="text-base text-strongGray dark:text-white">{painAreaLabels.join(', ')}</Text>
         </View>
       )}
 
       {checkin.triggers.length > 0 && (
         <View className="gap-1 ml-4">
-          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">
-            {t('detail.triggers')}
-          </Text>
+          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">{t('detail.triggers')}</Text>
           <View className="flex-row flex-wrap gap-2 ">
             {checkin.triggers.map((trigger) => (
               <View key={trigger} className="rounded-full bg-amber-100 px-3 py-1 dark:bg-amber-900/30">
@@ -263,9 +254,7 @@ export function CheckinDetailView({ checkin, showDate = true, onDeleted }: Check
 
       {checkin.exercise_notes && (
         <View className="gap-1 ml-4">
-          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">
-            {t('detail.exerciseNotes')}
-          </Text>
+          <Text className="text-sm font-semibold uppercase text-gray dark:text-gray">{t('detail.exerciseNotes')}</Text>
           <Text className="text-base text-strongGray dark:text-white">{checkin.exercise_notes}</Text>
         </View>
       )}

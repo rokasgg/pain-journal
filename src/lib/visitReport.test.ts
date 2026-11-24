@@ -41,7 +41,12 @@ function checkin(
   };
 }
 
-function flareUp(occurred_at: string, pain_level: number, likely_cause: string | null, extra: Partial<ReportFlareUp> = {}): ReportFlareUp {
+function flareUp(
+  occurred_at: string,
+  pain_level: number,
+  likely_cause: string | null,
+  extra: Partial<ReportFlareUp> = {},
+): ReportFlareUp {
   return {
     id: occurred_at,
     occurred_at,
@@ -162,6 +167,62 @@ describe('buildVisitReportHtml with more history', () => {
   });
 });
 
+describe('buildVisitReportHtml diagnosis, about me and progress', () => {
+  const base = {
+    period: { from: '2026-10-13', to: TODAY, sinceLastVisit: true },
+    flareUps: [],
+    locale: 'en' as const,
+    t,
+  };
+
+  it('prints the diagnosis as recorded, escaped, with who and when', () => {
+    const html = buildVisitReportHtml({
+      ...base,
+      checkins: [],
+      diagnosis: { text: 'C5–C6 <protrusion>', by: 'physio', on: '2026-10-12', notes: 'No lifting' },
+    });
+    expect(html).toContain('visitReport.diagnosisByOn(onboarding.byphysio,12 Oct 2026)');
+    expect(html).toContain('C5–C6 &lt;protrusion&gt;');
+    expect(html).toContain('No lifting');
+  });
+
+  it('builds the About me line and skips "I don\'t know"', () => {
+    const html = buildVisitReportHtml({
+      ...base,
+      checkins: [],
+      aboutMe: {
+        workType: 'sitting',
+        workHours: '8_plus',
+        lifeStress: 'high',
+        suspectedTriggers: ['screens', 'dont_know'],
+      },
+    });
+    expect(html).toContain('onboarding.workSitting, onboarding.hours8plus');
+    expect(html).toContain('visitReport.usualStress(onboarding.stresshigh)');
+    expect(html).toContain('visitReport.thinksWorse(onboarding.hunchscreens)');
+    expect(html).not.toContain('hunchDontKnow');
+  });
+
+  it('leaves both out when nothing was answered', () => {
+    const html = buildVisitReportHtml({
+      ...base,
+      checkins: [],
+      diagnosis: null,
+      aboutMe: { workType: null, workHours: null, lifeStress: null, suspectedTriggers: [] },
+    });
+    expect(html).not.toContain('visitReport.diagnosis');
+    expect(html).not.toContain('visitReport.aboutMe');
+  });
+
+  it('adds "since you started" once there are 21 logged days', () => {
+    const checkins = Array.from({ length: 21 }, (_, i) =>
+      checkin(format(addDays(parseISO('2026-09-01'), i), 'yyyy-MM-dd'), 'evening', i < 7 ? 6 : 3),
+    );
+    expect(buildVisitReportHtml({ ...base, checkins })).toContain('visitReport.sinceStart(');
+    expect(buildVisitReportHtml({ ...base, checkins: checkins.slice(0, 20) })).not.toContain('visitReport.sinceStart(');
+  });
+});
+
 describe('painChartSvg', () => {
   it('breaks the line on days without a check-in and marks flare-ups', () => {
     const averages = new Map([
@@ -169,7 +230,10 @@ describe('painChartSvg', () => {
       ['2026-10-02', 5],
       ['2026-10-04', 3],
     ]);
-    const svg = painChartSvg(averages, { from: '2026-10-01', to: '2026-10-05' }, ['2026-10-02'], { from: 'a', to: 'b' });
+    const svg = painChartSvg(averages, { from: '2026-10-01', to: '2026-10-05' }, ['2026-10-02'], {
+      from: 'a',
+      to: 'b',
+    });
     expect(svg.match(/<polyline/g)).toHaveLength(1);
     expect(svg.match(/<circle/g)).toHaveLength(2); // the lone 4 Oct point + one flare-up
   });

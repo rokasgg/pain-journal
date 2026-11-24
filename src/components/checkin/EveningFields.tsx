@@ -9,6 +9,7 @@ import {
   EXERCISE_TYPE_LABEL_KEYS,
   EXERCISE_TYPE_OPTIONS,
   SCREEN_TIME_BUCKETS,
+  STRESS_LEVELS,
   screenTimeBucketId,
 } from '@/lib/checkinChoices';
 import type { CheckinSliderHints } from '@/lib/checkinHints';
@@ -130,6 +131,30 @@ export function EveningFields({
               </View>
             );
           }}
+        />
+      </View>
+
+      <View className="gap-3">
+        <SectionTitle title={t('checkin.stressQuestion')} info={t('checkin.stressInfo')} />
+        <Controller
+          control={control}
+          name="stress_level"
+          render={({ field: { value, onChange } }) => (
+            <View className="flex-row flex-wrap gap-2.5">
+              {STRESS_LEVELS.map((level) => (
+                <PillChip
+                  key={level.value}
+                  label={t(level.labelKey)}
+                  selected={value === level.value}
+                  showCheck
+                  onPress={() => {
+                    haptics.tick();
+                    onChange(value === level.value ? null : level.value);
+                  }}
+                />
+              ))}
+            </View>
+          )}
         />
       </View>
     </View>

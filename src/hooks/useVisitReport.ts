@@ -48,6 +48,23 @@ export function useVisitReport() {
         checkins,
         flareUps,
         injuryDescription: profile?.injury_description,
+        diagnosis:
+          profile?.diagnosis_status === 'yes' && profile.diagnosis_text
+            ? {
+                text: profile.diagnosis_text,
+                by: profile.diagnosed_by ?? null,
+                on: profile.diagnosed_on ?? null,
+                notes: profile.diagnosis_notes ?? null,
+              }
+            : null,
+        aboutMe: profile
+          ? {
+              workType: profile.work_type ?? null,
+              workHours: profile.work_hours ?? null,
+              lifeStress: profile.life_stress ?? null,
+              suspectedTriggers: profile.suspected_triggers ?? [],
+            }
+          : null,
         chatNotes,
         // The questions the user wrote down for the next visit and hasn't
         // discussed yet (the same ones physio-visit/new carries over).

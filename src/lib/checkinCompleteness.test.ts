@@ -44,6 +44,7 @@ describe('step 2 — at least one answer', () => {
     expect(issue({ ...evening, values: { ...empty, screen_time_hours: 3 } })).toBeNull();
     expect(issue({ ...evening, values: { ...empty, did_exercises: false } })).toBeNull();
     expect(issue({ ...evening, values: { ...empty, activity_level: 0 } })).toBeNull();
+    expect(issue({ ...evening, values: { ...empty, stress_level: 2 } })).toBeNull();
   });
 });
 

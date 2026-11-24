@@ -167,6 +167,12 @@ export default function SettingsScreen() {
             onPress={() => router.push('/settings/injury-info' as Href)}
           />
           <SettingsRow
+            icon="person-outline"
+            title={t('settings.aboutMe')}
+            subtitle={t('settings.aboutMeInfo')}
+            onPress={() => router.push('/settings/about-me' as Href)}
+          />
+          <SettingsRow
             icon="barbell-outline"
             title={t('journey.trainingSetting')}
             subtitle={t('journey.trainingSettingInfo')}

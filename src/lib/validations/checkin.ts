@@ -35,6 +35,7 @@ export type MorningCheckinFormData = z.infer<typeof morningCheckinSchema>;
 export const eveningCheckinSchema = sharedCheckinFields.extend({
   activity_level: level.nullable(),
   screen_time_hours: z.number().min(0).max(24).nullable(),
+  stress_level: z.number().int().min(1).max(4).nullable(),
   did_exercises: z.boolean().nullable(),
   exercise_types: z.array(z.string()),
   exercise_notes: z.string().nullable(),

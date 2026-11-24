@@ -30,6 +30,16 @@ export const SCREEN_TIME_BUCKETS = [
   { id: 'gte8', hours: 9, labelKey: 'checkin.screenBuckets.gte8' },
 ] as const;
 
+// Evening "How stressful was your day?" — checkins.stress_level (1–4).
+export const STRESS_LEVELS = [
+  { value: 1, labelKey: 'checkin.stressLevels.calm' },
+  { value: 2, labelKey: 'checkin.stressLevels.normal' },
+  { value: 3, labelKey: 'checkin.stressLevels.stressful' },
+  { value: 4, labelKey: 'checkin.stressLevels.veryStressful' },
+] as const;
+// From this level up a day counts as stressful (findings, flare-up detective).
+export const STRESSFUL_LEVEL = 3;
+
 export type ScreenTimeBucketId = (typeof SCREEN_TIME_BUCKETS)[number]['id'];
 
 export function screenTimeBucketId(hours: number | null | undefined): ScreenTimeBucketId | null {

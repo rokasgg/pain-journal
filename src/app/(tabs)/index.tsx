@@ -1,3 +1,4 @@
+import { AboutMeCard } from '@/components/home/AboutMeCard';
 import { CareStepCard } from '@/components/home/CareStepCard';
 import { CheckinStatusCard } from '@/components/home/CheckinStatusCard';
 import { CheckinWeekCard } from '@/components/home/CheckinWeekCard';
@@ -158,6 +159,7 @@ export default function HomeScreen() {
         </Link>
 
         <CareStepCard />
+        <AboutMeCard />
 
         <WrapReadyCard />
 

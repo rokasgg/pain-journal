@@ -18,6 +18,7 @@ export interface CheckinStepValues {
   sleep_positions?: string[];
   activity_level?: number | null;
   screen_time_hours?: number | null;
+  stress_level?: number | null;
   did_exercises?: boolean | null;
 }
 
@@ -45,7 +46,12 @@ function hasAnyStep2Answer(type: CheckinType, values: CheckinStepValues): boolea
   }
   // Evening notes live on step 3 now (with the symptoms), so they no longer
   // count here.
-  return values.activity_level != null || values.screen_time_hours != null || values.did_exercises != null;
+  return (
+    values.activity_level != null ||
+    values.screen_time_hours != null ||
+    values.stress_level != null ||
+    values.did_exercises != null
+  );
 }
 
 function hasAnySymptomAnswer(values: CheckinStepValues): boolean {
