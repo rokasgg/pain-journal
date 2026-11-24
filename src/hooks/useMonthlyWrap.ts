@@ -4,8 +4,9 @@ import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
 import { useFlareUps } from '@/hooks/useFlareUps';
 import { useRoutineHistory } from '@/hooks/useRoutines';
-import { todayLocalDate } from '@/lib/dates';
+
 import { buildMonthlyWrap, isWrapAvailable, recentCompletedMonths } from '@/lib/wrap';
+import { useToday } from '@/store/useTodayStore';
 
 // Same lookback as the History tab, so both share one cached query per table.
 const WRAP_LOOKBACK_DAYS = 365;
@@ -28,8 +29,9 @@ export function useMonthlyWrap(month: string | undefined) {
 // Completed months (newest first) with enough data for a Wrap.
 export function useAvailableWraps(): string[] {
   const { checkins } = useCheckinHistory(WRAP_LOOKBACK_DAYS);
+  const today = useToday();
   return useMemo(
-    () => recentCompletedMonths(todayLocalDate(), MAX_LISTED_WRAPS).filter((month) => isWrapAvailable(checkins, month)),
-    [checkins],
+    () => recentCompletedMonths(today, MAX_LISTED_WRAPS).filter((month) => isWrapAvailable(checkins, month)),
+    [checkins, today],
   );
 }

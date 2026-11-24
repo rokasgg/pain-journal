@@ -1,10 +1,15 @@
 import { useState } from 'react';
 
 import { useCheckinHistory } from '@/hooks/useCheckins';
+import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
+import { useExperimentResults } from '@/hooks/useExperiments';
 import { useFlareUps } from '@/hooks/useFlareUps';
+import { useJourney } from '@/hooks/useJourney';
 import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
 import { useProfile } from '@/hooks/useProfile';
-import { todayLocalDate } from '@/lib/dates';
+
+import { lastCountedDay } from '@/lib/experimentResult';
+import { experimentTitle, resultSummary } from '@/lib/experimentText';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { usePhysioNotesStore } from '@/store/usePhysioNotesStore';
 import { buildVisitReportHtml, visitReportPeriod } from '@/lib/visitReport';
@@ -20,9 +25,18 @@ export function useVisitReport() {
   const { flareUps } = useFlareUps(365);
   const { assessments } = usePhysioAssessments();
   const { profile } = useProfile();
+  const { trainingEnabled } = useJourney();
+  const { logs } = useExerciseLogHistory(365);
+  const { experiments, resultFor, today } = useExperimentResults();
   const chatNotes = usePhysioNotesStore((s) => s.notes);
   const [isPreparing, setIsPreparing] = useState(false);
-  const period = visitReportPeriod(assessments[0], todayLocalDate());
+  const period = visitReportPeriod(assessments[0], today);
+
+  // Experiments that overlapped the period and have a result to report.
+  const experimentItems = experiments
+    .filter((e) => e.started_on <= period.to && lastCountedDay(e, today) >= period.from)
+    .map((e) => ({ title: experimentTitle(e, t), summary: resultSummary(resultFor(e), t, locale) }))
+    .filter((e): e is { title: string; summary: string } => e.summary !== null);
 
   const share = async () => {
     if (isPreparing) return;
@@ -35,6 +49,11 @@ export function useVisitReport() {
         flareUps,
         injuryDescription: profile?.injury_description,
         chatNotes,
+        // The questions the user wrote down for the next visit and hasn't
+        // discussed yet (the same ones physio-visit/new carries over).
+        openQuestions: (assessments[0]?.questions ?? []).filter((q) => !q.discussed && !q.answer).map((q) => q.text),
+        exerciseLogs: trainingEnabled ? logs : null,
+        experiments: experimentItems,
         locale,
         t,
       });

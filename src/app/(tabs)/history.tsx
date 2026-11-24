@@ -13,7 +13,7 @@ import { IconSegmentedControl } from '@/components/ui/IconSegmentedControl';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useAvailableWraps } from '@/hooks/useMonthlyWrap';
 import { useFlareUps } from '@/hooks/useFlareUps';
-import { capitalize, currentDateFnsLocale, toLocalDate, todayLocalDate } from '@/lib/dates';
+import { capitalize, currentDateFnsLocale, toLocalDate } from '@/lib/dates';
 import { firstCheckinDate } from '@/lib/historyCalendar';
 import { buildCalendarMarkers } from '@/lib/historyEntries';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -27,6 +27,7 @@ import {
 import { colors } from '@/lib/theme';
 import { useHistoryViewStore } from '@/store/useHistoryViewStore';
 import { haptics } from '@/utils/haptics';
+import { useToday } from '@/store/useTodayStore';
 
 const CALENDAR_LOOKBACK_DAYS = 365;
 
@@ -35,7 +36,7 @@ export default function HistoryScreen() {
   const view = useHistoryViewStore((s) => s.view);
   const setView = useHistoryViewStore((s) => s.setView);
   const [range, setRange] = useState<TrendRange>('week');
-  const today = todayLocalDate();
+  const today = useToday();
   // Today is selected by default. Changing month keeps the selection only
   // if it's in the shown month; otherwise nothing is selected (and the day
   // section hides) until a day is tapped.
@@ -58,7 +59,7 @@ export default function HistoryScreen() {
   const { checkins: allCheckins } = useCheckinHistory(CALENDAR_LOOKBACK_DAYS);
   const { flareUps: allFlareUps } = useFlareUps(CALENDAR_LOOKBACK_DAYS);
 
-  const rangeStart = useMemo(() => rangeStartDate(range, todayLocalDate(), allCheckins), [range, allCheckins]);
+  const rangeStart = useMemo(() => rangeStartDate(range, today, allCheckins), [range, allCheckins, today]);
   const checkins = useMemo(
     () => allCheckins.filter((checkin) => checkin.checkin_date >= rangeStart),
     [allCheckins, rangeStart],
@@ -80,7 +81,7 @@ export default function HistoryScreen() {
   // (not percent — on a 0–10 scale 1 → 2 would read as "+100%"). Uses
   // allCheckins since the previous window sits outside the current range.
   const avgPainTrend = useMemo(() => {
-    const comparison = comparePeriods(allCheckins, range, todayLocalDate());
+    const comparison = comparePeriods(allCheckins, range, today);
     if (!comparison) return undefined;
     const delta = Math.abs(comparison.delta).toFixed(1);
     return {
@@ -88,7 +89,7 @@ export default function HistoryScreen() {
       label: t(range === 'week' ? 'history.trendVsPrevWeek' : 'history.trendVsPrevMonth', { delta }),
       isGood: comparison.delta < 0,
     };
-  }, [allCheckins, range, t]);
+  }, [allCheckins, range, t, today]);
 
   const painFree = useMemo(() => countPainFreeDays(checkins), [checkins]);
   const availableWraps = useAvailableWraps();

@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { CheckinSymptomsSection } from '@/components/checkin/CheckinSymptomsSection';
 import { EveningFields } from '@/components/checkin/EveningFields';
+import { ExperimentDayQuestion } from '@/components/checkin/ExperimentDayQuestion';
 import { FlareUpFollowUpStep } from '@/components/checkin/FlareUpFollowUpStep';
 import { MorningFields } from '@/components/checkin/MorningFields';
 import { RoutineTrainingStep } from '@/components/checkin/RoutineTrainingStep';
@@ -573,14 +574,17 @@ export function CheckinForm({
                 health={health}
               />
             ) : (
-              <EveningFields
-                control={control as Control<EveningCheckinFormData>}
-                hints={hints}
-                previousActivity={previousActivity}
-                healthActivity={healthActivity}
-                healthChipValues={healthChipValues}
-                onActivityTouched={() => setActivityTouched(true)}
-              />
+              <>
+                <EveningFields
+                  control={control as Control<EveningCheckinFormData>}
+                  hints={hints}
+                  previousActivity={previousActivity}
+                  healthActivity={healthActivity}
+                  healthChipValues={healthChipValues}
+                  onActivityTouched={() => setActivityTouched(true)}
+                />
+                <ExperimentDayQuestion date={checkinDate} />
+              </>
             )}
 
             {isQuickMode &&

@@ -4,11 +4,12 @@ import { Link, type Href } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { useAvailableWraps } from '@/hooks/useMonthlyWrap';
-import { currentDateFnsLocale, todayLocalDate } from '@/lib/dates';
+import { currentDateFnsLocale } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { recentCompletedMonths } from '@/lib/wrap';
 import { useWrapStore } from '@/store/useWrapStore';
+import { useToday } from '@/store/useTodayStore';
 
 // Shown only until last month's Wrap has been opened once — after that it's
 // reachable from History's "Monthly Wraps" row, so Home never stays cluttered.
@@ -16,8 +17,9 @@ export function WrapReadyCard() {
   const { t } = useTranslation();
   const availableWraps = useAvailableWraps();
   const seenMonths = useWrapStore((s) => s.seenMonths);
+  const today = useToday();
 
-  const lastMonth = recentCompletedMonths(todayLocalDate(), 1)[0];
+  const lastMonth = recentCompletedMonths(today, 1)[0];
   if (!availableWraps.includes(lastMonth) || seenMonths.includes(lastMonth)) return null;
 
   // 'MMMM' is the formatting (genitive) form — reads correctly in Lithuanian

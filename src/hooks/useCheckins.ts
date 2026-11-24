@@ -1,15 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { format, subDays } from 'date-fns';
+import { format, parseISO, subDays } from 'date-fns';
 
 import { useSession } from '@/hooks/useSession';
-import { todayLocalDate } from '@/lib/dates';
+
 import { t } from '@/lib/i18n/useTranslation';
 import { supabase } from '@/lib/supabase';
 import type { Checkin, CheckinInsert } from '@/types/database.types';
+import { useToday } from '@/store/useTodayStore';
 
 export function useTodayCheckins() {
   const { user } = useSession();
-  const date = todayLocalDate();
+  const date = useToday();
 
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', 'today', user?.id, date],
@@ -52,7 +53,8 @@ export function useCheckinsForDate(date: string) {
 
 export function useCheckinHistory(days = 30) {
   const { user } = useSession();
-  const since = format(subDays(new Date(), days), 'yyyy-MM-dd');
+  const today = useToday();
+  const since = format(subDays(parseISO(today), days), 'yyyy-MM-dd');
 
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', 'history', user?.id, days],

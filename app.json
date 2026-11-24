@@ -54,7 +54,7 @@
         "@kingstinct/react-native-healthkit",
         {
           "NSHealthShareUsageDescription": "Pain Journal reads your sleep, steps and workouts to fill in your check-ins and compare activity with your pain. It never writes to Health.",
-          "NSHealthUpdateUsageDescription": false,
+          "NSHealthUpdateUsageDescription": "Pain Journal only reads from Apple Health and never writes or changes your Health data.",
           "background": false
         }
       ],
@@ -62,7 +62,16 @@
         "expo-image-picker",
         {
           "photosPermission": "Pain Journal uses your photos to set your profile picture and to read exercise sheets from your physio.",
-          "cameraPermission": "Pain Journal uses the camera to photograph exercise sheets from your physio. Photos aren't saved."
+          "cameraPermission": "Pain Journal uses the camera to photograph exercise sheets from your physio. Photos aren't saved.",
+          "microphonePermission": false
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
         }
       ]
     ],

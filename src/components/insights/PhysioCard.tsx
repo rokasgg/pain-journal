@@ -8,13 +8,14 @@ import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { BOLD_MARK, TextWithBold } from '@/components/ui/TextWithBold';
 import { usePhysioAssessments, useUpdatePhysioAssessment } from '@/hooks/usePhysioAssessments';
 import { useVisitReport } from '@/hooks/useVisitReport';
-import { formatDayLabel, formatShortDayLabel, todayLocalDate } from '@/lib/dates';
+import { formatDayLabel, formatShortDayLabel } from '@/lib/dates';
 import { formatCount } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { overdueNextVisit } from '@/lib/physioVisits';
 import { colors } from '@/lib/theme';
 import type { PhysioAssessment } from '@/types/database.types';
 import { toast } from '@/utils/toast';
+import { useToday } from '@/store/useTodayStore';
 
 const PICKER_LOCALES = { en: 'en-GB', lt: 'lt-LT' } as const;
 
@@ -42,7 +43,7 @@ export function PhysioCard() {
   const updateAssessment = useUpdatePhysioAssessment();
   const report = useVisitReport();
   const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const today = todayLocalDate();
+  const today = useToday();
   const latest: PhysioAssessment | undefined = assessments[0];
   const overdue = overdueNextVisit(latest, today);
 

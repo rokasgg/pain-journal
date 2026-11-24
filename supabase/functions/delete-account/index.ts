@@ -21,6 +21,8 @@ const corsHeaders = {
 // Children before parents. muscle_findings go with physio_assessments
 // (assessment_id FK, on delete cascade).
 const USER_TABLES = [
+  "experiment_days",
+  "experiments",
   "exercise_logs",
   "routines",
   "physio_assessments",

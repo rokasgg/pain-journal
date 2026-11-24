@@ -146,6 +146,31 @@ export type FlareUpInsert = Omit<
 
 export type MuscleStatus = 'weak' | 'tight' | 'normal' | 'improving';
 
+// supabase_experiments_migration.sql — Insights → Experiments.
+export type ExperimentStatus = 'active' | 'done' | 'stopped';
+
+export interface Experiment {
+  id: string;
+  user_id: string;
+  // A template id from src/constants/experiments.ts, or 'custom'.
+  template: string;
+  custom_title: string | null;
+  started_on: string; // yyyy-MM-dd
+  length_days: number;
+  status: ExperimentStatus;
+  ended_on: string | null; // set when stopped early
+  created_at: string;
+}
+
+export interface ExperimentDay {
+  id: string;
+  experiment_id: string;
+  user_id: string;
+  date: string; // yyyy-MM-dd
+  followed: boolean;
+  created_at: string;
+}
+
 export interface PhysioQuestion {
   id: string;
   text: string;

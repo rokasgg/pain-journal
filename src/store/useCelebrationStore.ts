@@ -1,23 +1,24 @@
 import { create } from 'zustand';
 
-// When the watering drop lands on the oak (WateringCelebrationHost): the
-// oak's watered state (1.5 s, see OakTree) starts here, so the overlay stays
-// up until it has finished, plus a short beat.
-export const DROP_LAND_MS = 1350 * Math.sqrt(0.8);
-const OAK_WATERED_MS = 1500;
-const WATERING_DURATION_MS = Math.round(DROP_LAND_MS + OAK_WATERED_MS + 200);
+import type { CheckinCelebration } from '@/lib/checkinCelebration';
 
+// When the watering drop lands on the oak (WateringCelebrationHost). The
+// oak's watered state, the "droplets" haptic and the chime all start here.
+export const DROP_LAND_MS = 1350 * Math.sqrt(0.8);
+
+// The "check-in complete" screen. Plain non-persisted store (like
+// useOnboardingCompleteStore), so the check-in screen can hand over what was
+// earned and pop underneath it. It stays up until the user taps Continue.
 interface CelebrationState {
   visible: boolean;
-  show: () => void;
+  celebration: CheckinCelebration | null;
+  show: (celebration: CheckinCelebration) => void;
   hide: () => void;
 }
 
 export const useCelebrationStore = create<CelebrationState>((set) => ({
   visible: false,
-  show: () => {
-    set({ visible: true });
-    setTimeout(() => set({ visible: false }), WATERING_DURATION_MS);
-  },
+  celebration: null,
+  show: (celebration) => set({ visible: true, celebration }),
   hide: () => set({ visible: false }),
 }));

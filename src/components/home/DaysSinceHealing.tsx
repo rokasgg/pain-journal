@@ -13,7 +13,8 @@ import Animated, {
 import { OakTree } from '@/components/OakTree';
 import { useOakStage } from '@/hooks/useOakStage';
 import { useProfile } from '@/hooks/useProfile';
-import { daysSince } from '@/lib/dates';
+import { previewCelebration } from '@/lib/checkinCelebration';
+import { daysSince, todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { OAK_STAGE_NAME_KEYS } from '@/lib/oak';
 import { colors } from '@/lib/theme';
@@ -89,7 +90,7 @@ export function DaysSinceHealing() {
       <Pressable
         // Hidden dev affordance: preview the watering celebration without
         // completing a real check-in.
-        onLongPress={() => useCelebrationStore.getState().show()}
+        onLongPress={() => useCelebrationStore.getState().show(previewCelebration(todayLocalDate()))}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         className="min-h-11 justify-center active:opacity-70"

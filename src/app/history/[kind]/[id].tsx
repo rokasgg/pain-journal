@@ -3,6 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { CheckinDetailView } from '@/components/history/CheckinDetailView';
 import { FlareUpDetailView } from '@/components/history/FlareUpDetailView';
+import { FlareLeadUpCard } from '@/components/insights/FlareLeadUpCard';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useFlareUps } from '@/hooks/useFlareUps';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -40,6 +41,7 @@ export default function HistoryEntryDetailModal() {
       <ScrollView className="flex-1 bg-background dark:bg-backgroundDark" contentContainerClassName="gap-4 px-6 py-6">
         <EditLink href={{ pathname: '/flare-up/edit/[id]', params: { id: flareUp.id } }} />
         <FlareUpDetailView flareUp={flareUp} />
+        <FlareLeadUpCard flareUp={flareUp} />
       </ScrollView>
     );
   }

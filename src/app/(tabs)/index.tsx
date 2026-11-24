@@ -13,7 +13,7 @@ import { useJourney } from '@/hooks/useJourney';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
 import { isMorningOptionalToday } from '@/lib/checkinTiming';
-import { formatHeadingDate, todayLocalDate } from '@/lib/dates';
+import { formatHeadingDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { weeklyTrainingProgress } from '@/lib/trainingInsights';
@@ -27,6 +27,7 @@ import { Link, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useToday } from '@/store/useTodayStore';
 
 const POST_TRANSITION_DELAY_MS = 450;
 const WELCOME_OPEN_DELAY_MS = 300;
@@ -101,9 +102,10 @@ export default function HomeScreen() {
   const { logs: exerciseLogs } = useExerciseLogHistory(84);
   const updateProfile = useUpdateProfile();
   const weeklyGoal = profile?.weekly_training_goal ?? 3;
+  const today = useToday();
   const trainingProgress = useMemo(
-    () => weeklyTrainingProgress(exerciseLogs, weeklyGoal, todayLocalDate()),
-    [exerciseLogs, weeklyGoal],
+    () => weeklyTrainingProgress(exerciseLogs, weeklyGoal, today),
+    [exerciseLogs, weeklyGoal, today],
   );
   const handleChangeGoal = async (goal: number) => {
     const { error } = await updateProfile.mutateAsync({ weekly_training_goal: goal });

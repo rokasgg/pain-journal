@@ -5,6 +5,7 @@ import {
   formatMonthTitle,
   formatOneDecimal,
   formatShortDayLabel,
+  msUntilNextHour,
 } from '@/lib/dates';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
@@ -66,5 +67,21 @@ describe('formatOneDecimal', () => {
   it('uses the locale separator', () => {
     expect(formatOneDecimal(1.46, 'lt')).toBe('1,5');
     expect(formatOneDecimal(1.46, 'en')).toBe('1.5');
+  });
+});
+
+describe('msUntilNextHour', () => {
+  it('counts to just after the next local midnight', () => {
+    expect(msUntilNextHour(0, new Date(2026, 10, 23, 23, 59, 0))).toBe(61_000);
+    expect(msUntilNextHour(0, new Date(2026, 10, 23, 0, 0, 0))).toBe(1000);
+  });
+
+  it('uses today when the hour is still ahead, tomorrow when it has passed', () => {
+    expect(msUntilNextHour(16, new Date(2026, 10, 23, 15, 0, 0))).toBe(60 * 60 * 1000 + 1000);
+    expect(msUntilNextHour(16, new Date(2026, 10, 23, 17, 0, 0))).toBe(23 * 60 * 60 * 1000 + 1000);
+  });
+
+  it('rolls over month ends', () => {
+    expect(msUntilNextHour(0, new Date(2026, 10, 30, 23, 0, 0))).toBe(60 * 60 * 1000 + 1000);
   });
 });

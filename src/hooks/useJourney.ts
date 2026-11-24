@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useProfile } from '@/hooks/useProfile';
 import { useRoutineHistory } from '@/hooks/useRoutines';
-import { todayLocalDate } from '@/lib/dates';
+
 import {
   countLoggedDays,
   getJourneyState,
@@ -12,6 +12,7 @@ import {
   type JourneyState,
   type MilestoneKey,
 } from '@/lib/journey';
+import { useToday } from '@/store/useTodayStore';
 
 // Same lookback as History/Wrap, so this shares their cached query.
 const JOURNEY_LOOKBACK_DAYS = 365;
@@ -30,6 +31,7 @@ export function useJourney(): Journey {
   const { profile, isLoading: profileLoading } = useProfile();
   const { routines, isLoading: routinesLoading } = useRoutineHistory();
   const isLoading = checkinsLoading || profileLoading || routinesLoading;
+  const today = useToday();
 
   return useMemo(() => {
     // While loading, report everything unlocked: an existing user should
@@ -39,8 +41,8 @@ export function useJourney(): Journey {
       state,
       isUnlocked: (key: MilestoneKey) => state.unlocked.has(key),
       trainingEnabled: resolveTrainingEnabled(profile, routines.length > 0),
-      careStepDue: !isLoading && isCareStepDue(state, profile, todayLocalDate()),
+      careStepDue: !isLoading && isCareStepDue(state, profile, today),
       isLoading,
     };
-  }, [isLoading, checkins, profile, routines.length]);
+  }, [isLoading, checkins, profile, routines.length, today]);
 }

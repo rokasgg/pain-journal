@@ -13,6 +13,7 @@ import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
 import { WateringCelebrationHost } from '@/components/WateringCelebrationHost';
 import { KeyboardDoneBar } from '@/components/ui/KeyboardDoneBar';
 import { ToastModalHost } from '@/components/ui/ToastModalHost';
+import { useAppLifecycle } from '@/hooks/useAppLifecycle';
 import { useTodayCheckins } from '@/hooks/useCheckins';
 import { useProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
@@ -50,6 +51,7 @@ function RootLayoutNav() {
   const wasAuthenticatedRef = useRef(false);
 
   useSyncReminderNotifications();
+  useAppLifecycle();
 
   useEffect(() => {
     SplashScreen.hideAsync();
@@ -357,6 +359,51 @@ function RootLayoutNav() {
           options={{
             headerShown: true,
             title: t('screenTitles.physioFocusDetail'),
+            headerBackTitle: t('tabs.insights'),
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
+        <Stack.Screen
+          name="insights/flare-ups"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.flareUps'),
+            headerBackTitle: t('tabs.insights'),
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
+        <Stack.Screen
+          name="insights/visit"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.visit'),
+            headerBackTitle: t('tabs.insights'),
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
+        <Stack.Screen
+          name="insights/experiments"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.experiments'),
+            headerBackTitle: t('tabs.insights'),
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
+        <Stack.Screen
+          name="insights/experiment/new"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.newExperiment'),
+            headerBackTitle: t('tabs.insights'),
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
+        <Stack.Screen
+          name="insights/experiment/[id]"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.experiment'),
             headerBackTitle: t('tabs.insights'),
             headerBackButtonDisplayMode: 'minimal',
           }}

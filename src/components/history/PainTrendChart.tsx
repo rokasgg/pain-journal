@@ -22,7 +22,7 @@ import {
 } from 'victory-native';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { capitalize, currentDateFnsLocale, todayLocalDate } from '@/lib/dates';
+import { capitalize, currentDateFnsLocale } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import {
   buildTrend,
@@ -34,6 +34,7 @@ import {
 import { colors } from '@/lib/theme';
 import type { Checkin } from '@/types/database.types';
 import { haptics } from '@/utils/haptics';
+import { useToday } from '@/store/useTodayStore';
 
 export interface PainTrendChartProps {
   // Full history — the chart filters and buckets it for `range` itself, so
@@ -164,9 +165,10 @@ export function PainTrendChart({ checkins, range, className }: PainTrendChartPro
   const { state: pressState, isActive: isScrubbing } = useChartPressState({ x: 0, y: { value: 0 } });
   const metricConfig = METRIC_CONFIG[metric];
 
+  const today = useToday();
   const { points, granularity } = useMemo(
-    () => buildTrend(checkins, range, todayLocalDate(), metric),
-    [checkins, range, metric],
+    () => buildTrend(checkins, range, today, metric),
+    [checkins, range, metric, today],
   );
   const hasEnoughData = points.filter((point) => point.value !== null).length >= 2;
   const activePoint = activeIndex !== null ? points[activeIndex] : undefined;

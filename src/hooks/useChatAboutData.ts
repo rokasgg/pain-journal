@@ -12,6 +12,7 @@ import {
   type ComparisonId,
 } from '@/lib/chatReply';
 import { todayLocalDate } from '@/lib/dates';
+import { extractFunctionErrorMessage } from '@/lib/functionsError';
 import { supabase } from '@/lib/supabase';
 import { useLocaleStore } from '@/store/useLocaleStore';
 
@@ -48,7 +49,7 @@ export function useChatAboutData(period: ChatPeriod) {
         body: { locale, messages, period_days: period, stats: comparisonsForModel(comparisons) },
       });
 
-      if (error) return { reply: null, comparisons, error: error.message };
+      if (error) return { reply: null, comparisons, error: await extractFunctionErrorMessage(error, error.message) };
       if (data?.error) return { reply: null, comparisons, error: data.error };
       return { reply: parseChatReply(data?.reply), comparisons, error: null };
     },

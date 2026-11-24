@@ -4,8 +4,9 @@ import { Text, View } from 'react-native';
 
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { buildCheckinWeek } from '@/lib/checkinWeek';
-import { todayLocalDate, WEEKDAY_LABELS_BY_LOCALE } from '@/lib/dates';
+import { WEEKDAY_LABELS_BY_LOCALE } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { useToday } from '@/store/useTodayStore';
 
 // Same amber sun / indigo moon as CheckinStatusCard's row tiles.
 const MORNING_ICON_COLOR = '#d97706';
@@ -37,7 +38,8 @@ function Dot({ logged, pendingToday }: { logged: boolean; pendingToday: boolean 
 export function CheckinWeekCard() {
   const { t, locale } = useTranslation();
   const { checkins } = useCheckinHistory(30);
-  const week = useMemo(() => buildCheckinWeek(checkins, todayLocalDate()), [checkins]);
+  const today = useToday();
+  const week = useMemo(() => buildCheckinWeek(checkins, today), [checkins, today]);
   const labels = WEEKDAY_LABELS_BY_LOCALE[locale];
 
   return (

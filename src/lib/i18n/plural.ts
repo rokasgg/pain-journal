@@ -29,7 +29,7 @@ export function formatDayCount(count: number, locale: Locale, grammaticalCase: D
 }
 
 // Other counted nouns shown in Lithuanian copy: "7 vizitai", "6 pratimai".
-export type CountNoun = 'visit' | 'exercise' | 'routine' | 'entry' | 'entryGen' | 'morning' | 'workoutGen' | 'step' | 'day' | 'dayGen';
+export type CountNoun = 'visit' | 'exercise' | 'routine' | 'entry' | 'entryGen' | 'morning' | 'workoutGen' | 'step' | 'day' | 'dayGen' | 'flareUp' | 'flareUpGen' | 'flareUpOf' | 'session' | 'finding';
 
 const LT_NOUN_FORMS: Record<CountNoun, LtForms> = {
   visit: ['vizitas', 'vizitai', 'vizitų'],
@@ -46,6 +46,14 @@ const LT_NOUN_FORMS: Record<CountNoun, LtForms> = {
   // ("po dar 3 dienų").
   day: ['diena', 'dienomis', 'dienų'],
   dayGen: ['dienos', 'dienų', 'dienų'],
+  // Instrumental ("Remiasi 4 paūmėjimais"), and genitive after "po dar …" /
+  // "iš …" ("Prieš 3 iš 4 paūmėjimų").
+  flareUp: ['paūmėjimu', 'paūmėjimais', 'paūmėjimų'],
+  flareUpGen: ['paūmėjimo', 'paūmėjimų', 'paūmėjimų'],
+  flareUpOf: ['paūmėjimo', 'paūmėjimų', 'paūmėjimų'],
+  // Instrumental ("Remiasi 5 treniruotėmis").
+  session: ['treniruote', 'treniruotėmis', 'treniruočių'],
+  finding: ['įžvalga', 'įžvalgos', 'įžvalgų'],
 };
 
 const EN_NOUN_FORMS: Record<CountNoun, [one: string, other: string]> = {
@@ -59,6 +67,12 @@ const EN_NOUN_FORMS: Record<CountNoun, [one: string, other: string]> = {
   step: ['step', 'steps'],
   day: ['day', 'days'],
   dayGen: ['day', 'days'],
+  flareUp: ['flare-up', 'flare-ups'],
+  // "After 2 more flare-ups, …"
+  flareUpGen: ['more flare-up', 'more flare-ups'],
+  flareUpOf: ['flare-up', 'flare-ups'],
+  session: ['session', 'sessions'],
+  finding: ['finding', 'findings'],
 };
 
 export function formatCount(count: number, noun: CountNoun, locale: Locale): string {

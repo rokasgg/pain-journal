@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { AppState } from 'react-native';
 import { createClient } from '@supabase/supabase-js';
 
 const memoryStore = new Map<string, string>();
@@ -77,4 +78,13 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     detectSessionInUrl: false,
   },
+});
+
+// React Native: the token auto-refresh timer must follow the app's state.
+// Supabase's own RN guidance: run it only while the app is in the
+// foreground, and restart it on resume, so the first request after a long
+// background (an expired 1-hour access token) refreshes instead of failing.
+AppState.addEventListener('change', (state) => {
+  if (state === 'active') supabase.auth.startAutoRefresh();
+  else supabase.auth.stopAutoRefresh();
 });

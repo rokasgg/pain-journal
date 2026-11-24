@@ -1,4 +1,13 @@
-import { buildVisitReportHtml, escapeHtml, visitReportPeriod } from '@/lib/visitReport';
+import { addDays, format, parseISO } from 'date-fns';
+
+import {
+  buildVisitReportHtml,
+  escapeHtml,
+  painChartSvg,
+  visitReportPeriod,
+  type ReportCheckin,
+  type ReportFlareUp,
+} from '@/lib/visitReport';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
@@ -7,6 +16,45 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 const TODAY = '2026-10-27';
 const t = (key: string, vars?: Record<string, string | number>) =>
   vars ? `${key}(${Object.values(vars).join(',')})` : key;
+
+function checkin(
+  checkin_date: string,
+  type: 'morning' | 'evening',
+  pain_level: number,
+  notes: string | null = null,
+  extra: Partial<ReportCheckin> = {},
+): ReportCheckin {
+  return {
+    checkin_date,
+    type,
+    pain_level,
+    notes,
+    stiffness_level: null,
+    range_of_motion: null,
+    sleep_hours: null,
+    sleep_quality: null,
+    screen_time_hours: null,
+    activity_level: null,
+    steps: null,
+    created_at: `${checkin_date}T${type === 'morning' ? '08' : '21'}:00:00`,
+    ...extra,
+  };
+}
+
+function flareUp(occurred_at: string, pain_level: number, likely_cause: string | null, extra: Partial<ReportFlareUp> = {}): ReportFlareUp {
+  return {
+    id: occurred_at,
+    occurred_at,
+    pain_level,
+    likely_cause,
+    description: null,
+    triggers: [],
+    pain_areas: [],
+    symptoms: [],
+    resolved_duration_minutes: null,
+    ...extra,
+  };
+}
 
 describe('visitReportPeriod', () => {
   it('runs from the last visit to today', () => {
@@ -26,15 +74,12 @@ describe('buildVisitReportHtml', () => {
   const html = buildVisitReportHtml({
     period: { from: '2026-10-13', to: TODAY, sinceLastVisit: true },
     checkins: [
-      { checkin_date: '2026-10-12', type: 'morning', pain_level: 9, notes: 'before the period' },
-      { checkin_date: '2026-10-14', type: 'morning', pain_level: 6, notes: 'Stiff <neck> & shoulders' },
-      { checkin_date: '2026-10-14', type: 'evening', pain_level: 2, notes: null },
-      { checkin_date: '2026-10-15', type: 'evening', pain_level: 0, notes: '  ' },
+      checkin('2026-10-12', 'morning', 9, 'before the period'),
+      checkin('2026-10-14', 'morning', 6, 'Stiff <neck> & shoulders'),
+      checkin('2026-10-14', 'evening', 2),
+      checkin('2026-10-15', 'evening', 0, '  '),
     ],
-    flareUps: [
-      { occurred_at: '2026-10-20T08:30:00', pain_level: 8, likely_cause: 'Lifting', description: null },
-      { occurred_at: '2026-10-01T08:30:00', pain_level: 7, likely_cause: 'old', description: null },
-    ],
+    flareUps: [flareUp('2026-10-20T08:30:00', 8, 'Lifting'), flareUp('2026-10-01T08:30:00', 7, 'old')],
     injuryDescription: 'C5–C6 disc',
     locale: 'en',
     t,
@@ -59,6 +104,74 @@ describe('buildVisitReportHtml', () => {
 
   it('includes the injury description', () => {
     expect(html).toContain('C5–C6 disc');
+  });
+
+  it('draws the pain chart and says when nothing was logged before a flare-up', () => {
+    expect(html).toContain('<svg');
+    expect(html).toContain('insights.flares.lead.nothingLogged');
+  });
+
+  it('skips the comparison when the previous period has too little data', () => {
+    expect(html).not.toContain('visitReport.before(');
+  });
+
+  it('leaves out sections with nothing in them', () => {
+    expect(html).not.toContain('visitReport.questionsSection');
+    expect(html).not.toContain('visitReport.helpSection');
+  });
+});
+
+describe('buildVisitReportHtml with more history', () => {
+  const period = { from: '2026-10-14', to: TODAY, sinceLastVisit: true };
+  const checkins: ReportCheckin[] = [];
+  // 14 days before the period at pain 6, then the period at pain 3.
+  for (let d = 0; d < 28; d++) {
+    const date = format(addDays(parseISO('2026-09-30'), d), 'yyyy-MM-dd');
+    checkins.push(checkin(date, 'morning', date < '2026-10-14' ? 6 : 3, null, { stiffness_level: 4 }));
+  }
+  const html = buildVisitReportHtml({
+    period,
+    checkins,
+    flareUps: [flareUp('2026-10-20T19:00:00', 8, null, { triggers: ['Stress'], resolved_duration_minutes: 150 })],
+    openQuestions: ['Can I run again?', '  '],
+    exerciseLogs: [
+      { logged_at: '2026-10-15T10:00:00', status: 'FULL', pain_before: 5, pain_after: 3 },
+      { logged_at: '2026-10-17T10:00:00', status: 'FULL', pain_before: 4, pain_after: 3 },
+      { logged_at: '2026-10-19T10:00:00', status: 'PARTIAL', pain_before: 4, pain_after: 4 },
+    ],
+    experiments: [{ title: 'No screens after 22:00', summary: 'Pain 3.1 vs 4.0' }],
+    locale: 'en',
+    t,
+  });
+
+  it('compares with the period before', () => {
+    expect(html).toContain('visitReport.before(6.0/10)');
+    expect(html).toContain('visitReport.beforeExplained(14 days)');
+  });
+
+  it('shows stiffness, flare-up details and duration', () => {
+    expect(html).toContain('visitReport.avgStiffness');
+    expect(html).toContain('visitReport.lasted(2 checkin.unitHours 30 checkin.unitMinutes)');
+  });
+
+  it('lists training, experiments and open questions, skipping blank ones', () => {
+    expect(html).toContain('visitReport.trainingSessions(3,');
+    expect(html).toContain('visitReport.trainingRelief(−1.0,3)');
+    expect(html).toContain('No screens after 22:00');
+    expect(html).toContain('<li>Can I run again?</li>');
+  });
+});
+
+describe('painChartSvg', () => {
+  it('breaks the line on days without a check-in and marks flare-ups', () => {
+    const averages = new Map([
+      ['2026-10-01', 4],
+      ['2026-10-02', 5],
+      ['2026-10-04', 3],
+    ]);
+    const svg = painChartSvg(averages, { from: '2026-10-01', to: '2026-10-05' }, ['2026-10-02'], { from: 'a', to: 'b' });
+    expect(svg.match(/<polyline/g)).toHaveLength(1);
+    expect(svg.match(/<circle/g)).toHaveLength(2); // the lone 4 Oct point + one flare-up
   });
 });
 

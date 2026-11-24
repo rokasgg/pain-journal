@@ -19,9 +19,11 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useHapticsStore } from '@/store/useHapticsStore';
+import { useSoundStore } from '@/store/useSoundStore';
 import { useHealthStore } from '@/store/useHealthStore';
 import { useLocaleStore, type Locale } from '@/store/useLocaleStore';
 import { haptics } from '@/utils/haptics';
+import { sounds } from '@/utils/sounds';
 import { toast } from '@/utils/toast';
 
 const LANGUAGE_LABEL_KEYS: Record<Locale, string> = {
@@ -42,6 +44,8 @@ export default function SettingsScreen() {
   const isDark = useColorScheme() === 'dark';
   const hapticsEnabled = useHapticsStore((s) => s.enabled);
   const setHapticsEnabled = useHapticsStore((s) => s.setEnabled);
+  const soundsEnabled = useSoundStore((s) => s.enabled);
+  const setSoundsEnabled = useSoundStore((s) => s.setEnabled);
   const healthEnabled = useHealthStore((s) => s.enabled);
   const setHealthEnabled = useHealthStore((s) => s.setEnabled);
   const locale = useLocaleStore((s) => s.locale);
@@ -194,6 +198,23 @@ export default function SettingsScreen() {
                   setHapticsEnabled(value);
                   // After enabling, so turning it on is itself felt.
                   haptics.tick();
+                }}
+                {...switchColors}
+              />
+            }
+          />
+          <SettingsRow
+            icon="musical-note-outline"
+            title={t('settings.sounds')}
+            subtitle={t('settings.soundsInfo')}
+            accessory={
+              <Switch
+                value={soundsEnabled}
+                onValueChange={(value) => {
+                  setSoundsEnabled(value);
+                  haptics.tick();
+                  // Turning it on plays the chime, so the user hears what it is.
+                  if (value) sounds.celebrate();
                 }}
                 {...switchColors}
               />

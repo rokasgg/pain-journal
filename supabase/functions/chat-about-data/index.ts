@@ -159,16 +159,31 @@ Deno.serve(async (req: Request) => {
 
   const anthropic = new Anthropic({ apiKey: Deno.env.get("ANTHROPIC_API_KEY")! });
 
-  const response = await anthropic.messages.create({
-    model: "claude-opus-5",
-    max_tokens: 1500,
-    output_config: {
-      effort: "medium",
-      format: { type: "json_schema", schema: REPLY_SCHEMA },
-    },
-    system: `${CHAT_SYSTEM_PROMPT}\n\nUser's data as JSON:\n${JSON.stringify({ injury: profile ?? null, period_days: periodDays, entry_count: entryCount, checkins, flareUps, stats })}\n\nWrite every string value in ${LANGUAGE_NAMES[locale]}.`,
-    messages,
-  });
+  // An API error (bad request, missing key, rate limit, overload) used to
+  // throw out of the function, so the app only saw "non-2xx status code".
+  // Now it's logged (Supabase Dashboard → Edge Functions → Logs) and returned
+  // as a readable error.
+  let response: Awaited<ReturnType<typeof anthropic.messages.create>>;
+  try {
+    response = await anthropic.messages.create({
+      model: "claude-opus-5",
+      max_tokens: 1500,
+      output_config: {
+        effort: "medium",
+        format: { type: "json_schema", schema: REPLY_SCHEMA },
+      },
+      system: `${CHAT_SYSTEM_PROMPT}\n\nUser's data as JSON:\n${JSON.stringify({ injury: profile ?? null, period_days: periodDays, entry_count: entryCount, checkins, flareUps, stats })}\n\nWrite every string value in ${LANGUAGE_NAMES[locale]}.`,
+      messages,
+    });
+  } catch (apiError) {
+    const status = (apiError as { status?: number })?.status;
+    const message = apiError instanceof Error ? apiError.message : String(apiError);
+    console.error("chat-about-data: Claude request failed", { status, message });
+    return new Response(
+      JSON.stringify({ error: `The AI assistant couldn't answer (${status ?? "network"}): ${message}` }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
+  }
 
   if (response.stop_reason === "refusal") {
     return new Response(JSON.stringify({ error: "That question was declined. Please try rephrasing it." }), {

@@ -4,16 +4,16 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text, View } from 'react-native';
 
 import { CheckinForm, type CheckinFormData } from '@/components/checkin/CheckinForm';
+import { useCheckinCelebration } from '@/hooks/useCheckinCelebration';
 import { useCheckinsForDate, useUpsertCheckin } from '@/hooks/useCheckins';
 import { useFlareUpFollowUpCandidate } from '@/hooks/useFlareUps';
 import { useRoutinesInRotation } from '@/hooks/useRoutines';
 import { useTodayStatus } from '@/hooks/useTodayStatus';
-import { formatHeadingDate, todayLocalDate } from '@/lib/dates';
+import { formatHeadingDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { canLogLate } from '@/lib/lateLogging';
 import { colors } from '@/lib/theme';
-import { useCelebrationStore } from '@/store/useCelebrationStore';
-import { toast } from '@/utils/toast';
+import { useToday } from '@/store/useTodayStore';
 
 // `?date=yyyy-MM-dd` (from the History calendar's "Log it later") logs a
 // missed check-in for yesterday or the day before (src/lib/lateLogging.ts):
@@ -25,16 +25,18 @@ export default function CheckinModal() {
   const router = useRouter();
   const { t, locale } = useTranslation();
   const upsertCheckin = useUpsertCheckin();
+  const celebration = useCheckinCelebration();
   const { eveningUnlocked } = useTodayStatus();
   const flareUpFollowUpCandidate = useFlareUpFollowUpCandidate();
   const { routines: routinesInRotation } = useRoutinesInRotation();
-  const today = todayLocalDate();
+  const today = useToday();
   const lateDate = date && date !== today ? date : null;
   const checkinDate = lateDate ?? today;
   const { checkins: existingForDate } = useCheckinsForDate(lateDate ?? '');
   const alreadyLogged = !!lateDate && existingForDate.some((c) => c.type === type);
 
   const handleSubmit = async (data: CheckinFormData) => {
+    celebration.capture();
     const { error } = await upsertCheckin.mutateAsync({
       type: isMorning ? 'morning' : 'evening',
       checkin_date: checkinDate,
@@ -45,16 +47,12 @@ export default function CheckinModal() {
     return { error };
   };
 
-  // Runs right after a successful save. Toast fires *before* router.back() —
-  // not after — so the toast overlay (and its checkmark animation) mounts
-  // and starts painting while this screen is still frontmost, instead of
-  // racing the outgoing screen-transition animation. Firing it after
-  // router.back() let the transition eat into the checkmark's first frames,
-  // so by the time the overlay was actually visible the animation looked
-  // like it started halfway through.
+  // Runs right after a successful save: the "check-in complete" screen
+  // (WateringCelebrationHost, a root overlay) goes up first, then this
+  // screen pops underneath it. It replaces the success toast, so there's
+  // one moment, not two.
   const handleSaved = () => {
-    toast.success(t('checkin.savedToast', { type: t(isMorning ? 'home.morning' : 'home.evening') }));
-    useCelebrationStore.getState().show();
+    celebration.celebrate(isMorning ? 'morning' : 'evening', checkinDate);
     router.back();
   };
 

@@ -10,6 +10,18 @@ export function todayLocalDate(): string {
   return format(new Date(), 'yyyy-MM-dd');
 }
 
+// Milliseconds until the next local `hour`:00 (plus a 1s margin, so a timer
+// set with it fires just after the boundary, never a hair before it).
+// msUntilNextHour(0) is the next midnight.
+export function msUntilNextHour(hour: number, now: Date = new Date()): number {
+  const sameDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, 0, 1);
+  const next =
+    sameDay.getTime() > now.getTime()
+      ? sameDay
+      : new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, hour, 0, 1);
+  return next.getTime() - now.getTime();
+}
+
 export const DATE_FNS_LOCALES = { en: enUS, lt } as const;
 
 // Non-reactive, like `t()` in useTranslation.ts — safe to call from plain

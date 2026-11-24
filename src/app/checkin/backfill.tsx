@@ -6,10 +6,10 @@ import { CheckinForm, type CheckinFormData } from '@/components/checkin/CheckinF
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { DatePickerField } from '@/components/ui/DatePickerField';
 import { useCheckinsForDate, useUpsertCheckin } from '@/hooks/useCheckins';
+import { useCheckinCelebration } from '@/hooks/useCheckinCelebration';
 import { useTodayStatus } from '@/hooks/useTodayStatus';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
-import { useCelebrationStore } from '@/store/useCelebrationStore';
 import type { CheckinType } from '@/types/database.types';
 import { toast } from '@/utils/toast';
 
@@ -17,6 +17,7 @@ export default function BackfillModal() {
   const router = useRouter();
   const { t } = useTranslation();
   const upsertCheckin = useUpsertCheckin();
+  const celebration = useCheckinCelebration();
   const { eveningUnlocked } = useTodayStatus();
   const [checkinDate, setCheckinDate] = useState<string>(todayLocalDate());
   const [checkinType, setCheckinType] = useState<CheckinType>('morning');
@@ -47,6 +48,7 @@ export default function BackfillModal() {
       return undefined;
     }
 
+    celebration.capture();
     const { error } = await upsertCheckin.mutateAsync({
       type: checkinType,
       checkin_date: checkinDate,
@@ -56,13 +58,11 @@ export default function BackfillModal() {
     return { error };
   };
 
-  // Runs right after a successful save. Toast before router.back() — not
-  // after — so the toast's checkmark animation starts painting while this
-  // screen is still frontmost, instead of racing the outgoing
-  // screen-transition animation.
+  // Runs right after a successful save: the "check-in complete" screen
+  // (WateringCelebrationHost, a root overlay) goes up first, then this
+  // screen pops underneath it. It replaces the success toast.
   const handleSaved = () => {
-    toast.success(t('checkin.checkinUpdatedToast'));
-    useCelebrationStore.getState().show();
+    celebration.celebrate(checkinType, checkinDate);
     router.back();
   };
 
