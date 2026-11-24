@@ -82,6 +82,15 @@ src/
   A timer also refreshes the store at midnight and at `EVENING_UNLOCK_HOUR` while the app is open (`msUntilNextHour` in `dates.ts`).
 - **`src/lib/supabase.ts` starts and stops `supabase.auth` auto-refresh on `AppState`** (Supabase's React Native guidance), so the first request after hours in the background doesn't use an expired token.
 
+- **Privacy cover in the iOS app switcher** (`modules/privacy-cover/`, a local Expo module that Expo autolinks from `modules/`; it has no JS API):
+  - **What it does:** it covers the app with the launch splash while the app isn't in front. That's the `SplashScreen` storyboard that expo-splash-screen generates from `app.json`, so it changes when the splash config changes. The switcher card then never shows pain data, symptoms or the chat.
+  - **How:** an `ExpoAppDelegateSubscriber` adds the cover to the key window on `applicationWillResignActive`, with no animation, and fades it out on `applicationDidBecomeActive`.
+  - **It's native on purpose.** A React overlay can miss the snapshot, and it can't cover native modal sheets.
+  - **It also shows** under Control Center, Notification Center and system alerts. That's intended, and it's what banking apps do.
+  - **Changing it** needs a native rebuild.
+  - Android isn't covered yet: the only option there, `FLAG_SECURE`, also blocks screenshots.
+  - `expo-screen-capture`'s `enableAppSwitcherProtectionAsync` was considered and rejected: it's a light-only blur that fades in, and it doesn't cover sheets.
+
 ## Supabase (`src/lib/supabase.ts`)
 - One client singleton, `supabase`, created with `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` (read from `.env`, see `.env.example`). If either is missing, it `console.warn`s and falls back to placeholder credentials (`https://placeholder.supabase.co` / `placeholder-key`) instead of throwing — the app must always boot without a `.env` file; only actual auth calls fail, not module init. Never reintroduce a hard `throw` here.
 - Session persistence uses a custom `authStorage` wrapper around `@react-native-async-storage/async-storage`, not the raw module — it probes `isAsyncStorageAvailable()` first and falls back to an in-memory `Map`-backed storage (`getItem`/`setItem`/`removeItem`) if the native module is missing or any call throws (e.g. web/Expo Go edge cases). `persistSession: true`, `autoRefreshToken: true`, `detectSessionInUrl: false` since this is native, not web. When the fallback is active, sessions won't survive an app restart — that's expected, not a bug to fix by making AsyncStorage calls unguarded again.
