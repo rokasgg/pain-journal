@@ -27,6 +27,9 @@ export interface CheckinCelebration {
 export interface CelebrationProgress {
   // The date wasn't logged before (an evening after that day's morning isn't).
   isNewDay: boolean;
+  // The user's very first logged day: the screen says what comes next and
+  // offers reminders, since nothing else in the app has done that yet.
+  isFirstEver: boolean;
   daysBefore: number;
   daysAfter: number;
   stageBefore: OakStage;
@@ -76,6 +79,7 @@ export function buildCelebration({ type, checkinDate, checkinsBefore }: BuildCel
     dayComplete,
     progress: {
       isNewDay,
+      isFirstEver: isNewDay && daysBefore === 0,
       daysBefore,
       daysAfter,
       stageBefore,

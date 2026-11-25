@@ -15,7 +15,8 @@ import { usePremium } from '@/hooks/usePremium';
 import { useJourney } from '@/hooks/useJourney';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
-import { isMorningOptionalToday } from '@/lib/checkinTiming';
+import { useTodayStatus } from '@/hooks/useTodayStatus';
+import { getNowAction, isMorningOptionalToday, type CheckinAction } from '@/lib/checkinTiming';
 import { formatHeadingDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -30,10 +31,12 @@ import { Link, useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Modal, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useToday } from '@/store/useTodayStore';
+import { useToday, useTodayStore } from '@/store/useTodayStore';
 
 const POST_TRANSITION_DELAY_MS = 450;
 const WELCOME_OPEN_DELAY_MS = 300;
+// The guide's real <Modal> fades out before the check-in is pushed.
+const NAVIGATE_AFTER_CLOSE_MS = 300;
 
 export default function HomeScreen() {
   const { t, locale } = useTranslation();
@@ -44,58 +47,57 @@ export default function HomeScreen() {
   const { trainingEnabled, state: journeyState, isLoading: journeyLoading } = useJourney();
   const { profile } = useProfile();
   const [refreshing, setRefreshing] = useState(false);
-  // Real trigger: shown once right after onboarding finishes (set by
-  // onboarding.tsx via useOnboardingCompleteStore, read directly here rather
-  // than mirrored into local state) — plus a TEMP long-press-the-title debug
-  // trigger for previewing the animation without going through onboarding.
-  // Remove the debug path once the animation's been checked on-device.
-  const onboardingJustCompleted = useOnboardingCompleteStore((s) => s.pending);
-  const consumeOnboardingCompletion = useOnboardingCompleteStore((s) => s.consume);
+  // TEMP long-press-the-title debug trigger for previewing the success
+  // checkmark animation. Onboarding no longer plays it: it ended in two
+  // closing moments (checkmark, then the welcome guide) and no action, so it
+  // now goes straight into the guide, which leads into the first check-in.
   const [debugCheckmarkVisible, setDebugCheckmarkVisible] = useState(false);
-  // Home lands here via the root layout's fade from onboarding — presenting a
-  // real <Modal> mid-transition is the documented Modal-vs-navigation race
-  // (see ToastModalHost), so wait for the fade to finish first.
-  const [checkmarkReady, setCheckmarkReady] = useState(false);
+  const closeCheckmark = () => setDebugCheckmarkVisible(false);
   useEffect(() => {
-    if (!onboardingJustCompleted) return;
-    const timeout = setTimeout(() => setCheckmarkReady(true), POST_TRANSITION_DELAY_MS);
-    return () => clearTimeout(timeout);
-  }, [onboardingJustCompleted]);
-
-  const checkmarkVisible = (onboardingJustCompleted && checkmarkReady) || debugCheckmarkVisible;
-  useEffect(() => {
-    if (checkmarkVisible) haptics.success();
-  }, [checkmarkVisible]);
-  const closeCheckmark = () => {
-    if (onboardingJustCompleted) consumeOnboardingCompletion();
-    setDebugCheckmarkVisible(false);
-  };
+    if (debugCheckmarkVisible) haptics.success();
+  }, [debugCheckmarkVisible]);
 
   // Full-screen "how this works", auto-opened on each account's first time
-  // in the app (whatever its data), only once no onboarding checkmark is
-  // pending/showing — so the order is Home → checkmark → welcome, and a
-  // Modal never opens mid-transition. It collapses into the progress card,
-  // which can reopen it.
+  // in the app (whatever its data). It collapses into the progress card,
+  // which can reopen it, or ends on the check-in that's due now.
+  // Straight after onboarding, Home lands via the root layout's fade, and a
+  // real <Modal> presenting mid-transition is the documented
+  // Modal-vs-navigation race (see ToastModalHost), so it waits for the fade.
+  const onboardingJustCompleted = useOnboardingCompleteStore((s) => s.pending);
   const progressCardRef = useRef<View>(null);
   const { user } = useSession();
   const welcomeSeen = useJourneyStore((s) => !!user && s.welcomeSeenBy.includes(user.id));
   const [welcomeVisible, setWelcomeVisible] = useState(false);
   const [welcomeFromCard, setWelcomeFromCard] = useState(false);
-  const shouldAutoOpenWelcome =
-    !!user && !welcomeSeen && !journeyLoading && !checkmarkVisible && !onboardingJustCompleted;
+  const shouldAutoOpenWelcome = !!user && !welcomeSeen && !journeyLoading && !debugCheckmarkVisible;
 
   useEffect(() => {
     if (!shouldAutoOpenWelcome) return;
+    const delay = useOnboardingCompleteStore.getState().pending ? POST_TRANSITION_DELAY_MS : WELCOME_OPEN_DELAY_MS;
     const timeout = setTimeout(() => {
+      useOnboardingCompleteStore.getState().consume();
       setWelcomeFromCard(false);
       setWelcomeVisible(true);
-    }, WELCOME_OPEN_DELAY_MS);
+    }, delay);
     return () => clearTimeout(timeout);
   }, [shouldAutoOpenWelcome]);
+
+  // Already-seen accounts never open the guide, so clear the flag here.
+  useEffect(() => {
+    if (onboardingJustCompleted && welcomeSeen) useOnboardingCompleteStore.getState().consume();
+  }, [onboardingJustCompleted, welcomeSeen]);
+
+  const { morningDone, eveningDone } = useTodayStatus();
+  const clock = useTodayStore((s) => s.clock);
+  const nowAction = getNowAction({ hour: new Date(clock).getHours(), morningDone, eveningDone });
 
   const closeWelcome = () => {
     setWelcomeVisible(false);
     if (user) useJourneyStore.getState().markWelcomeSeen(user.id);
+  };
+  const startCheckinFromWelcome = (action: CheckinAction) => {
+    closeWelcome();
+    setTimeout(() => router.push(`/checkin/${action}`), NAVIGATE_AFTER_CLOSE_MS);
   };
 
   // Routine-adherence weekly goal, not a generic "were you active today" —
@@ -204,7 +206,7 @@ export default function HomeScreen() {
           bar too — the tab bar is a sibling outside this screen's own view
           tree, rendered by the (tabs) Tabs navigator, so a plain absolute
           overlay here would stop above it. */}
-      <Modal transparent animationType="fade" visible={checkmarkVisible} onRequestClose={closeCheckmark}>
+      <Modal transparent animationType="fade" visible={debugCheckmarkVisible} onRequestClose={closeCheckmark}>
         <Pressable onPress={closeCheckmark} className="flex-1 items-center justify-center bg-black/40">
           <AnimatedCheckmark
             size={112}
@@ -220,8 +222,10 @@ export default function HomeScreen() {
         visible={welcomeVisible}
         targetRef={progressCardRef}
         expandFromTarget={welcomeFromCard}
-        startWithEvening={isMorningOptionalToday({ hour: new Date().getHours(), loggedDays: journeyState.loggedDays })}
+        startWithEvening={isMorningOptionalToday({ hour: new Date(clock).getHours(), loggedDays: journeyState.loggedDays })}
+        nowAction={nowAction}
         onClosed={closeWelcome}
+        onStartCheckin={startCheckinFromWelcome}
       />
     </SafeAreaView>
   );

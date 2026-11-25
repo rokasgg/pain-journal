@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { useJourney } from '@/hooks/useJourney';
+import type { CheckinAction } from '@/lib/checkinTiming';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { JOURNEY_MILESTONES } from '@/lib/journey';
 import { colors } from '@/lib/theme';
@@ -30,7 +31,14 @@ export interface WelcomeGuideProps {
   // Replay from the card grows out of it; the first automatic open just
   // appears full-screen. Closing always collapses into the card.
   expandFromTarget: boolean;
+  // The check-in due right now (getNowAction), or null when none is. When
+  // set, the guide ends on that check-in instead of just closing, so a new
+  // user's first stop after onboarding is a real first step.
+  nowAction: CheckinAction | null;
   onClosed: () => void;
+  // Close (plain fade, no morph) and open that check-in. The caller navigates
+  // after the modal is gone (Modal-vs-navigation race).
+  onStartCheckin: (action: CheckinAction) => void;
 }
 
 interface Rect {
@@ -45,10 +53,10 @@ const CONTENT_FADE_MS = 150;
 const CARD_RADIUS = 16;
 const MORPH_EASING = Easing.out(Easing.cubic);
 
-const STEPS: { icon: keyof typeof Ionicons.glyphMap; key: string }[] = [
-  { icon: 'sunny-outline', key: 'journey.howMorning' },
-  { icon: 'moon-outline', key: 'journey.howEvening' },
-  { icon: 'flame-outline', key: 'journey.howFlareUp' },
+const STEPS: { icon: keyof typeof Ionicons.glyphMap; key: string; action: CheckinAction | null }[] = [
+  { icon: 'sunny-outline', key: 'journey.howMorning', action: 'morning' },
+  { icon: 'moon-outline', key: 'journey.howEvening', action: 'evening' },
+  { icon: 'flame-outline', key: 'journey.howFlareUp', action: null },
 ];
 
 const PREVIEW_UNLOCKS = JOURNEY_MILESTONES.filter((m) => m.key === 'history' || m.key === 'insights');
@@ -73,7 +81,15 @@ function measure(ref: RefObject<View | null>, windowHeight: number): Promise<Rec
 // card's measured rect, then the modal closes over the real card, which sits
 // in exactly that spot — so it reads as the guide *becoming* the card.
 // Reopening from the card plays the same morph in reverse.
-export function WelcomeGuide({ visible, targetRef, startWithEvening, expandFromTarget, onClosed }: WelcomeGuideProps) {
+export function WelcomeGuide({
+  visible,
+  targetRef,
+  startWithEvening,
+  expandFromTarget,
+  nowAction,
+  onClosed,
+  onStartCheckin,
+}: WelcomeGuideProps) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
@@ -161,6 +177,12 @@ export function WelcomeGuide({ visible, targetRef, startWithEvening, expandFromT
     );
   };
 
+  const handleStartCheckin = () => {
+    if (isClosing || !nowAction) return;
+    haptics.tap();
+    onStartCheckin(nowAction);
+  };
+
   const frameStyle = useAnimatedStyle(() => ({
     top: top.value,
     left: left.value,
@@ -195,7 +217,16 @@ export function WelcomeGuide({ visible, targetRef, startWithEvening, expandFromT
                   <View className="h-12 w-12 items-center justify-center rounded-full bg-primaryMuted dark:bg-primaryMutedDark">
                     <Ionicons name={step.icon} size={22} color={colors.primary} />
                   </View>
-                  <Text className="flex-1 text-base text-black dark:text-white">{t(step.key)}</Text>
+                  <View className="flex-1 gap-1">
+                    {step.action !== null && step.action === nowAction && (
+                      <View className="self-start rounded-full bg-accentMuted px-2.5 py-0.5 dark:bg-primaryMutedDark">
+                        <Text className="text-caption font-semibold text-accent dark:text-white">
+                          {t('journey.welcomeNowTag')}
+                        </Text>
+                      </View>
+                    )}
+                    <Text className="text-base text-black dark:text-white">{t(step.key)}</Text>
+                  </View>
                 </Animated.View>
               ))}
             </View>
@@ -217,14 +248,34 @@ export function WelcomeGuide({ visible, targetRef, startWithEvening, expandFromT
             )}
           </View>
 
-          <Pressable
-            onPress={handleStart}
-            disabled={isClosing}
-            accessibilityRole="button"
-            className="items-center rounded-xl bg-primary py-4 active:opacity-90 dark:bg-primaryDark"
-          >
-            <Text className="text-base font-semibold text-white">{t('journey.welcomeCta')}</Text>
-          </Pressable>
+          {nowAction ? (
+            <View className="gap-2">
+              <Pressable
+                onPress={handleStartCheckin}
+                disabled={isClosing}
+                accessibilityRole="button"
+                className="items-center rounded-xl bg-primary py-4 active:opacity-90 dark:bg-primaryDark"
+              >
+                <Text className="text-base font-semibold text-white">
+                  {t(nowAction === 'evening' ? 'journey.welcomeStartEveningCta' : 'journey.welcomeStartMorningCta')}
+                </Text>
+              </Pressable>
+              <Pressable onPress={handleStart} disabled={isClosing} accessibilityRole="button" className="items-center py-3">
+                <Text className="text-base font-semibold text-primary dark:text-white">
+                  {t('journey.welcomeLookAround')}
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              onPress={handleStart}
+              disabled={isClosing}
+              accessibilityRole="button"
+              className="items-center rounded-xl bg-primary py-4 active:opacity-90 dark:bg-primaryDark"
+            >
+              <Text className="text-base font-semibold text-white">{t('journey.welcomeCta')}</Text>
+            </Pressable>
+          )}
         </Animated.View>
       </Animated.View>
     </Modal>

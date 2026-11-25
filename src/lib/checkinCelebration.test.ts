@@ -20,6 +20,7 @@ describe('buildCelebration', () => {
     expect(dayComplete).toBe(false);
     expect(progress).toMatchObject({
       isNewDay: true,
+      isFirstEver: true,
       daysBefore: 0,
       daysAfter: 1,
       stageBefore: 1,
@@ -35,6 +36,17 @@ describe('buildCelebration', () => {
     const { progress, dayComplete } = buildCelebration({ type: 'evening', checkinDate: TODAY, checkinsBefore: before });
     expect(dayComplete).toBe(true);
     expect(progress).toMatchObject({ isNewDay: false, daysBefore: 5, daysAfter: 5, tier: 'normal' });
+  });
+
+  it('only the very first logged day is "first ever"', () => {
+    const sameDayEvening = buildCelebration({
+      type: 'evening',
+      checkinDate: TODAY,
+      checkinsBefore: [{ checkin_date: TODAY, type: 'morning' }],
+    });
+    expect(sameDayEvening.progress?.isFirstEver).toBe(false);
+    const secondDay = buildCelebration({ type: 'morning', checkinDate: TODAY, checkinsBefore: days(1) });
+    expect(secondDay.progress?.isFirstEver).toBe(false);
   });
 
   it('a normal day in between milestones', () => {

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import Animated, {
   Easing as ReanimatedEasing,
   FadeIn,
@@ -16,13 +16,21 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { OakTree } from '@/components/OakTree';
+import { useReminderSettings, useUpdateReminderSettings } from '@/hooks/useReminderSettings';
+import { EVENING_UNLOCK_HOUR } from '@/lib/checkinTiming';
 import type { CelebratedUnlock, CelebrationProgress, CheckinCelebration } from '@/lib/checkinCelebration';
 import { formatDayCount } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { OAK_STAGE_NAME_KEYS } from '@/lib/oak';
 import { colors } from '@/lib/theme';
+import { hourToTime } from '@/lib/time';
 import { DROP_LAND_MS, useCelebrationStore } from '@/store/useCelebrationStore';
 import { haptics } from '@/utils/haptics';
+import {
+  DEFAULT_EVENING_REMINDER,
+  DEFAULT_MORNING_REMINDER,
+  requestNotificationPermission,
+} from '@/utils/notifications';
 import { sounds } from '@/utils/sounds';
 
 const BOX_WIDTH = 140;
@@ -248,6 +256,137 @@ function ProgressCard({ progress, phase }: { progress: CelebrationProgress; phas
   );
 }
 
+type ReminderStatus = 'idle' | 'saving' | 'on' | 'denied' | 'error';
+
+// After the very first check-in's Continue: what comes next, and (when
+// reminders aren't on yet) an offer to turn them on. Nothing else asks, so a
+// new user who closed the app here had nothing bringing them back. Its own
+// page rather than another card, which wouldn't fit under the oak on smaller
+// phones. No tap-anywhere-to-close here, so a stray tap can't skip the offer.
+// Outcomes show inline, not as a toast: the toast overlay renders under this one.
+function NextUpPage({ type, onDone }: { type: CheckinCelebration['type']; onDone: () => void }) {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { settings, isLoading } = useReminderSettings();
+  const updateReminderSettings = useUpdateReminderSettings();
+  const [status, setStatus] = useState<ReminderStatus>('idle');
+
+  const nextLine =
+    type === 'evening'
+      ? t('celebration.nextMorning')
+      : new Date().getHours() >= EVENING_UNLOCK_HOUR
+        ? t('celebration.nextEveningNow')
+        : t('celebration.nextEvening', { time: hourToTime(EVENING_UNLOCK_HOUR) });
+  const times = { morning: DEFAULT_MORNING_REMINDER, evening: DEFAULT_EVENING_REMINDER };
+  // Already on (and not just turned on here): nothing to offer.
+  const alreadyOn = settings?.push_enabled === true && status !== 'on';
+  // The reminder question is still waiting for an answer.
+  const offerOpen = !isLoading && !alreadyOn && (status === 'idle' || status === 'saving');
+
+  const handleRemindMe = async () => {
+    haptics.tick();
+    setStatus('saving');
+    const granted = await requestNotificationPermission();
+    if (!granted) {
+      setStatus('denied');
+      return;
+    }
+    const { error } = await updateReminderSettings.mutateAsync({
+      push_enabled: true,
+      morning_time: DEFAULT_MORNING_REMINDER,
+      evening_time: DEFAULT_EVENING_REMINDER,
+    });
+    if (error) {
+      setStatus('error');
+      return;
+    }
+    haptics.success();
+    setStatus('on');
+  };
+
+  return (
+    <Animated.View
+      entering={FadeIn.duration(250)}
+      className="flex-1 justify-between px-6"
+      style={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}
+    >
+      <View className="flex-1 justify-center gap-6">
+        <Animated.View entering={FadeInDown.duration(350)} className="items-center gap-4">
+          <View className="h-16 w-16 items-center justify-center rounded-full bg-accentMuted dark:bg-primaryMutedDark">
+            <Ionicons name={type === 'evening' ? 'sunny' : 'moon'} size={30} color={colors.primary} />
+          </View>
+          <View className="items-center gap-2">
+            <Text className="text-center text-title text-black dark:text-white">{t('celebration.nextUpTitle')}</Text>
+            <Text className="text-center text-body text-gray">{nextLine}</Text>
+          </View>
+        </Animated.View>
+
+        {!isLoading && !alreadyOn && (
+          <Animated.View
+            entering={FadeInDown.delay(150).duration(350)}
+            className="w-full gap-4 rounded-3xl bg-white p-5 dark:bg-surfaceDark"
+          >
+            <View className="flex-row items-start gap-3">
+              <Ionicons name="notifications-outline" size={22} color={colors.primary} />
+              <View className="flex-1 gap-1">
+                <Text className="text-heading text-black dark:text-white">{t('celebration.reminderQuestion')}</Text>
+                <Text className="text-label text-gray">{t('celebration.reminderBody', times)}</Text>
+              </View>
+            </View>
+
+            {(status === 'idle' || status === 'saving') && (
+              <Pressable
+                onPress={handleRemindMe}
+                disabled={status === 'saving'}
+                accessibilityRole="button"
+                className="items-center rounded-xl bg-primary py-3 active:opacity-90 dark:bg-primaryDark"
+              >
+                {status === 'saving' ? (
+                  <ActivityIndicator color={colors.white} />
+                ) : (
+                  <Text className="text-label font-semibold text-white">{t('celebration.remindMe')}</Text>
+                )}
+              </Pressable>
+            )}
+            {status === 'on' && (
+              <Text className="text-label font-semibold text-accent dark:text-white">
+                ✓ {t('celebration.reminderOn', times)}
+              </Text>
+            )}
+            {status === 'denied' && <Text className="text-label text-gray">{t('celebration.reminderDenied')}</Text>}
+            {status === 'error' && <Text className="text-label text-gray">{t('celebration.reminderError')}</Text>}
+          </Animated.View>
+        )}
+      </View>
+
+      {/* Two separate elements, not one with swapped classes (the NativeWind
+          remount gotcha). While the offer is open, "Not now" is a white card
+          button so it stays secondary to "Remind me" but clearly visible on
+          the grey page; otherwise Continue is the solid primary button. */}
+      {offerOpen ? (
+        <Pressable
+          key="not-now"
+          onPress={onDone}
+          disabled={status === 'saving'}
+          accessibilityRole="button"
+          className="items-center rounded-2xl bg-white py-4 active:opacity-90 dark:bg-surfaceDark"
+        >
+          <Text className="text-nav text-black dark:text-white">{t('celebration.notNow')}</Text>
+        </Pressable>
+      ) : (
+        <Pressable
+          key="continue"
+          onPress={onDone}
+          accessibilityRole="button"
+          className="items-center rounded-2xl bg-primary py-4 active:opacity-90 dark:bg-primaryDark"
+        >
+          <Text className="text-nav text-white">{t('celebration.continue')}</Text>
+        </Pressable>
+      )}
+    </Animated.View>
+  );
+}
+
 // The milestone lines: what unlocked, the oak's new stage, a round number.
 function MilestoneLines({ progress }: { progress: CelebrationProgress }) {
   const { t } = useTranslation();
@@ -280,6 +419,7 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
   const reduceMotion = useReducedMotion();
   const hide = useCelebrationStore((state) => state.hide);
   const [phase, setPhase] = useState<PhaseValue>(Phase.Falling);
+  const [showNextUp, setShowNextUp] = useState(false);
   const { progress } = celebration;
   const isMilestone = progress?.tier === 'milestone';
 
@@ -315,10 +455,16 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
     : t(celebration.type === 'morning' ? 'celebration.morningTitle' : 'celebration.eveningTitle');
   const subLine = celebration.dayComplete
     ? t('celebration.dayCompleteBody')
-    : t(SUB_LINE_KEYS[(progress?.daysAfter ?? 0) % SUB_LINE_KEYS.length]);
+    : progress?.isFirstEver
+      ? t('celebration.firstSub')
+      : t(SUB_LINE_KEYS[(progress?.daysAfter ?? 0) % SUB_LINE_KEYS.length]);
 
-  // A tap anywhere before the end skips to it; after that it closes.
-  const handlePress = () => (phase >= Phase.Done ? hide() : setPhase(Phase.Done));
+  // The very first check-in continues to "what's next" instead of closing.
+  const finish = () => (progress?.isFirstEver ? setShowNextUp(true) : hide());
+  // A tap anywhere before the end skips to it; after that it continues.
+  const handlePress = () => (phase >= Phase.Done ? finish() : setPhase(Phase.Done));
+
+  if (showNextUp) return <NextUpPage type={celebration.type} onDone={hide} />;
 
   return (
     <Pressable
@@ -357,7 +503,7 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
         {phase >= Phase.Done && (
           <Animated.View entering={FadeIn.duration(250)} className="w-full">
             <Pressable
-              onPress={hide}
+              onPress={finish}
               accessibilityRole="button"
               className="items-center rounded-2xl bg-primary py-4 active:opacity-90 dark:bg-primaryDark"
             >

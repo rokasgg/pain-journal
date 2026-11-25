@@ -5,6 +5,11 @@ import { SchedulableTriggerInputTypes } from 'expo-notifications';
 import { t } from '@/lib/i18n/useTranslation';
 import type { ReminderSettings } from '@/types/database.types';
 
+// The times reminders start at when first turned on (Settings → Notifications,
+// or the first check-in's "Remind me").
+export const DEFAULT_MORNING_REMINDER = '08:00';
+export const DEFAULT_EVENING_REMINDER = '21:00';
+
 const MORNING_REMINDER_ID = 'morning-reminder';
 const EVENING_REMINDER_ID = 'evening-reminder';
 

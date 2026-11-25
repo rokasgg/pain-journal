@@ -12,11 +12,9 @@ import { colors } from '@/lib/theme';
 import { hourToTime } from '@/lib/time';
 import type { ReminderSettings } from '@/types/database.types';
 import { haptics } from '@/utils/haptics';
-import { requestNotificationPermission } from '@/utils/notifications';
+import { DEFAULT_EVENING_REMINDER, DEFAULT_MORNING_REMINDER, requestNotificationPermission } from '@/utils/notifications';
 import { toast } from '@/utils/toast';
 
-const DEFAULT_MORNING = '08:00';
-const DEFAULT_EVENING = '21:00';
 // Evening reminders can't fire before the evening check-in opens; morning
 // reminders stay before it.
 const EVENING_MIN = hourToTime(EVENING_UNLOCK_HOUR);
@@ -37,8 +35,8 @@ function NotificationsForm({ settings }: { settings: ReminderSettings | null }) 
   const updateReminderSettings = useUpdateReminderSettings();
   const [state, setState] = useState<ReminderState>({
     pushEnabled: settings?.push_enabled ?? true,
-    morningTime: settings?.morning_time ?? DEFAULT_MORNING,
-    eveningTime: settings?.evening_time ?? DEFAULT_EVENING,
+    morningTime: settings?.morning_time ?? DEFAULT_MORNING_REMINDER,
+    eveningTime: settings?.evening_time ?? DEFAULT_EVENING_REMINDER,
   });
   // The preview follows whichever reminder the user last touched.
   const [previewKind, setPreviewKind] = useState<ReminderKind>('morning');

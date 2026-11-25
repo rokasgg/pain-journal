@@ -19,8 +19,10 @@ import { useChatAboutData, type ChatMessage, type ChatResult } from '@/hooks/use
 import {
   CHAT_PERIODS,
   DEFAULT_CHAT_PERIOD,
+  MAX_CHAT_MESSAGE_CHARS,
   replyAsText,
   type ChatAnswer,
+  type ChatOffTopic,
   type ChatPeriod,
   type ChatRedFlag,
   type ChatReply,
@@ -43,6 +45,10 @@ import { PremiumScreen } from '@/components/premium/PremiumScreen';
 //    lib/chatReply.ts), a caveat, "Based on …", "Add to the physio summary"
 //    and follow-up chips
 //  - red flag: a safety card (call 112 / log a flare-up) instead of analysis
+//  - off topic: a one-line polite refusal (outside the user's data, recovery
+//    habits and physio questions; also diagnosis and medication requests)
+// Questions are capped at MAX_CHAT_MESSAGE_CHARS, and Premium has a daily
+// message cap (supabase/functions/_shared/aiUsage.ts).
 // The edge function replies in a fixed JSON shape (structured outputs).
 
 interface AssistantResult {
@@ -60,6 +66,10 @@ const STARTERS = [
   { key: 'chat.starter3', icon: 'flash-outline', tile: 'bg-red-100', color: '#B42318' },
   { key: 'chat.starter4', icon: 'barbell-outline', tile: 'bg-accentMuted', color: colors.accent },
 ] as const;
+
+// Show the character counter / "questions left" caption only near the limit.
+const CHAR_COUNTER_FROM = 400;
+const REMAINING_CAPTION_AT = 5;
 
 const BAR_TONE_COLORS = { warm: '#C98A1B', calm: colors.accent } as const;
 
@@ -176,6 +186,15 @@ function AnswerView({ item, reply, isLast, onFollowUp }: AnswerProps) {
   );
 }
 
+function OffTopicView({ reply }: { reply: ChatOffTopic }) {
+  return (
+    <View className="gap-3.5">
+      <AssistantLabel />
+      <Text className="text-[17px] leading-7 text-ink dark:text-white">{reply.message}</Text>
+    </View>
+  );
+}
+
 function RedFlagView({ reply }: { reply: ChatRedFlag }) {
   const { t } = useTranslation();
   const router = useRouter();
@@ -221,6 +240,7 @@ function ChatScreenContent() {
   const [isPeriodSheetOpen, setIsPeriodSheetOpen] = useState(false);
   const [items, setItems] = useState<ChatItem[]>([]);
   const [input, setInput] = useState('');
+  const [remaining, setRemaining] = useState<number | null>(null);
   const chatMutation = useChatAboutData(period);
 
   const scrollToEnd = () => requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
@@ -240,6 +260,7 @@ function ChatScreenContent() {
 
     const result = await chatMutation.mutateAsync([...history, { role: 'user', content: question }]);
     const { reply, comparisons } = result;
+    if (result.remaining !== null) setRemaining(result.remaining);
     if (result.error || !reply) {
       toast.error(result.error ?? t('chat.errorGeneric'));
       return;
@@ -258,6 +279,8 @@ function ChatScreenContent() {
   const isEmpty = items.length === 0;
   const lastAssistantIndex = items.map((i) => i.role).lastIndexOf('assistant');
   const canSend = input.trim().length > 0 && !chatMutation.isPending;
+  const showCharCount = input.length >= CHAR_COUNTER_FROM;
+  const showRemaining = remaining !== null && remaining <= REMAINING_CAPTION_AT;
 
   const newChat = (
     <Pressable
@@ -347,9 +370,13 @@ function ChatScreenContent() {
                 </View>
               );
             }
-            return item.result.reply.kind === 'red_flag' ? (
-              <RedFlagView key={index} reply={item.result.reply} />
-            ) : (
+            if (item.result.reply.kind === 'red_flag') {
+              return <RedFlagView key={index} reply={item.result.reply} />;
+            }
+            if (item.result.reply.kind === 'off_topic') {
+              return <OffTopicView key={index} reply={item.result.reply} />;
+            }
+            return (
               <AnswerView
                 key={index}
                 item={item}
@@ -370,30 +397,43 @@ function ChatScreenContent() {
       </ScrollView>
 
       <View
-        className="flex-row items-end gap-3 border-t border-borderLight bg-background px-4 pt-3 dark:border-borderDark dark:bg-backgroundDark"
+        className="gap-2 border-t border-borderLight bg-background px-4 pt-3 dark:border-borderDark dark:bg-backgroundDark"
         style={{ paddingBottom: Math.max(insets.bottom, 12) }}
       >
-        <TextInput
-          value={input}
-          onChangeText={setInput}
-          placeholder={t('chat.inputPlaceholder')}
-          placeholderTextColor={colors.gray}
-          multiline
-          returnKeyType="send"
-          blurOnSubmit
-          onSubmitEditing={() => void sendMessage(input)}
-          className="max-h-28 min-h-[48px] flex-1 rounded-3xl bg-segmentTrack px-5 py-3 text-[17px] text-ink dark:bg-segmentTrackDark dark:text-white"
-        />
-        <Pressable
-          onPress={() => void sendMessage(input)}
-          disabled={!canSend}
-          accessibilityRole="button"
-          accessibilityLabel={t('chat.send')}
-          className="h-12 w-12 items-center justify-center rounded-full bg-accent"
-          style={{ opacity: canSend ? 1 : 0.3 }}
-        >
-          <Ionicons name="arrow-up" size={24} color={colors.white} />
-        </Pressable>
+        {(showRemaining || showCharCount) && (
+          <View className="flex-row justify-between px-2">
+            <Text className="text-[13px] text-inkSecondary dark:text-gray">
+              {showRemaining ? t('chat.remainingToday', { count: remaining ?? 0 }) : ''}
+            </Text>
+            <Text className="text-[13px] text-inkSecondary dark:text-gray">
+              {showCharCount ? t('chat.charCount', { count: input.length, max: MAX_CHAT_MESSAGE_CHARS }) : ''}
+            </Text>
+          </View>
+        )}
+        <View className="flex-row items-end gap-3">
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            maxLength={MAX_CHAT_MESSAGE_CHARS}
+            placeholder={t('chat.inputPlaceholder')}
+            placeholderTextColor={colors.gray}
+            multiline
+            returnKeyType="send"
+            blurOnSubmit
+            onSubmitEditing={() => void sendMessage(input)}
+            className="max-h-28 min-h-[48px] flex-1 rounded-3xl bg-segmentTrack px-5 py-3 text-[17px] text-ink dark:bg-segmentTrackDark dark:text-white"
+          />
+          <Pressable
+            onPress={() => void sendMessage(input)}
+            disabled={!canSend}
+            accessibilityRole="button"
+            accessibilityLabel={t('chat.send')}
+            className="h-12 w-12 items-center justify-center rounded-full bg-accent"
+            style={{ opacity: canSend ? 1 : 0.3 }}
+          >
+            <Ionicons name="arrow-up" size={24} color={colors.white} />
+          </Pressable>
+        </View>
       </View>
 
       <ActionSheet

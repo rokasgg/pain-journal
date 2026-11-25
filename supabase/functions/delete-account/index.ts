@@ -30,6 +30,7 @@ const USER_TABLES = [
   "checkins",
   "reminder_settings",
   "subscriptions",
+  "ai_usage",
 ] as const;
 
 const AVATAR_BUCKET = "avatars";

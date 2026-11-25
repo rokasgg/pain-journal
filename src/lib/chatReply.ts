@@ -7,7 +7,11 @@ import type { Checkin, ExerciseLog } from '@/types/database.types';
 //  - `answer`: an optional bold lead, the body, an optional comparison card,
 //    an optional caveat, and up to 2 follow-up questions
 //  - `red_flag`: a red safety card (call 112 / log a flare-up) instead of any
-//    data analysis
+//    data analysis. The edge function also returns this from a hard-coded
+//    check, before any model call (supabase/functions/_shared/redFlags.ts)
+//  - `off_topic`: a one-line polite refusal for anything outside the user's
+//    own data, recovery habits and physio questions (incl. diagnosis and
+//    medication requests)
 // The comparison bars are never numbers the model wrote: the model only picks
 // *which* comparison fits, and the app computes it from the user's own data
 // (insightFindings.ts / trainingInsights.ts) — the same values it sends the
@@ -39,7 +43,15 @@ export interface ChatRedFlag {
   message: string;
 }
 
-export type ChatReply = ChatAnswer | ChatRedFlag;
+export interface ChatOffTopic {
+  kind: 'off_topic';
+  message: string;
+}
+
+export type ChatReply = ChatAnswer | ChatRedFlag | ChatOffTopic;
+
+// Mirrors MAX_USER_CHARS in supabase/functions/_shared/chatInput.ts.
+export const MAX_CHAT_MESSAGE_CHARS = 500;
 
 const MAX_FOLLOW_UPS = 2;
 
@@ -57,6 +69,10 @@ export function parseChatReply(raw: unknown): ChatReply | null {
     const message = asString(r.red_flag_message);
     return message ? { kind: 'red_flag', message } : null;
   }
+  if (r.kind === 'off_topic') {
+    const message = asString(r.body) || asString(r.lead);
+    return message ? { kind: 'off_topic', message } : null;
+  }
   if (r.kind !== 'answer') return null;
 
   const body = asString(r.body);
@@ -71,7 +87,7 @@ export function parseChatReply(raw: unknown): ChatReply | null {
 
 // What the model sees of an earlier assistant turn (history is plain text).
 export function replyAsText(reply: ChatReply): string {
-  if (reply.kind === 'red_flag') return reply.message;
+  if (reply.kind !== 'answer') return reply.message;
   return [reply.lead, reply.body, reply.caveat].filter(Boolean).join(' ');
 }
 

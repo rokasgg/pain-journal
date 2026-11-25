@@ -20,6 +20,9 @@ export async function extractFunctionErrorMessage(error: unknown, fallback: stri
         queryClient.invalidateQueries({ queryKey: ['premium'] });
         return t('premium.requiredError');
       }
+      // Daily cap and input cap on the AI chat (chat-about-data).
+      if (body?.error_code === 'ai_limit_reached') return t('chat.limitReached');
+      if (body?.error_code === 'message_too_long') return t('chat.tooLong');
       if (typeof body?.error === 'string' && body.error) return body.error;
     }
   } catch {

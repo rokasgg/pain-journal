@@ -37,6 +37,14 @@ describe('parseChatReply', () => {
     });
   });
 
+  it('parses an off-topic refusal from its body', () => {
+    expect(parseChatReply({ kind: 'off_topic', lead: '', body: 'I can only help with your entries.' })).toEqual({
+      kind: 'off_topic',
+      message: 'I can only help with your entries.',
+    });
+    expect(parseChatReply({ kind: 'off_topic', lead: '', body: '' })).toBeNull();
+  });
+
   it('rejects malformed replies', () => {
     expect(parseChatReply(null)).toBeNull();
     expect(parseChatReply('text')).toBeNull();
@@ -52,6 +60,7 @@ describe('replyAsText', () => {
       replyAsText({ kind: 'answer', lead: 'Yes.', body: 'Body.', comparison: null, caveat: 'Caveat.', followUps: [] }),
     ).toBe('Yes. Body. Caveat.');
     expect(replyAsText({ kind: 'red_flag', message: 'Call.' })).toBe('Call.');
+    expect(replyAsText({ kind: 'off_topic', message: 'Not my area.' })).toBe('Not my area.');
   });
 });
 
