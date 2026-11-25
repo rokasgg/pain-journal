@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, Pressable, Text, View } from 'react-native';
 import Animated, { SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -10,6 +10,8 @@ export interface SheetOption {
   onPress: () => void;
   tone?: OptionTone;
   disabled?: boolean;
+  // Shows a spinner in place of the label (the row also stays disabled).
+  loading?: boolean;
 }
 
 export interface OptionSheetProps {
@@ -54,12 +56,17 @@ export function OptionSheet({
 }: OptionSheetProps) {
   const insets = useSafeAreaInsets();
   const hasHeader = !!title || !!message || !!children;
+  // While an option is working, nothing else can be tapped or dismissed.
+  const busy = options.some((option) => option.loading);
+  const dismiss = () => {
+    if (!busy) onDismiss();
+  };
 
   return (
-    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={onDismiss}>
+    <Modal visible={visible} transparent statusBarTranslucent animationType="fade" onRequestClose={dismiss}>
       {/* Keeps the sheet above the keyboard when it holds an input. */}
       <KeyboardAvoidingView className="flex-1 justify-end" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Pressable className="absolute inset-0 bg-black/40" onPress={onDismiss} accessible={false} />
+        <Pressable className="absolute inset-0 bg-black/40" onPress={dismiss} accessible={false} />
 
         <Animated.View
           entering={SlideInDown.duration(260)}
@@ -80,17 +87,28 @@ export function OptionSheet({
               <Pressable
                 key={option.label}
                 onPress={option.onPress}
-                disabled={option.disabled}
+                disabled={option.disabled || option.loading}
                 accessibilityRole="button"
-                accessibilityState={{ disabled: !!option.disabled }}
+                accessibilityState={{ disabled: !!(option.disabled || option.loading), busy: !!option.loading }}
                 // Disabled is shown through style, not className, so toggling
                 // it never swaps classes on a mounted row (NativeWind upgrade).
-                style={{ opacity: option.disabled ? 0.35 : 1 }}
+                style={{ opacity: option.disabled && !option.loading ? 0.35 : 1 }}
                 className={`items-center py-4 active:bg-borderLight dark:active:bg-borderDark ${
                   hasHeader || index > 0 ? 'border-t border-borderLight dark:border-borderDark' : ''
                 }`}
               >
-                <Text className={`text-xl ${OPTION_TEXT_STYLES[option.tone ?? 'default']}`}>{option.label}</Text>
+                {/* The label keeps the row's height; the spinner sits over it. */}
+                <Text
+                  className={`text-xl ${OPTION_TEXT_STYLES[option.tone ?? 'default']}`}
+                  style={{ opacity: option.loading ? 0 : 1 }}
+                >
+                  {option.label}
+                </Text>
+                {option.loading && (
+                  <View className="absolute inset-0 items-center justify-center">
+                    <ActivityIndicator color={option.tone === 'destructive' ? '#dc2626' : undefined} />
+                  </View>
+                )}
               </Pressable>
             ))}
           </View>
@@ -98,6 +116,8 @@ export function OptionSheet({
           {onCancel && (
             <Pressable
               onPress={onCancel}
+              disabled={busy}
+              style={{ opacity: busy ? 0.35 : 1 }}
               accessibilityRole="button"
               className="items-center rounded-2xl bg-white py-4 active:bg-borderLight dark:bg-surfaceDark dark:active:bg-borderDark"
             >

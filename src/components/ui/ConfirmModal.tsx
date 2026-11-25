@@ -19,6 +19,8 @@ export interface ConfirmModalProps {
   variant?: ConfirmModalVariant;
   /** Two-option mode only: the confirm option stays disabled until this word is typed (e.g. "DELETE"). */
   confirmPhrase?: string;
+  /** Two-option mode only: the confirm action is running. Shows a spinner on it and locks the sheet. */
+  isLoading?: boolean;
 }
 
 // Confirmation / informative dialog, rendered as the app's bottom option
@@ -37,9 +39,13 @@ export function ConfirmModal({
   onConfirm,
   variant = 'default',
   confirmPhrase,
+  isLoading = false,
 }: ConfirmModalProps) {
   const { t } = useTranslation();
   const [typed, setTyped] = useState('');
+  // Start empty every time the sheet opens (it can close from the caller
+  // after the confirm action, not only via Cancel).
+  if (!visible && typed !== '') setTyped('');
   const phraseMatches = !confirmPhrase || typed.trim().toUpperCase() === confirmPhrase.toUpperCase();
 
   // A destructive question (delete, sign out) should feel different from a
@@ -76,9 +82,12 @@ export function ConfirmModal({
       options={[
         {
           label: confirmLabel ?? t('common.done'),
-          onPress: close(onConfirm),
+          // The caller closes the sheet itself when the action finishes, so the
+          // typed phrase only resets on close/cancel.
+          onPress: isLoading ? () => {} : onConfirm,
           tone: variant,
           disabled: !phraseMatches,
+          loading: isLoading,
         },
       ]}
       cancelLabel={cancelLabel ?? t('common.cancel')}
@@ -89,6 +98,7 @@ export function ConfirmModal({
         <Input
           value={typed}
           onChangeText={setTyped}
+          editable={!isLoading}
           label={t('common.typeToConfirm', { phrase: confirmPhrase })}
           labelClassName="text-center"
           placeholder={confirmPhrase}

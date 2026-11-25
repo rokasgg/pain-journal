@@ -55,6 +55,7 @@ export default function SettingsScreen() {
   const deleteAccount = useAuthStore((state) => state.deleteAccount);
   const [isSignOutModalVisible, setIsSignOutModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const aiInsightsEnabled = profile?.ai_insights_enabled ?? true;
   // Explicit choice always wins over the journey's derived default
@@ -121,9 +122,14 @@ export default function SettingsScreen() {
 
   // Permanent, App Store–required in-app deletion. The SIGNED_OUT that
   // follows a successful delete sends the root layout back to login.
+  // The sheet stays open with a spinner while the server deletes everything
+  // (it can take a few seconds), then closes before any toast: the toast is an
+  // in-tree overlay and would sit under the sheet's native Modal.
   const handleConfirmDelete = async () => {
-    setIsDeleteModalVisible(false);
+    setIsDeleting(true);
     const { error } = await deleteAccount();
+    setIsDeleting(false);
+    setIsDeleteModalVisible(false);
     if (error) {
       toast.error(error);
       return;
@@ -296,6 +302,7 @@ export default function SettingsScreen() {
         message={t('settings.deleteAccountConfirmMessage')}
         confirmLabel={t('settings.deleteAccountConfirm')}
         confirmPhrase="DELETE"
+        isLoading={isDeleting}
         variant="destructive"
         onConfirm={handleConfirmDelete}
         onCancel={() => setIsDeleteModalVisible(false)}

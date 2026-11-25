@@ -62,6 +62,10 @@ Deno.serve(async (req: Request) => {
 
   for (const table of USER_TABLES) {
     const { error } = await admin.from(table).delete().eq("user_id", user.id);
+    // A table whose migration was never run has nothing to delete; don't let
+    // it block the account deletion (PGRST205 = not in the schema cache,
+    // 42P01 = undefined table).
+    if (error && (error.code === "PGRST205" || error.code === "42P01")) continue;
     if (error) return json({ error: `Could not delete ${table}: ${error.message}` }, 500);
   }
 
