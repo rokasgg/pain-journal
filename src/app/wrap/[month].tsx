@@ -13,12 +13,13 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { useWrapStore } from '@/store/useWrapStore';
 import { haptics } from '@/utils/haptics';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 const SLIDE_DURATION_MS = 6000;
 // Taps on the left third go back, anywhere else goes forward (story convention).
 const BACK_ZONE = 1 / 3;
 
-export default function WrapScreen() {
+function WrapScreenContent() {
   const { month } = useLocalSearchParams<{ month: string }>();
   const router = useRouter();
   const { t } = useTranslation();
@@ -138,5 +139,14 @@ export default function WrapScreen() {
         </View>
       )}
     </SafeAreaView>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function WrapScreen() {
+  return (
+    <PremiumScreen feature="wrap" showClose>
+      <WrapScreenContent />
+    </PremiumScreen>
   );
 }

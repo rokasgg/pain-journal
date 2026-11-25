@@ -212,6 +212,18 @@ export interface MuscleFinding {
 
 export type MuscleFindingInsert = Omit<MuscleFinding, 'id' | 'assessment_id'>;
 
+// Premium entitlement (supabase_premium_migration.sql). Read-only for the
+// client: only the revenuecat-webhook edge function (service role) writes it.
+export interface Subscription {
+  user_id: string;
+  entitlement: string;
+  product_id: string | null;
+  period_type: 'trial' | 'intro' | 'normal' | null;
+  expires_at: string | null;
+  will_renew: boolean;
+  updated_at: string;
+}
+
 export interface ReminderSettings {
   user_id: string;
   morning_time: string;

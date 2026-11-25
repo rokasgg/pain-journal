@@ -10,8 +10,9 @@ import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
-export default function PhysioVisitDetailScreen() {
+function PhysioVisitDetailScreenContent() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { t } = useTranslation();
   const router = useRouter();
@@ -143,5 +144,14 @@ export default function PhysioVisitDetailScreen() {
         onCancel={() => setIsConfirmDeleteVisible(false)}
       />
     </ScrollView>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function PhysioVisitDetailScreen() {
+  return (
+    <PremiumScreen feature="physio">
+      <PhysioVisitDetailScreenContent />
+    </PremiumScreen>
   );
 }

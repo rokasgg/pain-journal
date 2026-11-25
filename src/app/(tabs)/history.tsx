@@ -12,11 +12,14 @@ import { StatTile } from '@/components/history/StatTile';
 import { IconSegmentedControl } from '@/components/ui/IconSegmentedControl';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useAvailableWraps } from '@/hooks/useMonthlyWrap';
+import { paywallHref, usePremiumAction } from '@/hooks/usePremiumAction';
+import { PremiumBadge } from '@/components/premium/PremiumBadge';
 import { useFlareUps } from '@/hooks/useFlareUps';
 import { capitalize, currentDateFnsLocale, toLocalDate } from '@/lib/dates';
 import { firstCheckinDate } from '@/lib/historyCalendar';
 import { buildCalendarMarkers } from '@/lib/historyEntries';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { freeHistoryStart } from '@/lib/premium';
 import {
   comparePeriods,
   countPainFreeDays,
@@ -93,6 +96,9 @@ export default function HistoryScreen() {
 
   const painFree = useMemo(() => countPainFreeDays(checkins), [checkins]);
   const availableWraps = useAvailableWraps();
+  // Free plan: History shows the last 30 days; older ones open the paywall.
+  const { isPremium, openPaywall: openHistoryPaywall } = usePremiumAction('history');
+  const lockedBefore = isPremium ? null : freeHistoryStart(today);
 
   const calendarMarkers = useMemo(
     () => buildCalendarMarkers(allCheckins, allFlareUps),
@@ -131,10 +137,14 @@ export default function HistoryScreen() {
                   <Pressable
                     key={option.key}
                     onPress={() => {
+                      if (option.key === 'all' && !isPremium) {
+                        openHistoryPaywall();
+                        return;
+                      }
                       if (!isActive) haptics.tick();
                       setRange(option.key);
                     }}
-                    className={`flex-1 items-center rounded-xl py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
+                    className={`flex-1 flex-row items-center justify-center gap-1 rounded-xl py-2 ${isActive ? 'bg-surface dark:bg-surfaceDark' : ''
                       }`}
                   >
                     <Text
@@ -143,6 +153,7 @@ export default function HistoryScreen() {
                     >
                       {option.label}
                     </Text>
+                    {option.key === 'all' && !isPremium && <PremiumBadge size={10} className="p-0.5" />}
                   </Pressable>
                 );
               })}
@@ -168,9 +179,9 @@ export default function HistoryScreen() {
                 <Text className="text-base font-semibold text-black dark:text-white">{t('wrap.archiveTitle')}</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-2">
                   {availableWraps.map((month) => (
-                    <Link key={month} href={`/wrap/${month}` as Href} asChild>
+                    <Link key={month} href={isPremium ? (`/wrap/${month}` as Href) : paywallHref('wrap')} asChild>
                       <Pressable className="flex-row items-center gap-1.5 rounded-full bg-segmentTrack px-4 py-2 active:opacity-80 dark:bg-segmentTrackDark">
-                        <Ionicons name="sparkles" size={14} color={colors.primary} />
+                        <Ionicons name={isPremium ? 'sparkles' : 'lock-closed'} size={14} color={colors.primary} />
                         <Text className="text-sm font-medium text-black dark:text-white">
                           {capitalize(format(parseISO(`${month}-01`), 'LLL yyyy', { locale: currentDateFnsLocale() }))}
                         </Text>
@@ -193,6 +204,8 @@ export default function HistoryScreen() {
               markers={calendarMarkers}
               today={today}
               firstCheckinDate={firstLoggedDate}
+              lockedBefore={lockedBefore}
+              onLockedPress={openHistoryPaywall}
             />
 
             {selectedDate && (

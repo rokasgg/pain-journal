@@ -63,6 +63,10 @@ export interface HistoryCalendarProps {
   today: string; // local yyyy-MM-dd
   // Dots only show from the user's first check-in on.
   firstCheckinDate: string | null;
+  // Free plan: days before this (yyyy-MM-dd) draw empty and call
+  // onLockedPress instead of selecting. null/undefined = nothing locked.
+  lockedBefore?: string | null;
+  onLockedPress?: () => void;
   className?: string;
 }
 
@@ -77,6 +81,8 @@ export function HistoryCalendar({
   markers,
   today,
   firstCheckinDate,
+  lockedBefore,
+  onLockedPress,
   className,
 }: HistoryCalendarProps) {
   const { t, locale } = useTranslation();
@@ -133,13 +139,16 @@ export function HistoryCalendar({
       <View className="flex-row flex-wrap">
         {days.map((day) => {
           const date = format(day, 'yyyy-MM-dd');
-          const marker = markers[date];
           const inMonth = isSameMonth(day, visibleMonth);
+          const isLocked = !!lockedBefore && date < lockedBefore;
+          // Locked days draw like empty past days: no tint, dots or bolt.
+          const marker = isLocked ? undefined : markers[date];
           const isFuture = date > today;
           const isToday = date === today;
           const isSelected = inMonth && date === selectedDate;
           const tappable = inMonth && !isFuture;
-          const showDots = inMonth && !isFuture && firstCheckinDate !== null && date >= firstCheckinDate;
+          const showDots =
+            inMonth && !isFuture && !isLocked && firstCheckinDate !== null && date >= firstCheckinDate;
           const tint = painTint(marker?.avgPain);
           const tintColor = inMonth ? PAIN_TINTS[tint] : undefined;
 
@@ -147,25 +156,31 @@ export function HistoryCalendar({
             ? colors.white
             : !inMonth
               ? palette.otherMonth
-              : isFuture
+              : isFuture || isLocked
                 ? palette.future
                 : tintColor
                   ? TINTED_TEXT
                   : palette.text;
 
-          const a11yParts = [
+          const a11yParts = isLocked
+            ? [formatDayLabel(day, locale), t('premium.badge')]
+            : [
             formatDayLabel(day, locale),
             t(PAIN_A11Y_KEYS[tint]),
             t(marker?.hasMorning ? 'history.dayMorningLogged' : 'history.dayMorningNotLogged'),
             t(marker?.hasEvening ? 'history.dayEveningLogged' : 'history.dayEveningNotLogged'),
             ...(marker?.hasFlareUp ? [t('history.dayFlareUp')] : []),
             ...(isToday ? [t('history.dayToday')] : []),
-          ];
+              ];
 
           return (
             <Pressable
               key={date}
               onPress={() => {
+                if (isLocked) {
+                  onLockedPress?.();
+                  return;
+                }
                 if (date !== selectedDate) haptics.tick();
                 onSelectDate(date);
               }}

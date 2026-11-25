@@ -10,8 +10,9 @@ import { formatCheckinDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
-export default function PhysioVisitsModal() {
+function PhysioVisitsModalContent() {
   const { t } = useTranslation();
   const router = useRouter();
   const { assessments, isLoading } = usePhysioAssessments();
@@ -129,5 +130,14 @@ export default function PhysioVisitsModal() {
         onCancel={() => setConfirmDeleteId(null)}
       />
     </ScrollView>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function PhysioVisitsModal() {
+  return (
+    <PremiumScreen feature="physio">
+      <PhysioVisitsModalContent />
+    </PremiumScreen>
   );
 }

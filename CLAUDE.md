@@ -751,6 +751,46 @@ src/
 - **Privacy:** Health-derived data reaches Anthropic only when AI insights are on; the AI subtitle says sleep and activity from Apple Health are included. The App Store privacy label and the privacy policy must list Health & Fitness data.
 - Test in the iOS Simulator by adding sleep, steps and a workout in its Health app; Strava/Watch source names and overlapping sleep need a real iPhone.
 
+## Premium (`src/lib/premium.ts`, `src/hooks/usePremium.ts`, `src/lib/purchases.ts`)
+- **The rule: never paywall the daily habit, charge for the insight.**
+  - **Free:** check-ins (incl. late logging), flare-ups and the morning follow-up, the History calendar and day details for the last `FREE_HISTORY_DAYS` (30), the Week/Month charts (all metrics) and stat tiles, the oak, journey, celebration, reminders, Apple Health and **Experiments**.
+  - **Premium:** every AI feature (chat, pattern analysis, physio summary, routine generation, physio-focus), full history (older calendar days, the "All" range, older detail screens), the visit PDF, physio visits, **Findings + the flare-up detective** (incl. `FlareLeadUpCard`), **routines** (Home cards, `routine/*`, the evening training step) and the **Monthly Wrap**.
+  - **Data is never deleted or hidden server-side when Premium lapses**; only the UI locks, and the copy says so.
+- **Purchases are RevenueCat** (`react-native-purchases`, a native module, so it needs a rebuild). **`src/lib/purchases.ts` is the only importer**, through a guarded dynamic `import()` like `healthkit.ts`. Expo Go, Android (not set up yet) and a missing `EXPO_PUBLIC_REVENUECAT_IOS_KEY` all just report "unavailable"; every call returns `{ …, error }`.
+  - **Keys:** local `.env` uses RevenueCat's **Test Store** key (`test_…`, simulated purchases, no App Store Connect needed). `loadPurchases()` refuses a `test_` key outside `__DEV__`, so TestFlight/App Store builds need the `appl_…` key (in `eas.json`'s env).
+  - **Not used on purpose:** RevenueCat's SPM/Swift setup (the RN package already bundles the iOS SDK via CocoaPods), `react-native-purchases-ui` Paywalls (the custom `paywall.tsx` is translated and feature-specific) and Customer Center (a possible later addition to the Settings Premium row; it needs that same native package).
+  - App user id = the Supabase user id. `usePremiumLifecycle()` (root layout) logs in and out and pushes CustomerInfo updates into the cache.
+  - The entitlement id is `pain_journaling_pro` (`PREMIUM_ENTITLEMENT` in `premium.ts` and `ENTITLEMENT_ID` in `_shared/entitlement.ts` must match). The 7-day trial is an App Store intro offer, not app logic.
+- **The source of truth is the `subscriptions` table** (`supabase_premium_migration.sql`, repo root, run once). It's select-only for the user, and only the service role writes it. **It's deliberately not a `profiles` column:** the client upserts profiles, so a user could grant themselves Premium.
+  - **`revenuecat-webhook`** (deploy with `--no-verify-jwt`, secret `REVENUECAT_WEBHOOK_SECRET`, sent by RevenueCat as `Authorization: Bearer …`) upserts it from RevenueCat events.
+  - Active means `expires_at > now()`, so a cancellation keeps access until the period ends.
+  - It's in `delete-account`'s `USER_TABLES`. Deleting the account doesn't cancel the Apple subscription, and the confirm copy says so.
+- **Server enforcement:** `_shared/entitlement.ts` `requirePremium()` runs right after `getUser()` in `chat-about-data`, `analyze-patterns`, `physio-summary`, `generate-routine` and `physio-focus`.
+  - It returns 402 `error_code: 'premium_required'`.
+  - A missing or expired row falls back to RevenueCat's REST API (`REVENUECAT_SECRET_KEY`) for webhook lag.
+  - `extractFunctionErrorMessage` maps the 402 to `premium.requiredError` and invalidates `['premium']`.
+  - **Add `requirePremium` to any new billed edge function.**
+- **`usePremium()`** = RevenueCat CustomerInfo **or** the active `subscriptions` row. Like `useJourney`, it **reports unlocked while loading**. The root splash also waits for it (it's a prefetch, like profile). In `__DEV__`, the Settings "Dev override" row cycles `usePremiumDevStore` (off → free → premium) to test the gates without a sandbox purchase.
+- **Gate patterns** (`src/components/premium/`):
+  - **`PremiumScreen`** wraps a whole Premium route in its default export (`function XContent()` + `export default function X() { return <PremiumScreen feature="…"><XContent /></PremiumScreen>; }`), so the content's hooks never run for free users. `showClose` is for headerless routes (`physio-visit/new`, `wrap/[month]`).
+  - **`PremiumGate`** is for a section inside a screen (`fallback={null}` hides it).
+  - **`LockedCard`** is the locked state: what it is, "your entries are kept", and "Try free for 7 days" → `/paywall?feature=…`.
+  - **`PremiumBadge`** is the lock on tiles and chips.
+  - **`usePremiumAction(feature)`** gives `{ isPremium, run, openPaywall }`; `paywallHref(feature)` is for `Link`s.
+  - **Entry points link straight to the paywall when free** (Insights tiles, Wrap card/chips, the "All" range, locked calendar days); the screen gate is the backstop.
+  - **The check-in never shows a paywall:** free users just don't get the routine step (`hasRoutinesInRotation` is false).
+  - The Findings teaser shows the real count ("3 findings are ready"), since findings are computed on the phone for free.
+  - A free tap on the Wrap card marks the month seen, so the card doesn't nag all month.
+  - Locked calendar days draw empty via `style` (`lockedBefore`), per the NativeWind gotcha.
+- **`src/app/paywall.tsx`** is a **plain pushed page** with the native back button, titled "Premium". It's **never a modal sheet that can be dragged down** (explicit request). It leads with `?feature=`, lists the benefits and the current offering's packages (annual first, "Best value"), and shows "Start 7-day free trial" only when the package really has a free intro price. It has Restore and the Terms (Apple's standard EULA) + Privacy links (`TERMS_URL`/`PRIVACY_POLICY_URL` in `src/constants/app.ts`). **Launch blocker:** `PRIVACY_POLICY_URL` is empty until a hosted policy exists, and App Review 3.1.2 needs it on the paywall.
+- **Settings:** a "Pain Journal Premium" row at the top (Free / trial until / renews / ends). Free → the paywall; Premium → `showManageSubscriptions()`, falling back to the App Store subscriptions URL.
+- **Store setup (manual):**
+  - App Store Connect: a subscription group, monthly + annual, each with a 7-day free intro offer.
+  - RevenueCat: the products, the `pain_journaling_pro` entitlement, the current offering (packages `$rc_annual` → `yearly`, `$rc_monthly` → `monthly`; the paywall sorts and labels by package type and shows only these two. **There is no lifetime product**: the webhook and REST fallback treat a grant without an expiry as not Premium), and the webhook URL + secret.
+  - `supabase secrets set REVENUECAT_WEBHOOK_SECRET=… REVENUECAT_SECRET_KEY=…`
+  - Redeploy the five AI functions, plus `delete-account` and `revenuecat-webhook`.
+- **Not built yet:** a "Try Premium" CTA on the journey's "✨ New" cards for features that are also Premium, and Android (Play Billing via RevenueCat).
+
 ## Visual Design System
 - **Gotcha: NativeWind "upgrades" (remounts) an element whose className starts setting CSS variables after its first render.** For example, a segmented option that gains `bg-white` (`--tw-bg-opacity`) or `shadow-sm` (`--tw-shadow`) when it becomes selected, while unselected it had none. In dev builds the upgrade *warning* JSON-stringifies the element's props, which can walk into React Navigation's default context, whose getters throw **"Couldn't find a navigation context"** and crash the screen. This crashed Settings via `ThemeSwitcher` when the persisted theme rehydrated and the selection moved. Two defences:
   - **(1) Keep the className stable across a component's states and toggle visual state through `style`.** `ThemeSwitcher` renders identical classes for every option, and draws the selected pill as an always-present layer whose opacity and shadow come from `style`. Background colour classes for custom hex tokens with 6 digits set a variable, while 8-digit ones (e.g. `surface: '#ffffffff'`) don't, so even swapping colour tokens can trigger it. Check with Tailwind's compiled output if unsure.

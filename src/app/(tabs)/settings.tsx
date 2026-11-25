@@ -12,16 +12,21 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { ThemeSwitcher } from '@/components/ui/ThemeSwitcher';
 import { FEEDBACK_EMAIL } from '@/constants/app';
 import { useJourney } from '@/hooks/useJourney';
+import { usePremium } from '@/hooks/usePremium';
+import { paywallHref } from '@/hooks/usePremiumAction';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
+import { formatShortDate } from '@/lib/dates';
 import { requestHealthAccess } from '@/lib/health/healthkit';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { showManageSubscriptions } from '@/lib/purchases';
 import { colors } from '@/lib/theme';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useHapticsStore } from '@/store/useHapticsStore';
 import { useSoundStore } from '@/store/useSoundStore';
 import { useHealthStore } from '@/store/useHealthStore';
 import { useLocaleStore, type Locale } from '@/store/useLocaleStore';
+import { usePremiumDevStore } from '@/store/usePremiumDevStore';
 import { haptics } from '@/utils/haptics';
 import { sounds } from '@/utils/sounds';
 import { toast } from '@/utils/toast';
@@ -53,6 +58,9 @@ export default function SettingsScreen() {
   const resetPassword = useAuthStore((state) => state.resetPassword);
   const signOut = useAuthStore((state) => state.signOut);
   const deleteAccount = useAuthStore((state) => state.deleteAccount);
+  const premium = usePremium();
+  const devOverride = usePremiumDevStore((s) => s.override);
+  const cycleDevOverride = usePremiumDevStore((s) => s.cycle);
   const [isSignOutModalVisible, setIsSignOutModalVisible] = useState(false);
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -98,6 +106,26 @@ export default function SettingsScreen() {
       return;
     }
     setHealthEnabled(true);
+  };
+
+  const premiumExpiry = premium.expiresAt ? formatShortDate(new Date(premium.expiresAt), locale) : null;
+  const premiumSubtitle = !premium.isPremium
+    ? t('premium.settings.free')
+    : !premiumExpiry
+      ? t('premium.settings.active')
+      : premium.isTrial
+        ? t('premium.settings.trialUntil', { date: premiumExpiry })
+        : premium.willRenew
+          ? t('premium.settings.activeUntil', { date: premiumExpiry })
+          : t('premium.settings.endsOn', { date: premiumExpiry });
+
+  const handlePremiumPress = async () => {
+    if (!premium.isPremium) {
+      router.push(paywallHref('findings'));
+      return;
+    }
+    const opened = await showManageSubscriptions();
+    if (!opened) Linking.openURL('https://apps.apple.com/account/subscriptions');
   };
 
   const handleChangePassword = async () => {
@@ -165,6 +193,23 @@ export default function SettingsScreen() {
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.gray} />
         </Pressable>
+
+        <SettingsSection>
+          <SettingsRow
+            icon="sparkles-outline"
+            title={t('premium.settings.title')}
+            subtitle={premiumSubtitle}
+            onPress={handlePremiumPress}
+          />
+          {__DEV__ && (
+            <SettingsRow
+              icon="construct-outline"
+              title={t('premium.settings.devOverride', { mode: devOverride })}
+              onPress={cycleDevOverride}
+              showChevron={false}
+            />
+          )}
+        </SettingsSection>
 
         <SettingsSection title={t('settings.sectionRecovery')}>
           <SettingsRow

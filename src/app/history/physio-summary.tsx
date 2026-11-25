@@ -6,8 +6,9 @@ import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
-export default function PhysioSummaryModal() {
+function PhysioSummaryModalContent() {
   const { t } = useTranslation();
   const { profile, isLoading: isProfileLoading } = useProfile();
   const { mutateAsync, isPending } = useGeneratePhysioSummary();
@@ -58,5 +59,14 @@ export default function PhysioSummaryModal() {
         </Pressable>
       )}
     </ScrollView>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function PhysioSummaryModal() {
+  return (
+    <PremiumScreen feature="ai">
+      <PhysioSummaryModalContent />
+    </PremiumScreen>
   );
 }

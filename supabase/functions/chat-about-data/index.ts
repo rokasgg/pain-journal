@@ -1,5 +1,6 @@
 import Anthropic from "npm:@anthropic-ai/sdk@^0.68";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { createAdminClient, requirePremium } from "../_shared/entitlement.ts";
 
 import { ABOUT_PROFILE_COLUMNS, ABOUT_PROMPT, buildAbout, TODAYS_STRESS_SELECT } from "../_shared/about.ts";
 
@@ -120,6 +121,10 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
+  // Premium-only (billed model call). See _shared/entitlement.ts.
+  const premium = await requirePremium(createAdminClient(), user.id, corsHeaders);
+  if (!premium.ok) return premium.response;
 
   const since = new Date(Date.now() - periodDays * 24 * 60 * 60 * 1000);
   const sinceDate = since.toISOString().slice(0, 10);

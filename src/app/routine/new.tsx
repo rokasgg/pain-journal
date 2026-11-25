@@ -19,6 +19,7 @@ import { usePendingRoutineDraftStore } from '@/store/usePendingRoutineDraftStore
 import type { Routine } from '@/types/database.types';
 import type { RoutinePhoto } from '@/utils/image';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 type Source = 'physio_visit' | 'manual_input' | 'photos';
 
@@ -30,7 +31,7 @@ const SOURCE_LABEL_KEYS: Record<Source, string> = {
 
 const TOTAL_STEPS = 2;
 
-export default function NewRoutineScreen() {
+function NewRoutineScreenContent() {
   const router = useRouter();
   const { t } = useTranslation();
   const { assessments, isLoading: isLoadingAssessments } = usePhysioAssessments();
@@ -316,5 +317,14 @@ export default function NewRoutineScreen() {
         )}
       </WizardFooter>
     </View>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function NewRoutineScreen() {
+  return (
+    <PremiumScreen feature="routines">
+      <NewRoutineScreenContent />
+    </PremiumScreen>
   );
 }

@@ -15,6 +15,7 @@ import { KeyboardDoneBar } from '@/components/ui/KeyboardDoneBar';
 import { ToastModalHost } from '@/components/ui/ToastModalHost';
 import { useAppLifecycle } from '@/hooks/useAppLifecycle';
 import { useTodayCheckins } from '@/hooks/useCheckins';
+import { usePremium, usePremiumLifecycle } from '@/hooks/usePremium';
 import { useProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
 import { useSyncReminderNotifications } from '@/hooks/useSyncReminderNotifications';
@@ -41,6 +42,8 @@ function RootLayoutNav() {
   const { session, isLoading } = useSession();
   const { profile, isLoading: profileLoading } = useProfile();
   const { isLoading: todayLoading } = useTodayCheckins();
+  // Also a prefetch, like profile: gates know the entitlement before Home shows.
+  const { isLoading: premiumLoading } = usePremium();
   const { t } = useTranslation();
   const segments = useSegments();
   const router = useRouter();
@@ -52,6 +55,7 @@ function RootLayoutNav() {
 
   useSyncReminderNotifications();
   useAppLifecycle();
+  usePremiumLifecycle();
 
   useEffect(() => {
     SplashScreen.hideAsync();
@@ -104,7 +108,7 @@ function RootLayoutNav() {
     }
   }, [session, isLoading, profile, profileLoading, segments, router]);
 
-  const showSplash = isLoading || profileLoading || todayLoading || !minTimeElapsed;
+  const showSplash = isLoading || profileLoading || todayLoading || premiumLoading || !minTimeElapsed;
 
   if (showSplash) {
     return <AppSplashScreen />;
@@ -413,6 +417,16 @@ function RootLayoutNav() {
             headerShown: true,
             title: t('screenTitles.experiment'),
             headerBackTitle: t('tabs.insights'),
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
+        {/* Free vs Premium (CLAUDE.md "Premium"): a plain pushed page with
+            the back button, never a sheet that can be dragged down. */}
+        <Stack.Screen
+          name="paywall"
+          options={{
+            headerShown: true,
+            title: t('premium.badge'),
             headerBackButtonDisplayMode: 'minimal',
           }}
         />

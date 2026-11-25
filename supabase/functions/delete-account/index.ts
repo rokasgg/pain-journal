@@ -29,6 +29,7 @@ const USER_TABLES = [
   "flare_ups",
   "checkins",
   "reminder_settings",
+  "subscriptions",
 ] as const;
 
 const AVATAR_BUCKET = "avatars";

@@ -8,6 +8,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useVisitReport } from '@/hooks/useVisitReport';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 // For anyone not tracking physio visits: just the PDF. PhysioCard has the
 // same button built in.
@@ -42,7 +43,7 @@ function SummaryCard() {
 // "Prepare for visit" (Insights tool tile): the summary PDF, physio visits
 // (when tracked) and the AI reports (when AI is on). Moved off the Insights
 // page so that page only answers "what have I learned?".
-export default function VisitScreen() {
+function VisitScreenContent() {
   const { t } = useTranslation();
   const { profile } = useProfile();
   const { trainingEnabled } = useJourney();
@@ -61,5 +62,14 @@ export default function VisitScreen() {
         </View>
       )}
     </ScrollView>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function VisitScreen() {
+  return (
+    <PremiumScreen feature="report">
+      <VisitScreenContent />
+    </PremiumScreen>
   );
 }

@@ -5,6 +5,7 @@ import { RoutineExerciseList } from '@/components/routine/RoutineExerciseList';
 import { useRoutine } from '@/hooks/useRoutines';
 import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 // Full review of one routine — expandable exercise list, reached from
 // routine/view.tsx's list (newest first) or right after generating a new one
@@ -13,7 +14,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 // can be, so this isn't restricted to a single "active" one anymore (see
 // useRoutinesInRotation in useRoutines.ts); reopening one that's been
 // removed from rotation is for reference only.
-export default function RoutineDetailScreen() {
+function RoutineDetailScreenContent() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
@@ -58,5 +59,14 @@ export default function RoutineDetailScreen() {
         </View>
       )}
     </View>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function RoutineDetailScreen() {
+  return (
+    <PremiumScreen feature="routines">
+      <RoutineDetailScreenContent />
+    </PremiumScreen>
   );
 }

@@ -9,6 +9,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { daysSince, formatCheckinDate, formatMonthDay } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
@@ -24,7 +25,7 @@ function MetricCard({ label, value }: { label: string; value: string }) {
   );
 }
 
-export default function PhysioFocusDetailScreen() {
+function PhysioFocusDetailScreenContent() {
   const { t } = useTranslation();
   const router = useRouter();
   const { assessments, isLoading } = usePhysioAssessments();
@@ -151,5 +152,14 @@ export default function PhysioFocusDetailScreen() {
         </View>
       )}
     </ScrollView>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function PhysioFocusDetailScreen() {
+  return (
+    <PremiumScreen feature="physio">
+      <PhysioFocusDetailScreenContent />
+    </PremiumScreen>
   );
 }

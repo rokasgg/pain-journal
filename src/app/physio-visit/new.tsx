@@ -17,10 +17,11 @@ import { getPreVisitSuggestedQuestions } from '@/lib/physioSuggestedQuestions';
 import type { PhysioQuestionFormData } from '@/lib/validations/physioAssessment';
 import { useLocaleStore } from '@/store/useLocaleStore';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 // `?date=yyyy-MM-dd` (from Insights' "Did your visit on … happen? → Yes")
 // pre-fills the visit date.
-export default function NewPhysioVisitWizard() {
+function NewPhysioVisitWizardContent() {
   const router = useRouter();
   const { date: initialDate } = useLocalSearchParams<{ date?: string }>();
   const navigation = useNavigation();
@@ -179,5 +180,14 @@ export default function NewPhysioVisitWizard() {
         onCancel={() => setIsConfirmDiscardVisible(false)}
       />
     </SafeAreaView>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function NewPhysioVisitWizard() {
+  return (
+    <PremiumScreen feature="physio" showClose>
+      <NewPhysioVisitWizardContent />
+    </PremiumScreen>
   );
 }

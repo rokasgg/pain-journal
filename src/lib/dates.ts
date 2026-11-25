@@ -149,3 +149,9 @@ export function isToday(dateStr: string): boolean {
 export function toLocalDate(dateStr: string): string {
   return format(parseISO(dateStr), 'yyyy-MM-dd');
 }
+
+// "19 Oct 2026" / "2026 spal. 19" style short date for status lines (e.g.
+// Premium renewal). Takes the reactive locale (see the React Compiler gotcha).
+export function formatShortDate(date: Date, locale: Locale): string {
+  return format(date, 'd MMM yyyy', { locale: DATE_FNS_LOCALES[locale] });
+}

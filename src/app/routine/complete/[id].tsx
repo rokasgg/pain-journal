@@ -13,13 +13,14 @@ import { colors } from '@/lib/theme';
 import { trainingSavedToastKey } from '@/lib/trainingInsights';
 import { toast } from '@/utils/toast';
 import { useKeepFocusedInputVisible } from '@/hooks/useKeepFocusedInputVisible';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 // Trains one specific routine — reached from that routine's own
 // routine/[id].tsx detail screen's "Start training" button, which only
 // shows for routines currently in rotation. Any in-rotation routine can be
 // trained this way, not just a single "active" one (see
 // useRoutinesInRotation in useRoutines.ts).
-export default function CompleteRoutineScreen() {
+function CompleteRoutineScreenContent() {
   const keepFocusedVisible = useKeepFocusedInputVisible();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -123,5 +124,14 @@ export default function CompleteRoutineScreen() {
         </Pressable>
       </View>
     </View>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function CompleteRoutineScreen() {
+  return (
+    <PremiumScreen feature="routines">
+      <CompleteRoutineScreenContent />
+    </PremiumScreen>
   );
 }

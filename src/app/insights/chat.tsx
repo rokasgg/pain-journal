@@ -34,6 +34,7 @@ import { colors } from '@/lib/theme';
 import { usePhysioNotesStore } from '@/store/usePhysioNotesStore';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 // AI assistant (design: assets/possible-app-design/chat). Three states:
 //  - empty: heading, data-period chip, four starter questions
@@ -210,7 +211,7 @@ function RedFlagView({ reply }: { reply: ChatRedFlag }) {
 }
 
 // `?q=…` (from the Insights card's example chips) is sent as the first message.
-export default function ChatScreen() {
+function ChatScreenContent() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { q } = useLocalSearchParams<{ q?: string }>();
@@ -408,5 +409,14 @@ export default function ChatScreen() {
         onCancel={() => setIsPeriodSheetOpen(false)}
       />
     </KeyboardAvoidingView>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function ChatScreen() {
+  return (
+    <PremiumScreen feature="ai">
+      <ChatScreenContent />
+    </PremiumScreen>
   );
 }

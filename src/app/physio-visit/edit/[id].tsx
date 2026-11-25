@@ -6,8 +6,9 @@ import { usePhysioAssessments, useUpdatePhysioAssessment } from '@/hooks/usePhys
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import type { PhysioAssessmentFormData } from '@/lib/validations/physioAssessment';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
-export default function EditPhysioVisitModal() {
+function EditPhysioVisitModalContent() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
@@ -63,5 +64,14 @@ export default function EditPhysioVisitModal() {
       submitLabel={t('physioVisit.saveChanges')}
       onSubmit={handleSubmit}
     />
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function EditPhysioVisitModal() {
+  return (
+    <PremiumScreen feature="physio">
+      <EditPhysioVisitModalContent />
+    </PremiumScreen>
   );
 }

@@ -4,6 +4,8 @@ import { Link, type Href } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
 import { useAvailableWraps } from '@/hooks/useMonthlyWrap';
+import { usePremium } from '@/hooks/usePremium';
+import { paywallHref } from '@/hooks/usePremiumAction';
 import { currentDateFnsLocale } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -17,7 +19,9 @@ export function WrapReadyCard() {
   const { t } = useTranslation();
   const availableWraps = useAvailableWraps();
   const seenMonths = useWrapStore((s) => s.seenMonths);
+  const markSeen = useWrapStore((s) => s.markSeen);
   const today = useToday();
+  const { isPremium } = usePremium();
 
   const lastMonth = recentCompletedMonths(today, 1)[0];
   if (!availableWraps.includes(lastMonth) || seenMonths.includes(lastMonth)) return null;
@@ -27,8 +31,14 @@ export function WrapReadyCard() {
   const monthLabel = format(parseISO(`${lastMonth}-01`), 'MMMM', { locale: currentDateFnsLocale() });
 
   return (
-    <Link href={`/wrap/${lastMonth}` as Href} asChild>
-      <Pressable className="flex-row items-center gap-4 rounded-2xl bg-primary p-4 active:opacity-90 dark:bg-primaryDark">
+    // Free plan: still announced (it's a nice moment), but opens the paywall.
+    <Link href={isPremium ? (`/wrap/${lastMonth}` as Href) : paywallHref('wrap')} asChild>
+      <Pressable
+        // Free plan: one tap counts as seen, so the card doesn't come back
+        // every visit to Home for a whole month.
+        onPress={isPremium ? undefined : () => markSeen(lastMonth)}
+        className="flex-row items-center gap-4 rounded-2xl bg-primary p-4 active:opacity-90 dark:bg-primaryDark"
+      >
         <View className="h-12 w-12 items-center justify-center rounded-full bg-white/20">
           <Ionicons name="sparkles" size={24} color={colors.white} />
         </View>
@@ -36,7 +46,7 @@ export function WrapReadyCard() {
           <Text className="text-base font-semibold text-white">{t('wrap.readyTitle', { month: monthLabel })}</Text>
           <Text className="text-sm text-white/80">{t('wrap.readySubtitle')}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.white} />
+        <Ionicons name={isPremium ? 'chevron-forward' : 'lock-closed'} size={isPremium ? 20 : 16} color={colors.white} />
       </Pressable>
     </Link>
   );

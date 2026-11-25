@@ -9,6 +9,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import type { RoutineExercise } from '@/types/database.types';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 // Editing an already-saved routine's own content — title and exercises,
 // same editable-card UI as routine/review.tsx (the pre-save draft step),
@@ -16,7 +17,7 @@ import { toast } from '@/utils/toast';
 // in_rotation: useUpdateRoutine only updates title/exercises, so editing an
 // old, out-of-rotation routine from history doesn't re-add it, and editing
 // an in-rotation one doesn't remove it.
-export default function EditRoutineScreen() {
+function EditRoutineScreenContent() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { t } = useTranslation();
@@ -108,5 +109,14 @@ export default function EditRoutineScreen() {
         </Pressable>
       </View>
     </View>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function EditRoutineScreen() {
+  return (
+    <PremiumScreen feature="routines">
+      <EditRoutineScreenContent />
+    </PremiumScreen>
   );
 }

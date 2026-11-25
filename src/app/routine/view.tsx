@@ -12,6 +12,7 @@ import { colors } from '@/lib/theme';
 import { headerRightWithoutGlass } from '@/lib/navigation/headerItems';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 // All of the user's routines, newest first — old ones are never deleted
 // (in_rotation just flips to false, see supabase_routines_migration_v2.sql).
@@ -23,7 +24,7 @@ import { toast } from '@/utils/toast';
 // action sheet, same pattern as history/physio-visits.tsx. The header's "+"
 // button opens routine/new.tsx — moved here from TodaysRoutineCard.tsx,
 // since this is where routines are actually browsed/managed.
-export default function ViewRoutinesScreen() {
+function ViewRoutinesScreenContent() {
   const { t } = useTranslation();
   const router = useRouter();
   const { routines, isLoading } = useRoutineHistory();
@@ -170,5 +171,14 @@ export default function ViewRoutinesScreen() {
         onCancel={() => setConfirmDeleteId(null)}
       />
     </>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function ViewRoutinesScreen() {
+  return (
+    <PremiumScreen feature="routines">
+      <ViewRoutinesScreenContent />
+    </PremiumScreen>
   );
 }

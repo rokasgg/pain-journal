@@ -4,8 +4,10 @@ import { Fragment, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { experimentHref } from '@/components/insights/ExperimentCard';
+import { LockedCard } from '@/components/premium/LockedCard';
 import { BOLD_MARK, TextWithBold } from '@/components/ui/TextWithBold';
 import { useFindings } from '@/hooks/useFindings';
+import { usePremium } from '@/hooks/usePremium';
 import { formatOneDecimal } from '@/lib/dates';
 import { experimentTitle } from '@/lib/experimentText';
 import { factorKey } from '@/lib/flareDetectiveText';
@@ -182,6 +184,7 @@ function FindingRow({ finding }: { finding: Finding }) {
 export function FindingsList() {
   const { t, locale } = useTranslation();
   const { findings, pending, isLoading } = useFindings();
+  const { isPremium } = usePremium();
   if (isLoading) return null;
 
   if (findings.length === 0) {
@@ -195,6 +198,22 @@ export function FindingsList() {
           {t(empty ? 'insights.found.emptyBody' : 'insights.found.nothingBody')}
         </Text>
       </View>
+    );
+  }
+
+  // Free plan: the findings are computed on the phone (no cost), so the
+  // teaser can say honestly how many are waiting.
+  if (!isPremium) {
+    return (
+      <LockedCard
+        feature="findings"
+        title={
+          findings.length === 1
+            ? t('premium.features.findingsReadyOne')
+            : t('premium.features.findingsReady', { count: findings.length })
+        }
+        hideFooter
+      />
     );
   }
 

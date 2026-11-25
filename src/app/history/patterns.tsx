@@ -8,8 +8,9 @@ import { formatCheckinDate, toLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
-export default function PatternsModal() {
+function PatternsModalContent() {
   const { t } = useTranslation();
   const { profile, isLoading: isProfileLoading } = useProfile();
   const { mutateAsync, isPending } = useAnalyzePatterns();
@@ -77,5 +78,14 @@ export default function PatternsModal() {
         </Pressable>
       )}
     </ScrollView>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function PatternsModal() {
+  return (
+    <PremiumScreen feature="ai">
+      <PatternsModalContent />
+    </PremiumScreen>
   );
 }

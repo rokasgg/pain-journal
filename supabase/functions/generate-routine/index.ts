@@ -1,5 +1,6 @@
 import Anthropic from "npm:@anthropic-ai/sdk@^0.68";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { createAdminClient, requirePremium } from "../_shared/entitlement.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -136,6 +137,10 @@ Deno.serve(async (req: Request) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
+
+  // Premium-only (billed model call). See _shared/entitlement.ts.
+  const premium = await requirePremium(createAdminClient(), user.id, corsHeaders);
+  if (!premium.ok) return premium.response;
 
   let body;
   try {

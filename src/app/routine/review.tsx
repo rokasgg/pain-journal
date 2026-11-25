@@ -16,6 +16,7 @@ import { usePendingRoutineDraftStore } from '@/store/usePendingRoutineDraftStore
 import type { RoutineExercise } from '@/types/database.types';
 import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
+import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
 // The one editable confirmation step between generating a routine
 // (routine/new.tsx) and it actually being saved — AI-generated rep counts/
@@ -31,7 +32,7 @@ import { toast } from '@/utils/toast';
 // Edit/Delete on the summary, same pattern as routine/view.tsx's list.
 // step 1 = title, steps 2..exercises.length+1 = one exercise each,
 // step exercises.length+2 = summary.
-export default function ReviewRoutineScreen() {
+function ReviewRoutineScreenContent() {
   const router = useRouter();
   const { t } = useTranslation();
   const draft = usePendingRoutineDraftStore((s) => s.draft);
@@ -225,5 +226,14 @@ export default function ReviewRoutineScreen() {
         onCancel={() => setConfirmDeleteId(null)}
       />
     </View>
+  );
+}
+
+// Premium-only (CLAUDE.md "Premium"): the content's hooks never run for free users.
+export default function ReviewRoutineScreen() {
+  return (
+    <PremiumScreen feature="routines">
+      <ReviewRoutineScreenContent />
+    </PremiumScreen>
   );
 }

@@ -3,8 +3,11 @@ import { differenceInCalendarDays, parseISO } from 'date-fns';
 import { Link, type Href } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 
+import { PremiumBadge } from '@/components/premium/PremiumBadge';
 import { useExperiments } from '@/hooks/useExperiments';
 import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
+import { usePremium } from '@/hooks/usePremium';
+import { paywallHref } from '@/hooks/usePremiumAction';
 import { useProfile } from '@/hooks/useProfile';
 
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -20,12 +23,14 @@ function Tile({
   title,
   subtitle,
   dot = false,
+  locked = false,
 }: {
   href: Href;
   icon: keyof typeof Ionicons.glyphMap;
   title: string;
   subtitle: string;
   dot?: boolean;
+  locked?: boolean;
 }) {
   return (
     <Link href={href} asChild>
@@ -39,6 +44,7 @@ function Tile({
             <Ionicons name={icon} size={18} color={colors.accent} />
           </View>
           {dot && <View className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: OVERDUE_DOT }} />}
+          {locked && <PremiumBadge />}
         </View>
         <Text className="text-[15px] font-semibold leading-5 text-ink dark:text-white">{title}</Text>
         <Text className="text-[12px] leading-4 text-inkSecondary dark:text-gray">{subtitle}</Text>
@@ -56,7 +62,8 @@ export function InsightsTools() {
   const { running } = useExperiments();
   const { assessments } = usePhysioAssessments();
   const today = useToday();
-  const overdue = overdueNextVisit(assessments[0], today) !== null;
+  const { isPremium } = usePremium();
+  const overdue = isPremium && overdueNextVisit(assessments[0], today) !== null;
   const aiOn = profile?.ai_insights_enabled ?? true;
 
   const experimentDay = running
@@ -67,7 +74,8 @@ export function InsightsTools() {
     <View className="flex-row gap-3">
       {aiOn && (
         <Tile
-          href={'/insights/chat' as Href}
+          href={isPremium ? ('/insights/chat' as Href) : paywallHref('ai')}
+          locked={!isPremium}
           icon="chatbubble-ellipses-outline"
           title={t('insights.tools.ask')}
           subtitle={t('insights.tools.askSub')}
@@ -84,7 +92,8 @@ export function InsightsTools() {
         }
       />
       <Tile
-        href={'/insights/visit' as Href}
+        href={isPremium ? ('/insights/visit' as Href) : paywallHref('report')}
+        locked={!isPremium}
         icon="document-text-outline"
         title={t('insights.tools.visit')}
         subtitle={overdue ? t('insights.tools.visitOverdue') : t('insights.tools.visitSub')}
