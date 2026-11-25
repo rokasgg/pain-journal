@@ -723,7 +723,10 @@ src/
       - They're all editable on **Settings → About me** (`settings/about-me.tsx`, saves on every change).
       - A one-time Home `AboutMeCard` appears after 3 logged days while any are unanswered (`hasUnansweredAboutMe`). It's dismissed per account via `useJourneyStore.aboutMeNudgeDoneBy`.
     - **"Are you doing exercises from a physio?"** sets `training_enabled` directly. The goal question no longer does.
-  - **After the last question comes "Your starting picture"**, and the profile is saved there. It shows at most 3 "We'll keep an eye on…" cards from `buildStartingPicture()` (`src/lib/startingPicture.ts`, tested).
+  - **After the last question comes "Reading your answers"** (`AnalysingAnswers`). The lines come from `analysisSteps()` in `profileAnswers.ts` (tested), and only describe what was really answered; never "AI is analysing".
+    - Lines appear 1 s apart, each spinner turns into a ✓ with `haptics.tick()`, and it ends with `success()`. With reduced motion, all lines show at once.
+    - **The answers are really saved underneath:** `buildProfileUpdate` (without `onboarding_completed`). The screen only moves on once that save resolves, and a failed save toasts and returns to the last question.
+  - **Then comes "Your starting picture"**, and its "Let's start" saves only `onboarding_completed: true`. Saving that flag earlier would make the root layout leave onboarding. It shows at most 3 "We'll keep an eye on…" cards from `buildStartingPicture()` (`src/lib/startingPicture.ts`, tested).
     - It uses rules only, no AI: recovery → "your starting point"; long sitting days → Desk breaks; stress; screens → No screens after 22:00; sleep; long days on your feet; "you said evenings are worst".
     - The same cards are at the bottom of About me.
   - **A welcome screen comes before question 1** (`src/components/onboarding/OnboardingIntro.tsx`).
@@ -761,7 +764,11 @@ src/
 
 ## Internationalization (i18n)
 - No i18n library (`i18next`, `expo-localization`, etc.) — a small custom solution mirroring the `useThemeStore` pattern, since this is a two-language (English/Lithuanian), no-plural-rules app that doesn't need a full library.
-- `src/store/useLocaleStore.ts` — persisted Zustand store (`persist` + `createJSONStorage(() => AsyncStorage)`, same shape as `useThemeStore`): `locale: 'en' | 'lt'`, `setLocale(locale)`. Defaults to `'en'`.
+- `src/store/useLocaleStore.ts` — persisted Zustand store (`persist` + `createJSONStorage(() => AsyncStorage)`, same shape as `useThemeStore`): `locale: 'en' | 'lt'`, `chosen`, `setLocale(locale)`.
+  - **Until the user picks a language, the app follows the phone.** `deviceLocale()` (`src/lib/i18n/deviceLocale.ts`) reads `expo-localization`'s `getLocales()` through a guarded synchronous `require`, so builds without the native module fall back to English. `pickLocale()` is tested: Lithuanian → `lt`, anything else → `en`.
+  - `setLocale` sets `chosen: true`. That's the Settings → Language page and the **`LanguageToggle`** (EN | LT, top-right on `(auth)/login` and `(auth)/register`, before login).
+  - The store is persisted at `version: 1`. Its migrate treats a stored v0 `'lt'` as chosen and a stored `'en'` as the old default. `onRehydrateStorage` re-applies the phone's language while nothing is chosen.
+  - `expo-localization` is a native module (with a config plugin in `app.json`), so it needs a rebuild.
 - Dictionaries live in `src/lib/i18n/translations/en.ts` and `lt.ts`, one deeply-nested object per file grouped by domain/screen (`common`, `auth`, `home`, `checkin`, `flareUp`, `history`, `detail`, `patterns`, `settings`, `editProfile`, `tabs`, `screenTitles`, etc). `lt.ts` is typed `export const lt: typeof en = {...}` — TypeScript fails the build if `lt` is missing a key `en` has (or vice versa), so that's the enforcement mechanism, not a runtime check.
 - `src/lib/i18n/useTranslation.ts` exports:
   - `useTranslation()` — the hook for use inside components: `const { t, locale } = useTranslation()`, subscribed to `useLocaleStore` so it re-renders on language change.

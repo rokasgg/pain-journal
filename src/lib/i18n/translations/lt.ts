@@ -1044,6 +1044,17 @@ export const lt: typeof en = {
     },
   },
   onboarding: {
+    analysing: {
+      title: 'Peržiūrime jūsų atsakymus…',
+      reading: 'Skaitome jūsų atsakymus',
+      diagnosis: 'Užrašome jūsų diagnozę',
+      areas: 'Užrašome, kur skauda',
+      usualDay: 'Žiūrime į jūsų įprastą dieną',
+      hunches: 'Ruošiame spėjimus patikrinimui',
+      checkinsQuick: 'Ruošiame trumpus kasdienius įrašus',
+      checkinsDetailed: 'Ruošiame kasdienius įrašus',
+      oak: 'Sodiname jūsų ąžuolą 🌱',
+    },
     introTitle: 'Sveiki, {{name}} 🌱',
     introTitleNoName: 'Sveiki 🌱',
     introBody: 'Norėti geriau suprasti savo skausmą – svarbus žingsnis. Ši programėlė padės sekti savijautą ir atrasti, kas padeda.',

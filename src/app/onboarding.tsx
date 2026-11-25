@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import Animated, { FadeIn } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { AnalysingAnswers } from '@/components/onboarding/AnalysingAnswers';
 import { MultiSelectChips } from '@/components/onboarding/MultiSelectChips';
 import { OnboardingIntro } from '@/components/onboarding/OnboardingIntro';
 import { PainLocationsField } from '@/components/onboarding/PainLocationsField';
@@ -34,6 +35,7 @@ import { useStepHaptic } from '@/hooks/useStepHaptic';
 import { todayLocalDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import {
+  analysisSteps,
   approxStartDate,
   onboardingSteps,
   purposeOf,
@@ -173,7 +175,6 @@ function buildProfileUpdate(answers: OnboardingAnswers): ProfileUpdate {
       : null;
 
   return {
-    onboarding_completed: true,
     primary_goal: answers.primaryGoal,
     pain_locations: answers.painLocations,
     pain_character: answers.painCharacter,
@@ -228,8 +229,10 @@ export default function OnboardingScreen() {
   const [stepIndex, setStepIndex] = useState(0);
   const [answers, setAnswers] = useState<OnboardingAnswers>(initialAnswers);
   const [isSaving, setIsSaving] = useState(false);
-  // "Your starting picture", shown after the last question; saving happens there.
-  const [showPicture, setShowPicture] = useState(false);
+  // After the last question: "reading your answers" (the answers are saved
+  // meanwhile), then "Your starting picture", whose button completes onboarding.
+  const [phase, setPhase] = useState<'questions' | 'analysing' | 'picture'>('questions');
+  const [answersSaved, setAnswersSaved] = useState(false);
 
   const purpose = purposeOf(answers.primaryGoal);
   const steps = onboardingSteps(purpose);
@@ -248,11 +251,26 @@ export default function OnboardingScreen() {
     goNext();
   };
 
+  // Save everything except onboarding_completed while the analysing screen
+  // runs: that flag makes the root layout leave onboarding, so it waits for
+  // "Let's start". A failed save goes back to the last question, answers kept.
+  const startAnalysing = async () => {
+    setAnswersSaved(false);
+    setPhase('analysing');
+    const { error } = await updateProfile.mutateAsync(buildProfileUpdate(answers));
+    if (error) {
+      toast.error(error);
+      setPhase('questions');
+      return;
+    }
+    setAnswersSaved(true);
+  };
+
   const handleFinish = async () => {
     setIsSaving(true);
     // Queue Home's success checkmark before saving; cleared again on error.
     useOnboardingCompleteStore.getState().markPending();
-    const { error } = await updateProfile.mutateAsync(buildProfileUpdate(answers));
+    const { error } = await updateProfile.mutateAsync({ onboarding_completed: true });
     if (error) {
       setIsSaving(false);
       useOnboardingCompleteStore.getState().consume();
@@ -275,7 +293,27 @@ export default function OnboardingScreen() {
     );
   }
 
-  if (showPicture) {
+  if (phase === 'analysing') {
+    return (
+      <SafeAreaView className="flex-1 bg-background dark:bg-backgroundDark" edges={['top', 'bottom']}>
+        <Animated.View entering={FadeIn.duration(300)} className="flex-1">
+          <AnalysingAnswers
+            steps={analysisSteps({
+              diagnosed: answers.diagnosisStatus === 'yes' && answers.diagnosisText.trim().length > 0,
+              painAreas: answers.painLocations.length,
+              answeredUsualDay: answers.workType !== null || answers.lifeStress !== null,
+              hunches: answers.suspectedTriggers.filter((h) => h !== 'dont_know').length,
+              quickCheckins: answers.checkinDepthPreference === 'quick',
+            })}
+            ready={answersSaved}
+            onDone={() => setPhase('picture')}
+          />
+        </Animated.View>
+      </SafeAreaView>
+    );
+  }
+
+  if (phase === 'picture') {
     const cards = buildStartingPicture({
       purpose,
       workType: answers.workType,
@@ -298,7 +336,7 @@ export default function OnboardingScreen() {
           </ScrollView>
           <WizardFooter>
             <Pressable
-              onPress={() => setShowPicture(false)}
+              onPress={() => setPhase('questions')}
               disabled={isSaving}
               className="flex-1 items-center rounded-lg border border-borderLight py-3 dark:border-borderDark"
             >
@@ -610,7 +648,7 @@ export default function OnboardingScreen() {
             </Pressable>
           ) : (
             <Pressable
-              onPress={() => setShowPicture(true)}
+              onPress={startAnalysing}
               disabled={!canGoNext}
               className="flex-1 items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
             >

@@ -1038,6 +1038,17 @@ export const en = {
     },
   },
   onboarding: {
+    analysing: {
+      title: 'Reading your answers…',
+      reading: 'Reading your answers',
+      diagnosis: 'Noting your diagnosis',
+      areas: 'Noting where it hurts',
+      usualDay: 'Looking at your usual day',
+      hunches: 'Lining up your hunches to check',
+      checkinsQuick: 'Setting up quick daily check-ins',
+      checkinsDetailed: 'Setting up your daily check-ins',
+      oak: 'Planting your oak 🌱',
+    },
     introTitle: 'Welcome, {{name}} 🌱',
     introTitleNoName: 'Welcome 🌱',
     introBody: 'Taking time to understand your pain is a real step. This app helps you track how you feel and discover what helps.',

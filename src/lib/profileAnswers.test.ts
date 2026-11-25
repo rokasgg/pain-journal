@@ -1,4 +1,4 @@
-import { approxStartDate, onboardingSteps, purposeOf, wantsRecovery } from '@/lib/profileAnswers';
+import { analysisSteps, approxStartDate, onboardingSteps, purposeOf, wantsRecovery } from '@/lib/profileAnswers';
 
 describe('purposeOf', () => {
   it('maps current and older goals', () => {
@@ -41,5 +41,20 @@ describe('approxStartDate', () => {
     expect(approxStartDate('month_ago', '2026-11-24')).toBe('2026-10-25');
     expect(approxStartDate('year_plus', '2026-11-24')).toBe('2025-11-24');
     expect(approxStartDate('unknown', '2026-11-24')).toBeNull();
+  });
+});
+
+describe('analysisSteps', () => {
+  const none = { diagnosed: false, painAreas: 0, answeredUsualDay: false, hunches: 0, quickCheckins: false };
+
+  it('always reads the answers, sets up check-ins and plants the oak', () => {
+    expect(analysisSteps(none)).toEqual(['reading', 'checkinsDetailed', 'oak']);
+  });
+
+  it('mentions only what was answered', () => {
+    expect(
+      analysisSteps({ diagnosed: true, painAreas: 2, answeredUsualDay: true, hunches: 1, quickCheckins: true }),
+    ).toEqual(['reading', 'diagnosis', 'usualDay', 'hunches', 'checkinsQuick', 'oak']);
+    expect(analysisSteps({ ...none, painAreas: 1 })).toEqual(['reading', 'areas', 'checkinsDetailed', 'oak']);
   });
 });

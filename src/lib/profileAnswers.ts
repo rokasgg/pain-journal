@@ -56,3 +56,27 @@ export function approxStartDate(period: InjuryOnsetPeriod, today: string): strin
   const days = PERIOD_DAYS[period];
   return days === undefined ? null : format(subDays(parseISO(today), days), 'yyyy-MM-dd');
 }
+
+// The lines on onboarding's "reading your answers" screen, built from what
+// was actually answered, so it says something true about this user. Plain
+// descriptions only: nothing here is AI.
+export type AnalysisStep =
+  'reading' | 'diagnosis' | 'areas' | 'usualDay' | 'hunches' | 'checkinsQuick' | 'checkinsDetailed' | 'oak';
+
+export interface AnalysisInput {
+  diagnosed: boolean;
+  painAreas: number;
+  answeredUsualDay: boolean; // work or stress answered (not skipped)
+  hunches: number; // suspected triggers, excluding "I don't know"
+  quickCheckins: boolean;
+}
+
+export function analysisSteps(input: AnalysisInput): AnalysisStep[] {
+  const steps: AnalysisStep[] = ['reading'];
+  if (input.diagnosed) steps.push('diagnosis');
+  else if (input.painAreas > 0) steps.push('areas');
+  if (input.answeredUsualDay) steps.push('usualDay');
+  if (input.hunches > 0) steps.push('hunches');
+  steps.push(input.quickCheckins ? 'checkinsQuick' : 'checkinsDetailed', 'oak');
+  return steps;
+}
