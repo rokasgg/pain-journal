@@ -67,14 +67,22 @@ export function AnalysingAnswers({ steps, ready, onDone }: AnalysingAnswersProps
   const breathStyle = useAnimatedStyle(() => ({ transform: [{ scale: breath.get() }] }));
 
   return (
-    <View className="flex-1 justify-center gap-8 px-8">
-      <Animated.View className="items-center" style={breathStyle}>
-        <OakTree stage={1} size={96} />
-      </Animated.View>
-      <Text className="text-center text-2xl font-bold text-black dark:text-white">
-        {t('onboarding.analysing.title')}
-      </Text>
-      <View className="gap-4">
+    // Two fixed areas, so nothing moves as lines appear: the oak, title and
+    // description fill the top third (centred in it); the lines grow down
+    // from the top of the rest.
+    <View className="flex-1 px-8">
+      <View className="flex-1 items-center justify-center gap-3">
+        <Animated.View style={breathStyle}>
+          <OakTree stage={1} size={96} />
+        </Animated.View>
+        <Text className="text-center text-2xl font-bold text-black dark:text-white">
+          {t('onboarding.analysing.title')}
+        </Text>
+        <Text className="text-center text-[15px] leading-5 text-inkSecondary dark:text-gray">
+          {t('onboarding.analysing.description')}
+        </Text>
+      </View>
+      <View className="flex-[2] gap-4 pt-4">
         {steps.slice(0, revealed).map((step, index) => {
           const done = finished || index < revealed - 1;
           return (

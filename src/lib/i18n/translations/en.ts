@@ -1040,6 +1040,7 @@ export const en = {
   onboarding: {
     analysing: {
       title: 'Reading your answers…',
+      description: 'Getting the app ready around what you told us.',
       reading: 'Reading your answers',
       diagnosis: 'Noting your diagnosis',
       areas: 'Noting where it hurts',

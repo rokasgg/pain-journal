@@ -1046,6 +1046,7 @@ export const lt: typeof en = {
   onboarding: {
     analysing: {
       title: 'Peržiūrime jūsų atsakymus…',
+      description: 'Pritaikome programėlę pagal tai, ką papasakojote.',
       reading: 'Skaitome jūsų atsakymus',
       diagnosis: 'Užrašome jūsų diagnozę',
       areas: 'Užrašome, kur skauda',
