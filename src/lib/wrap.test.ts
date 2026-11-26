@@ -1,4 +1,4 @@
-import type { Checkin, ExerciseLog, FlareUp, Routine } from '@/types/database.types';
+import type { Checkin, ExerciseLog, FlareUp } from '@/types/database.types';
 
 import { buildMonthlyWrap, recentCompletedMonths, type WrapSlide, type WrapSlideKind } from './wrap';
 
@@ -68,7 +68,7 @@ function septemberDays(n: number, pain = 3, overrides: Partial<Checkin> = {}): C
 }
 
 function build(input: Partial<Parameters<typeof buildMonthlyWrap>[0]>) {
-  return buildMonthlyWrap({ month: MONTH, checkins: [], flareUps: [], exerciseLogs: [], routines: [], ...input });
+  return buildMonthlyWrap({ month: MONTH, checkins: [], flareUps: [], exerciseLogs: [], ...input });
 }
 
 function slide<K extends WrapSlideKind>(slides: WrapSlide[] | null, kind: K) {
@@ -143,13 +143,7 @@ describe('buildMonthlyWrap', () => {
   });
 
   it('summarizes training with the most-completed exercise', () => {
-    const routine = {
-      id: 'r1',
-      exercises: [
-        { id: 'ex_1', name: 'Chin tucks' },
-        { id: 'ex_2', name: 'Wall angels' },
-      ],
-    } as Routine;
+    const names: Record<string, string> = { ex_1: 'Chin tucks', ex_2: 'Wall angels' };
     const log = (day: string, status: ExerciseLog['status'], done: string[]): ExerciseLog => ({
       id: day,
       user_id: 'u1',
@@ -158,6 +152,7 @@ describe('buildMonthlyWrap', () => {
       status,
       completed_exercises: ['ex_1', 'ex_2'].map((id) => ({
         exercise_id: id,
+        name: names[id],
         completed: done.includes(id),
         pain_discomfort_level: 2,
         flagged_pain: false,
@@ -172,7 +167,7 @@ describe('buildMonthlyWrap', () => {
       log('4', 'PARTIAL', ['ex_1']),
       log('6', 'SKIPPED', []),
     ];
-    expect(slide(build({ checkins: septemberDays(8), exerciseLogs, routines: [routine] }), 'training')).toEqual({
+    expect(slide(build({ checkins: septemberDays(8), exerciseLogs }), 'training')).toEqual({
       kind: 'training',
       sessions: 2,
       fullSessions: 1,

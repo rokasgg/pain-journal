@@ -25,6 +25,7 @@ const USER_TABLES = [
   "experiments",
   "exercise_logs",
   "routines",
+  "exercises",
   "physio_assessments",
   "flare_ups",
   "checkins",

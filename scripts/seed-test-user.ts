@@ -108,6 +108,7 @@ const iso = (d: Date) => d.toISOString();
 // ---------- reset ----------
 
 const USER_TABLES = [
+  'exercises',
   'experiment_days',
   'experiments',
   'exercise_logs',
@@ -319,7 +320,8 @@ async function main() {
 
   // ---- routines + physio visits (only once there's enough history) ----
   const routineStartIdx = 45;
-  let routineIds: { id: string; exercises: RoutineExercise[] }[] = [];
+  // Presets with the library exercises they pre-tick (id + name per exercise).
+  let routineIds: { id: string; exercises: { id: string; name: string }[] }[] = [];
   const visitIds: string[] = [];
 
   if (DAYS > 30) {
@@ -353,17 +355,42 @@ async function main() {
     else visitIds.push(...data.map((r) => r.id as string));
   }
 
+  // The exercise library ("My exercises") + two presets over it
+  // (supabase_exercise_library_migration.sql).
   if (DAYS > routineStartIdx) {
     const created = addDays(firstDay, routineStartIdx);
+    const toRow = (ex: RoutineExercise, when: Date) => ({
+      user_id: userId,
+      name: ex.name,
+      muscle_group: ex.muscle_group || null,
+      target_sets_reps: ex.target_sets_reps || null,
+      instructions: ex.instructions || null,
+      caution_notes: ex.caution_notes || null,
+      created_at: iso(at(when, 18)),
+    });
+    const { data: library, error: libraryError } = await db
+      .from('exercises')
+      .insert([...ROUTINE_A.map((ex) => toRow(ex, created)), ...ROUTINE_B.map((ex) => toRow(ex, addDays(created, 40)))])
+      .select('id, name');
+    if (libraryError) throw new Error(`exercises: ${libraryError.message} (run supabase_exercise_library_migration.sql)`);
+
+    const idsFor = (set: RoutineExercise[]) =>
+      set.map((ex) => library.find((row) => row.name === ex.name)!).map((row) => ({ id: row.id as string, name: row.name as string }));
+    const presetA = idsFor(ROUTINE_A);
+    const presetB = idsFor(ROUTINE_B);
+
     const { data, error } = await db
       .from('routines')
       .insert([
-        { user_id: userId, title: 'Neck & posture — Day A', exercises: ROUTINE_A, in_rotation: true, physio_visit_id: visitIds[0] ?? null, created_at: iso(at(created, 18)) },
-        { user_id: userId, title: 'Shoulder blades — Day B', exercises: ROUTINE_B, in_rotation: true, physio_visit_id: visitIds[1] ?? null, created_at: iso(at(addDays(created, 40), 18)) },
+        { user_id: userId, title: 'Neck & posture — Day A', exercise_ids: presetA.map((e) => e.id), in_rotation: true, physio_visit_id: visitIds[0] ?? null, created_at: iso(at(created, 18)) },
+        { user_id: userId, title: 'Shoulder blades — Day B', exercise_ids: presetB.map((e) => e.id), in_rotation: true, physio_visit_id: visitIds[1] ?? null, created_at: iso(at(addDays(created, 40), 18)) },
       ])
-      .select('id, exercises');
+      .select('id');
     if (error) console.warn(`  routines skipped: ${error.message}`);
-    else routineIds = data.map((r) => ({ id: r.id as string, exercises: r.exercises as RoutineExercise[] }));
+    else routineIds = [
+      { id: data[0].id as string, exercises: presetA },
+      { id: data[1].id as string, exercises: presetB },
+    ];
   }
 
   // ---- experiment window (finished, ~4 months ago) ----
@@ -533,17 +560,19 @@ async function main() {
       const routine = pick(routineIds);
       const before = round(clamp(eveningPain + noise(0.5), 1, 9));
       const after = round(clamp(before - between(0.5, 2.2), 0, 9));
-      const completed: CompletedExercise[] = routine.exercises.map((ex) => {
-        const done = chance(0.9);
-        const discomfort = done ? round(clamp(3.5 - 2 * progress + noise(1.2), 0, 8)) : 0;
-        return { exercise_id: ex.id, completed: done, pain_discomfort_level: discomfort, flagged_pain: done && discomfort >= 5, note: null };
-      });
-      const doneCount = completed.filter((c) => c.completed).length;
+      // New log shape: only ticked exercises, each with a name snapshot.
+      const completed: CompletedExercise[] = routine.exercises
+        .filter(() => chance(0.9))
+        .map((ex) => {
+          const discomfort = round(clamp(3.5 - 2 * progress + noise(1.2), 0, 8));
+          return { exercise_id: ex.id, name: ex.name, completed: true, pain_discomfort_level: discomfort, flagged_pain: discomfort >= 5, note: null };
+        });
+      if (completed.length === 0) continue;
       logRows.push({
         user_id: userId,
         routine_id: routine.id,
         logged_at: iso(at(date, 18, int(0, 59))),
-        status: doneCount === 0 ? 'SKIPPED' : doneCount === completed.length ? 'FULL' : 'PARTIAL',
+        status: completed.length === routine.exercises.length ? 'FULL' : 'PARTIAL',
         completed_exercises: completed,
         general_note: null,
         pain_before: before,

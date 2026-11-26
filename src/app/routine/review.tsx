@@ -1,6 +1,6 @@
 import { useRouter, type Href } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
 import { StepProgressBar } from '@/components/checkin/StepProgressBar';
 import { ExerciseReviewStep } from '@/components/routine/ExerciseReviewStep';
@@ -8,7 +8,8 @@ import { RoutineExerciseList } from '@/components/routine/RoutineExerciseList';
 import { ActionSheet, type ActionSheetAction } from '@/components/ui/ActionSheet';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Input } from '@/components/ui/Input';
-import { useCreateRoutine } from '@/hooks/useRoutines';
+import { useImportExercises } from '@/hooks/useExercises';
+import { useCreatePreset } from '@/hooks/useRoutines';
 import { useStepHaptic } from '@/hooks/useStepHaptic';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -18,10 +19,11 @@ import { haptics } from '@/utils/haptics';
 import { toast } from '@/utils/toast';
 import { PremiumScreen } from '@/components/premium/PremiumScreen';
 
-// The one editable confirmation step between generating a routine
-// (routine/new.tsx) and it actually being saved — AI-generated rep counts/
-// descriptions sometimes need correcting, and nothing should be written to
-// `routines` until the user has had a chance to fix that. The draft lives in
+// The one editable confirmation step between an AI import (routine/new.tsx)
+// and anything being saved — AI-generated rep counts/descriptions sometimes
+// need correcting. Saving adds the exercises to "My exercises" (de-duplicated
+// by name; existing ones keep their details) and, by default, a preset that
+// pre-ticks them, named from the AI title. The draft lives in
 // usePendingRoutineDraftStore (set by routine/new.tsx right after a
 // successful generate), not in this screen's own route params.
 //
@@ -37,10 +39,12 @@ function ReviewRoutineScreenContent() {
   const { t } = useTranslation();
   const draft = usePendingRoutineDraftStore((s) => s.draft);
   const clearDraft = usePendingRoutineDraftStore((s) => s.clearDraft);
-  const createRoutine = useCreateRoutine();
+  const importExercises = useImportExercises();
+  const createPreset = useCreatePreset();
 
   const [title, setTitle] = useState(draft?.title ?? '');
   const [exercises, setExercises] = useState<RoutineExercise[]>(draft?.exercises ?? []);
+  const [saveAsPreset, setSaveAsPreset] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
   const [currentStep, setCurrentStep] = useState(1);
@@ -76,25 +80,33 @@ function ReviewRoutineScreenContent() {
     setCurrentStep((prev) => Math.min(prev, exercises.length - 1 + 2));
   };
 
-  const canSave = title.trim().length > 0 && exercises.length > 0;
+  const canSave = exercises.length > 0 && (!saveAsPreset || title.trim().length > 0);
 
   const handleSave = async () => {
     setIsSaving(true);
-    const { error, id } = await createRoutine.mutateAsync({
-      title: title.trim(),
-      exercises,
-      physio_visit_id: draft.physioVisitId,
-    });
-    setIsSaving(false);
-
-    if (error || !id) {
-      toast.error(error ?? t('routine.generateFailed'));
+    const imported = await importExercises.mutateAsync(exercises);
+    if (imported.error) {
+      setIsSaving(false);
+      toast.error(imported.error);
       return;
     }
+    if (saveAsPreset && imported.ids.length > 0) {
+      const preset = await createPreset.mutateAsync({
+        title: title.trim(),
+        exercise_ids: [...new Set(imported.ids)],
+        physio_visit_id: draft.physioVisitId,
+      });
+      if (preset.error) {
+        setIsSaving(false);
+        toast.error(preset.error);
+        return;
+      }
+    }
+    setIsSaving(false);
 
     clearDraft();
-    toast.success(t('routine.generatedToast'));
-    router.replace(`/routine/${id}` as Href);
+    toast.success(t('training.importedToast'));
+    router.replace('/training/exercises' as Href);
   };
 
   const handleLongPressExercise = (exercise: RoutineExercise) => {
@@ -148,13 +160,22 @@ function ReviewRoutineScreenContent() {
         <View className="flex-1">
           <ScrollView className="flex-1" contentContainerClassName="gap-6 px-6 py-6">
             <Text className="text-sm text-gray-500 dark:text-gray">{t('routine.reviewDescription')}</Text>
-            <Input label={t('routine.reviewTitleLabel')} value={title} onChangeText={setTitle} />
+            <View className="flex-row items-center justify-between rounded-2xl bg-surface px-4 py-3 dark:bg-surfaceDark">
+              <View className="flex-1 pr-3">
+                <Text className="text-body text-black dark:text-white">{t('training.saveAsPreset')}</Text>
+                <Text className="text-caption text-gray">{t('training.saveAsPresetHint')}</Text>
+              </View>
+              <Switch value={saveAsPreset} onValueChange={setSaveAsPreset} trackColor={{ true: colors.accent }} />
+            </View>
+            {saveAsPreset && (
+              <Input label={t('training.presetTitleLabel')} value={title} onChangeText={setTitle} maxLength={40} />
+            )}
           </ScrollView>
 
           <View className="px-6 pb-12">
             <Pressable
               onPress={() => setCurrentStep(2)}
-              disabled={title.trim().length === 0}
+              disabled={saveAsPreset && title.trim().length === 0}
               className="items-center rounded-lg bg-primary py-3 disabled:opacity-50 dark:bg-primaryDark"
             >
               <Text className="font-semibold text-white">{t('common.next')}</Text>
@@ -185,7 +206,9 @@ function ReviewRoutineScreenContent() {
       {currentStep === summaryStep && (
         <View className="flex-1">
           <ScrollView className="flex-1" contentContainerClassName="gap-4 px-6 py-6">
-            <Text className="text-xl font-bold text-black dark:text-white">{title}</Text>
+            <Text className="text-xl font-bold text-black dark:text-white">
+              {saveAsPreset ? title : t('training.importSummaryTitle')}
+            </Text>
 
             {exercises.length === 0 ? (
               <Text className="text-center text-sm text-gray-500 dark:text-gray">{t('routine.noExercisesLeft')}</Text>
@@ -203,7 +226,7 @@ function ReviewRoutineScreenContent() {
               {isSaving ? (
                 <ActivityIndicator color={colors.white} />
               ) : (
-                <Text className="font-semibold text-white">{t('routine.saveRoutine')}</Text>
+                <Text className="font-semibold text-white">{t('training.addToMyExercises')}</Text>
               )}
             </Pressable>
           </View>
@@ -219,7 +242,7 @@ function ReviewRoutineScreenContent() {
       <ConfirmModal
         visible={confirmDeleteId !== null}
         title={t('routine.deleteExerciseConfirmTitle')}
-        message={t('routine.deleteExerciseConfirmMessage')}
+        message={t('training.removeFromImportMessage')}
         confirmLabel={t('common.delete')}
         variant="destructive"
         onConfirm={handleConfirmDeleteExercise}

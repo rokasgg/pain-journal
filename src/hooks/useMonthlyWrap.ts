@@ -3,7 +3,6 @@ import { useMemo } from 'react';
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
 import { useFlareUps } from '@/hooks/useFlareUps';
-import { useRoutineHistory } from '@/hooks/useRoutines';
 
 import { buildMonthlyWrap, isWrapAvailable, recentCompletedMonths } from '@/lib/wrap';
 import { useToday } from '@/store/useTodayStore';
@@ -16,14 +15,13 @@ export function useMonthlyWrap(month: string | undefined) {
   const { checkins, isLoading: checkinsLoading } = useCheckinHistory(WRAP_LOOKBACK_DAYS);
   const { flareUps, isLoading: flareUpsLoading } = useFlareUps(WRAP_LOOKBACK_DAYS);
   const { logs: exerciseLogs, isLoading: logsLoading } = useExerciseLogHistory(WRAP_LOOKBACK_DAYS);
-  const { routines, isLoading: routinesLoading } = useRoutineHistory();
 
   const slides = useMemo(
-    () => (month ? buildMonthlyWrap({ month, checkins, flareUps, exerciseLogs, routines }) : null),
-    [month, checkins, flareUps, exerciseLogs, routines],
+    () => (month ? buildMonthlyWrap({ month, checkins, flareUps, exerciseLogs }) : null),
+    [month, checkins, flareUps, exerciseLogs],
   );
 
-  return { slides, isLoading: checkinsLoading || flareUpsLoading || logsLoading || routinesLoading };
+  return { slides, isLoading: checkinsLoading || flareUpsLoading || logsLoading };
 }
 
 // Completed months (newest first) with enough data for a Wrap.

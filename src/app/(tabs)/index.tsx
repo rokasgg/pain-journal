@@ -6,12 +6,10 @@ import { DaysSinceHealing } from '@/components/home/DaysSinceHealing';
 import { ExerciseWeekCalendar } from '@/components/home/ExerciseWeekCalendar';
 import { JourneyCard } from '@/components/home/JourneyCard';
 import { TodaysRoutineCard } from '@/components/home/TodaysRoutineCard';
-import { LockedCard } from '@/components/premium/LockedCard';
 import { WelcomeGuide } from '@/components/home/WelcomeGuide';
 import { WrapReadyCard } from '@/components/home/WrapReadyCard';
 import { AnimatedCheckmark } from '@/components/ui/AnimatedCheckmark';
 import { useExerciseLogHistory } from '@/hooks/useExerciseLogs';
-import { usePremium } from '@/hooks/usePremium';
 import { useJourney } from '@/hooks/useJourney';
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile';
 import { useSession } from '@/hooks/useSession';
@@ -104,7 +102,6 @@ export default function HomeScreen() {
   // a day counts only when the prescribed routine was actually logged (FULL
   // or PARTIAL), regardless of the evening check-in's separate, unrelated
   // `did_exercises` question. ~12 weeks fetched so weeks-in-a-row can count.
-  const { isPremium } = usePremium();
   const { logs: exerciseLogs } = useExerciseLogHistory(84);
   const updateProfile = useUpdateProfile();
   const weeklyGoal = profile?.weekly_training_goal ?? 3;
@@ -170,13 +167,10 @@ export default function HomeScreen() {
 
         <CheckinWeekCard />
 
-        {/* Routines + the weekly goal are Premium. Free users who turned
-            training on get one locked card instead of the two. */}
-        {trainingEnabled && !isPremium && <LockedCard feature="routines" />}
+        {/* Logging exercises and the weekly goal are free (daily habit). */}
+        {trainingEnabled && <TodaysRoutineCard />}
 
-        {trainingEnabled && isPremium && <TodaysRoutineCard />}
-
-        {trainingEnabled && isPremium && (
+        {trainingEnabled && (
           <ExerciseWeekCalendar
             progress={trainingProgress}
             onChangeGoal={handleChangeGoal}

@@ -7,8 +7,7 @@ import { CheckinForm, type CheckinFormData } from '@/components/checkin/CheckinF
 import { useCheckinCelebration } from '@/hooks/useCheckinCelebration';
 import { useCheckinsForDate, useUpsertCheckin } from '@/hooks/useCheckins';
 import { useFlareUpFollowUpCandidate } from '@/hooks/useFlareUps';
-import { usePremium } from '@/hooks/usePremium';
-import { useRoutinesInRotation } from '@/hooks/useRoutines';
+import { useJourney } from '@/hooks/useJourney';
 import { useTodayStatus } from '@/hooks/useTodayStatus';
 import { formatHeadingDate } from '@/lib/dates';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -29,10 +28,8 @@ export default function CheckinModal() {
   const celebration = useCheckinCelebration();
   const { eveningUnlocked } = useTodayStatus();
   const flareUpFollowUpCandidate = useFlareUpFollowUpCandidate();
-  const { routines: routinesInRotation } = useRoutinesInRotation();
-  // Routines are Premium; the check-in itself never shows a paywall, so
-  // free users simply don't get the training step.
-  const { isPremium } = usePremium();
+  // Logging exercises is free; the step shows whenever training is on.
+  const { trainingEnabled } = useJourney();
   const today = useToday();
   const lateDate = date && date !== today ? date : null;
   const checkinDate = lateDate ?? today;
@@ -99,7 +96,7 @@ export default function CheckinModal() {
       // The flare-up follow-up and the "did you train today?" step are about
       // today, so a late entry skips both.
       flareUpCandidate={isMorning && !lateDate ? flareUpFollowUpCandidate : null}
-      hasRoutinesInRotation={isPremium && !isMorning && !lateDate && routinesInRotation.length > 0}
+      showTrainingStep={trainingEnabled && !isMorning && !lateDate}
       header={
         lateDate ? (
           <View className="flex-row items-center gap-2 rounded-xl bg-accentMuted px-4 py-3 dark:bg-segmentTrackDark">

@@ -7,9 +7,8 @@ import { t } from '@/lib/i18n/useTranslation';
 import { supabase } from '@/lib/supabase';
 import type { CompletedExercise, ExerciseLog, ExerciseLogStatus } from '@/types/database.types';
 
-// Recent exercise_logs across all of the user's routines (not scoped to one
-// routine_id like useTodayExerciseLog) — used to drive the Home streak
-// calendar's "which days did I do my routine" view.
+// Recent exercise_logs — the Home weekly-goal card, findings, Wrap, the
+// flare-up detective, the chat and the visit PDF all read this.
 export function useExerciseLogHistory(days = 7) {
   const { user } = useSession();
   const since = subDays(new Date(), days).toISOString();
@@ -34,61 +33,28 @@ export function useExerciseLogHistory(days = 7) {
   return { logs: logs ?? [], isLoading };
 }
 
-// Finds today's exercise_logs row for a routine, if any. Fetches the last
-// few logs and filters by local calendar day client-side rather than a
-// logged_at date-range query — logged_at is a timestamptz, and a UTC range
-// query can miscount near midnight (same reasoning as todayLocalDate()).
-export function useTodayExerciseLog(routineId: string | undefined) {
+// Today's training log, if any (any preset or none). Fetches the last few
+// logs and filters by local calendar day client-side rather than a logged_at
+// date-range query — logged_at is a timestamptz, and a UTC range query can
+// miscount near midnight (same reasoning as todayLocalDate()). One workout
+// a day is assumed; a later one appends a note instead of a second row.
+export function useTodayTrainingLog() {
   const { user } = useSession();
 
   const { data: logs, isLoading } = useQuery({
-    queryKey: ['exerciseLogs', 'recent', user?.id, routineId],
+    queryKey: ['exerciseLogs', 'recent', user?.id],
     queryFn: async (): Promise<ExerciseLog[]> => {
-      if (!user || !routineId) return [];
+      if (!user) return [];
       const { data, error } = await supabase
         .from('exercise_logs')
         .select('*')
         .eq('user_id', user.id)
-        .eq('routine_id', routineId)
         .order('logged_at', { ascending: false })
         .limit(5);
       if (error) throw error;
       return (data ?? []) as ExerciseLog[];
     },
-    enabled: !!user && !!routineId,
-    staleTime: 30_000,
-  });
-
-  const log = (logs ?? []).find((entry) => isToday(entry.logged_at)) ?? null;
-
-  return { log, isLoading };
-}
-
-// Same idea as useTodayExerciseLog, but across every routine currently in
-// rotation rather than one specific routine — used by the evening check-in's
-// RoutineTrainingStep to answer "has anything been logged today?" before
-// deciding whether to show a routine picker. A user is assumed to log at
-// most one routine per day (see the routines-in-rotation plan), so this
-// intentionally returns a single log, not one per routine.
-export function useTodayExerciseLogForAny(routineIds: string[]) {
-  const { user } = useSession();
-  const key = [...routineIds].sort().join(',');
-
-  const { data: logs, isLoading } = useQuery({
-    queryKey: ['exerciseLogs', 'recentForAny', user?.id, key],
-    queryFn: async (): Promise<ExerciseLog[]> => {
-      if (!user || routineIds.length === 0) return [];
-      const { data, error } = await supabase
-        .from('exercise_logs')
-        .select('*')
-        .eq('user_id', user.id)
-        .in('routine_id', routineIds)
-        .order('logged_at', { ascending: false })
-        .limit(5);
-      if (error) throw error;
-      return (data ?? []) as ExerciseLog[];
-    },
-    enabled: !!user && routineIds.length > 0,
+    enabled: !!user,
     staleTime: 30_000,
   });
 
@@ -103,7 +69,7 @@ export function useCreateExerciseLog() {
 
   return useMutation({
     mutationFn: async (input: {
-      routine_id: string;
+      routine_id: string | null;
       status: ExerciseLogStatus;
       completed_exercises: CompletedExercise[];
       general_note: string | null;

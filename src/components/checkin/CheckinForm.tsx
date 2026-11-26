@@ -148,13 +148,11 @@ export interface CheckinFormProps {
   onSaved?: () => void;
   header?: ReactNode;
   flareUpCandidate?: FlareUp | null;
-  // Whether the user has any routine in rotation — evening only. When true, a
-  // dedicated "did you train today?" step is inserted before step 1 (see
-  // RoutineTrainingStep), same pre-step mechanism as flareUpCandidate.
-  // Determined by the caller (checkin/[type].tsx via useRoutinesInRotation())
-  // rather than by CheckinForm itself, matching how flareUpCandidate is
-  // resolved by its caller too.
-  hasRoutinesInRotation?: boolean;
+  // Evening only, when training is on: a "did you train today?" step is
+  // inserted before step 1 (see RoutineTrainingStep), the same pre-step
+  // mechanism as flareUpCandidate. Resolved by the caller
+  // (checkin/[type].tsx, via useJourney().trainingEnabled).
+  showTrainingStep?: boolean;
 }
 
 function RequiredMessage({ text }: { text?: string }) {
@@ -186,7 +184,7 @@ export function CheckinForm({
   onSaved,
   header,
   flareUpCandidate,
-  hasRoutinesInRotation,
+  showTrainingStep,
 }: CheckinFormProps) {
   const keepFocusedVisible = useKeepFocusedInputVisible();
   const { t } = useTranslation();
@@ -400,7 +398,7 @@ export function CheckinForm({
     );
   }
 
-  if (hasRoutinesInRotation && !routineStepDone) {
+  if (showTrainingStep && !routineStepDone) {
     return (
       <View className="flex-1 bg-background dark:bg-backgroundDark">
         <Stack.Screen options={titleOptions} />

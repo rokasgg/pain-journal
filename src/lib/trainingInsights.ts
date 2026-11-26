@@ -2,7 +2,7 @@ import { addDays, format, parseISO, startOfWeek, subDays, subWeeks } from 'date-
 
 import { toLocalDate } from '@/lib/dates';
 import { dailyAverages } from '@/lib/painTrend';
-import type { Checkin, ExerciseLog, Routine } from '@/types/database.types';
+import type { Checkin, ExerciseLog } from '@/types/database.types';
 
 // Training payoff + weekly goal. Two rules this file exists to enforce:
 //  * rest days never "break" anything — progress is weekly, and an
@@ -136,19 +136,10 @@ export interface ExerciseProgressItem {
 }
 
 // Exercises getting easier: per-exercise discomfort, first half vs second
-// half of its entries in the window. Grouped by *name* — exercise ids are
-// only unique within one routine.
-export function exerciseProgress(
-  logs: ExerciseLog[],
-  routines: Pick<Routine, 'id' | 'exercises'>[],
-  today: string,
-  windowDays = 42,
-): ExerciseProgressItem[] {
+// half of its entries in the window. Grouped by the entry's name snapshot
+// (supabase_exercise_library_migration.sql backfilled it on old logs).
+export function exerciseProgress(logs: ExerciseLog[], today: string, windowDays = 42): ExerciseProgressItem[] {
   const start = dateKey(subDays(parseISO(today), windowDays));
-  const names = new Map<string, Map<string, string>>();
-  for (const routine of routines) {
-    names.set(routine.id, new Map(routine.exercises.map((exercise) => [exercise.id, exercise.name])));
-  }
 
   const levelsByName = new Map<string, number[]>();
   const ordered = logs
@@ -156,7 +147,7 @@ export function exerciseProgress(
     .sort((a, b) => a.logged_at.localeCompare(b.logged_at));
   for (const log of ordered) {
     for (const entry of log.completed_exercises) {
-      const name = entry.completed ? names.get(log.routine_id)?.get(entry.exercise_id) : undefined;
+      const name = entry.completed ? entry.name : null;
       if (!name) continue;
       const levels = levelsByName.get(name) ?? [];
       levels.push(entry.pain_discomfort_level);

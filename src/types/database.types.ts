@@ -363,6 +363,26 @@ export interface RoutineExercise {
   caution_notes: string;
 }
 
+// One exercise in the user's library ("My exercises",
+// supabase_exercise_library_migration.sql). Logging a workout ticks these;
+// routines are only presets that pre-tick a set of them.
+export interface Exercise {
+  id: string;
+  user_id: string;
+  name: string;
+  muscle_group: string | null;
+  target_sets_reps: string | null;
+  instructions: string | null;
+  caution_notes: string | null;
+  archived: boolean;
+  created_at: string;
+}
+
+export type ExerciseDetails = Pick<Exercise, 'name' | 'muscle_group' | 'target_sets_reps' | 'instructions' | 'caution_notes'>;
+
+// A preset ("Day A"): a titled set of library exercises it pre-ticks. The
+// `exercises` jsonb is legacy (what the AI generated before the library
+// existed) and is no longer written; `exercise_ids` is what's read.
 export interface Routine {
   id: string;
   user_id: string;
@@ -377,9 +397,11 @@ export interface Routine {
   // to train each day, e.g. alternating a physio's Day A / Day B routines.
   in_rotation: boolean;
   exercises: RoutineExercise[];
+  exercise_ids: string[];
   created_at: string;
 }
-export type RoutineInsert = Omit<Routine, 'id' | 'created_at'> & {
+export type RoutineInsert = Omit<Routine, 'id' | 'created_at' | 'exercises'> & {
+  exercises?: RoutineExercise[];
   id?: string;
   created_at?: string;
 };
@@ -387,11 +409,14 @@ export type RoutineInsert = Omit<Routine, 'id' | 'created_at'> & {
 export type ExerciseLogStatus = 'FULL' | 'PARTIAL' | 'SKIPPED';
 
 // One exercise's outcome within an ExerciseLog's `completed_exercises` jsonb
-// array. `exercise_id` matches a `RoutineExercise.id` from the routine this
-// log is for. `pain_discomfort_level` is 0-10, enforced app-side only (same
-// as every other 0-10 field in this schema, e.g. checkins.pain_level).
+// array. `exercise_id` is an `exercises.id` (library). `name` is a snapshot
+// taken at log time, so history reads the same after a rename or delete; it's
+// null only for old entries the migration couldn't resolve. New logs store
+// ticked exercises only (`completed: true`); old ones may hold unticked rows.
+// `pain_discomfort_level` is 0-10, enforced app-side only.
 export interface CompletedExercise {
   exercise_id: string;
+  name: string | null;
   completed: boolean;
   pain_discomfort_level: number;
   flagged_pain: boolean;
@@ -401,7 +426,9 @@ export interface CompletedExercise {
 export interface ExerciseLog {
   id: string;
   user_id: string;
-  routine_id: string;
+  // The preset used, if any. Null for a free-form session, or after the
+  // preset was deleted (the FK is `on delete set null`).
+  routine_id: string | null;
   logged_at: string;
   status: ExerciseLogStatus;
   completed_exercises: CompletedExercise[];

@@ -292,10 +292,34 @@ function RootLayoutNav() {
           options={{ presentation: 'fullScreenModal', animation: 'fade', headerShown: false }}
         />
         <Stack.Screen
-          name="routine/complete/[id]"
+          name="training/log"
           options={{
             headerShown: true,
-            title: t('screenTitles.completeRoutine'),
+            title: t('screenTitles.logTraining'),
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
+        <Stack.Screen
+          name="training/exercises"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.myExercises'),
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
+        <Stack.Screen
+          name="training/exercise/[id]"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.editExercise'),
+            headerBackButtonDisplayMode: 'minimal',
+          }}
+        />
+        <Stack.Screen
+          name="training/preset/[id]"
+          options={{
+            headerShown: true,
+            title: t('screenTitles.editPreset'),
             headerBackButtonDisplayMode: 'minimal',
           }}
         />
@@ -312,30 +336,6 @@ function RootLayoutNav() {
           options={{
             headerShown: true,
             title: t('screenTitles.reviewRoutine'),
-            headerBackButtonDisplayMode: 'minimal',
-          }}
-        />
-        <Stack.Screen
-          name="routine/[id]"
-          options={{
-            headerShown: true,
-            title: t('screenTitles.viewRoutine'),
-            headerBackButtonDisplayMode: 'minimal',
-          }}
-        />
-        <Stack.Screen
-          name="routine/edit/[id]"
-          options={{
-            headerShown: true,
-            title: t('screenTitles.editRoutine'),
-            headerBackButtonDisplayMode: 'minimal',
-          }}
-        />
-        <Stack.Screen
-          name="routine/view"
-          options={{
-            headerShown: true,
-            title: t('screenTitles.routineHistory'),
             headerBackButtonDisplayMode: 'minimal',
           }}
         />

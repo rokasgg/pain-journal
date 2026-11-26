@@ -1,4 +1,4 @@
-import type { ExerciseLog, Routine } from '@/types/database.types';
+import type { ExerciseLog } from '@/types/database.types';
 
 import {
   exerciseProgress,
@@ -125,33 +125,37 @@ describe('trainingVsRestNextDayPain', () => {
 });
 
 describe('exerciseProgress', () => {
-  const routine = (id: string, exerciseId: string, name: string) =>
-    ({ id, exercises: [{ id: exerciseId, name }] }) as Pick<Routine, 'id' | 'exercises'>;
-  const done = (exercise_id: string, level: number) => ({
+  const done = (exercise_id: string, level: number, name: string) => ({
     exercise_id,
+    name,
     completed: true,
     pain_discomfort_level: level,
     flagged_pain: false,
     note: null,
   });
 
-  it('groups by name across routines and reports a real drop', () => {
-    const routines = [routine('r1', 'ex_1', 'Chin tucks'), routine('r2', 'ex_3', 'Chin tucks')];
+  it('groups by name snapshot (even across ids) and reports a real drop', () => {
     const logs = [
-      log('2026-10-01', { routine_id: 'r1', completed_exercises: [done('ex_1', 6)] }),
-      log('2026-10-04', { routine_id: 'r2', completed_exercises: [done('ex_3', 6)] }),
-      log('2026-10-10', { routine_id: 'r1', completed_exercises: [done('ex_1', 2)] }),
-      log('2026-10-14', { routine_id: 'r2', completed_exercises: [done('ex_3', 2)] }),
+      log('2026-10-01', { routine_id: 'r1', completed_exercises: [done('ex_1', 6, 'Chin tucks')] }),
+      log('2026-10-04', { routine_id: null, completed_exercises: [done('ex_3', 6, 'Chin tucks')] }),
+      log('2026-10-10', { routine_id: 'r1', completed_exercises: [done('ex_1', 2, 'Chin tucks')] }),
+      log('2026-10-14', { routine_id: null, completed_exercises: [done('ex_3', 2, 'Chin tucks')] }),
     ];
-    expect(exerciseProgress(logs, routines, TODAY)).toEqual([{ name: 'Chin tucks', from: 6, to: 2 }]);
+    expect(exerciseProgress(logs, TODAY)).toEqual([{ name: 'Chin tucks', from: 6, to: 2 }]);
   });
 
   it('skips exercises with too few entries or no real improvement', () => {
-    const routines = [routine('r1', 'ex_1', 'Wall angels')];
     const flat = ['2026-10-01', '2026-10-04', '2026-10-10', '2026-10-14'].map((day) =>
-      log(day, { completed_exercises: [done('ex_1', 3)] }),
+      log(day, { completed_exercises: [done('ex_1', 3, 'Wall angels')] }),
     );
-    expect(exerciseProgress(flat, routines, TODAY)).toEqual([]);
-    expect(exerciseProgress(flat.slice(0, 3), routines, TODAY)).toEqual([]);
+    expect(exerciseProgress(flat, TODAY)).toEqual([]);
+    expect(exerciseProgress(flat.slice(0, 3), TODAY)).toEqual([]);
+  });
+
+  it('ignores old entries without a name', () => {
+    const unnamed = ['2026-10-01', '2026-10-04', '2026-10-10', '2026-10-14'].map((day, i) =>
+      log(day, { completed_exercises: [{ ...done('ex_1', i < 2 ? 6 : 2, 'x'), name: null }] }),
+    );
+    expect(exerciseProgress(unnamed, TODAY)).toEqual([]);
   });
 });

@@ -2,7 +2,7 @@ import { addDays, endOfMonth, format, getDaysInMonth, parseISO, startOfWeek, sub
 
 import { toLocalDate } from '@/lib/dates';
 import { countPainFreeDays, dailyAverages, meanOfDays, type TrendMetric } from '@/lib/painTrend';
-import type { Checkin, ExerciseLog, FlareUp, Routine } from '@/types/database.types';
+import type { Checkin, ExerciseLog, FlareUp } from '@/types/database.types';
 
 // Monthly Wrap: a story-style recap of one completed calendar month.
 //
@@ -45,7 +45,6 @@ export interface WrapInput {
   checkins: Checkin[];
   flareUps: FlareUp[];
   exerciseLogs: ExerciseLog[];
-  routines: Routine[];
 }
 
 export const MIN_WRAP_DAYS = 7;
@@ -130,21 +129,16 @@ function calmestWeek(painByDay: Map<string, number>, window: MonthWindow): WrapS
   };
 }
 
-function training(logs: ExerciseLog[], routines: Routine[]): WrapSlide | null {
+function training(logs: ExerciseLog[]): WrapSlide | null {
   const done = logs.filter((log) => log.status !== 'SKIPPED');
   if (done.length === 0) return null;
 
-  const exerciseNames = new Map<string, Map<string, string>>();
-  for (const routine of routines) {
-    exerciseNames.set(routine.id, new Map(routine.exercises.map((exercise) => [exercise.id, exercise.name])));
-  }
-
-  // Counted by name, not id — exercise ids are only unique within one routine.
+  // Counted by the entry's name snapshot, so a renamed or deleted exercise
+  // still counts as what it was called at the time.
   const counts = new Map<string, number>();
   for (const log of done) {
-    const names = exerciseNames.get(log.routine_id);
     for (const entry of log.completed_exercises) {
-      const name = entry.completed ? names?.get(entry.exercise_id) : undefined;
+      const name = entry.completed ? entry.name : null;
       if (name) counts.set(name, (counts.get(name) ?? 0) + 1);
     }
   }
@@ -180,7 +174,7 @@ function sleep(checkins: Checkin[], window: MonthWindow): WrapSlide | null {
   return { kind: 'sleep', wellRestedPain, shortSleepPain, thresholdHours: SLEEP_THRESHOLD_HOURS };
 }
 
-export function buildMonthlyWrap({ month, checkins, flareUps, exerciseLogs, routines }: WrapInput): WrapSlide[] | null {
+export function buildMonthlyWrap({ month, checkins, flareUps, exerciseLogs }: WrapInput): WrapSlide[] | null {
   const current = monthWindow(month);
   const previous = monthWindow(format(subMonths(parseISO(`${month}-01`), 1), 'yyyy-MM'));
 
@@ -207,7 +201,7 @@ export function buildMonthlyWrap({ month, checkins, flareUps, exerciseLogs, rout
     .filter((minutes): minutes is number => minutes != null);
 
   const monthLogs = exerciseLogs.filter((log) => inWindow(toLocalDate(log.logged_at), current));
-  const trainingSlide = training(monthLogs, routines);
+  const trainingSlide = training(monthLogs);
   const sessions = trainingSlide?.kind === 'training' ? trainingSlide.sessions : 0;
 
   const painChange = metricChange(checkins, 'pain_level', current, previous);

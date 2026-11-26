@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 
 import { useCheckinHistory } from '@/hooks/useCheckins';
 import { useProfile } from '@/hooks/useProfile';
-import { useRoutineHistory } from '@/hooks/useRoutines';
+import { usePresets } from '@/hooks/useRoutines';
 
 import {
   countLoggedDays,
@@ -29,7 +29,7 @@ export interface Journey {
 export function useJourney(): Journey {
   const { checkins, isLoading: checkinsLoading } = useCheckinHistory(JOURNEY_LOOKBACK_DAYS);
   const { profile, isLoading: profileLoading } = useProfile();
-  const { routines, isLoading: routinesLoading } = useRoutineHistory();
+  const { presets: routines, isLoading: routinesLoading } = usePresets();
   const isLoading = checkinsLoading || profileLoading || routinesLoading;
   const today = useToday();
 

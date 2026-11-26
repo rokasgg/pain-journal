@@ -14,8 +14,8 @@ type GenerateRoutineSource =
   | { source: 'images'; images: string[] };
 
 export type GenerateRoutineInput = GenerateRoutineSource & {
-  // Exercises from the user's current routine to keep verbatim in the new
-  // one — see routine/new.tsx's carry-forward checklist.
+  // Still accepted by the edge function; the app no longer sends it, since
+  // imported exercises join the library ("My exercises") by name instead.
   carry_forward_exercises?: RoutineExercise[];
 };
 

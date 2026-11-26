@@ -21,12 +21,10 @@ export interface ExerciseReviewStepProps {
 
 // One exercise's editable card, promoted to its own full step — reviewing a
 // routine with 6-9 exercises as one long scroll of stacked cards read as
-// cluttered, so routine/review.tsx now shows one at a time. Same 5 fields
-// RoutineExercisesEditor.tsx renders per card (that component stays as-is,
-// still used by routine/edit/[id].tsx's single-scroll form for an
-// already-saved routine — a different screen/concern from this one). No
-// remove button here by design — removing an exercise only happens via
-// long-press → Delete on the final summary list.
+// cluttered, so routine/review.tsx shows one at a time. No remove button
+// here by design — removing an exercise only happens via long-press →
+// Delete on the final summary list. Editing a saved exercise is
+// training/exercise/[id].tsx.
 export function ExerciseReviewStep({
   exercise,
   index,
