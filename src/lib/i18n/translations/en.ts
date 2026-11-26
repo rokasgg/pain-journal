@@ -122,8 +122,11 @@ export const en = {
     sub3: 'Every entry makes your patterns clearer.',
     sub4: 'Small steps, every day.',
     sub5: 'Thanks for checking in with yourself.',
-    dayLabel: 'Day',
-    alreadyCounted: 'This day already counts ✓',
+    // Check-in complete stat block: the label under the big number, and the
+    // screen-reader label for both. Keyed by pluralCategory().
+    daysLoggedLabel: { one: 'day logged', few: 'days logged', many: 'days logged' },
+    daysLoggedA11y: { one: '{{count}} day logged', few: '{{count}} days logged', many: '{{count}} days logged' },
+    dayAlreadyCounts: 'This day already counts',
     nextHistory: '{{days}} more until History',
     nextInsights: '{{days}} more until Insights',
     nextReports: '{{days}} more until Reports',

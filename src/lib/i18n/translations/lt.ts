@@ -124,8 +124,11 @@ export const lt: typeof en = {
     sub3: 'Kiekvienas įrašas padeda aiškiau matyti dėsningumus.',
     sub4: 'Maži žingsniai kasdien.',
     sub5: 'Ačiū, kad skiriate laiko sau.',
-    dayLabel: 'Diena',
-    alreadyCounted: 'Ši diena jau įskaityta ✓',
+    // Check-in complete stat block: the label under the big number, and the
+    // screen-reader label for both. Keyed by pluralCategory().
+    daysLoggedLabel: { one: 'diena įrašyta', few: 'dienos įrašytos', many: 'dienų įrašyta' },
+    daysLoggedA11y: { one: '{{count}} diena įrašyta', few: '{{count}} dienos įrašytos', many: '{{count}} dienų įrašyta' },
+    dayAlreadyCounts: 'Ši diena jau įskaityta',
     nextHistory: 'Iki Istorijos liko {{days}}',
     nextInsights: 'Iki Įžvalgų liko {{days}}',
     nextReports: 'Iki Ataskaitų liko {{days}}',

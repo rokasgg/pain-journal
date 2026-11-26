@@ -1,4 +1,4 @@
-import { formatCount, formatDayCount } from './plural';
+import { formatCount, formatDayCount, pluralCategory } from './plural';
 
 describe('formatDayCount', () => {
   it('handles English singular/plural', () => {
@@ -38,5 +38,22 @@ describe('formatCount', () => {
   it('English forms', () => {
     expect(formatCount(1, 'visit', 'en')).toBe('1 visit');
     expect(formatCount(7, 'entry', 'en')).toBe('7 entries');
+  });
+});
+
+describe('pluralCategory', () => {
+  it('uses one/many in English', () => {
+    expect(pluralCategory(1, 'en')).toBe('one');
+    expect(pluralCategory(0, 'en')).toBe('many');
+    expect(pluralCategory(354, 'en')).toBe('many');
+  });
+
+  it('uses Lithuanian one/few/many', () => {
+    expect(pluralCategory(1, 'lt')).toBe('one');
+    expect(pluralCategory(21, 'lt')).toBe('one');
+    expect(pluralCategory(354, 'lt')).toBe('few');
+    expect(pluralCategory(11, 'lt')).toBe('many');
+    expect(pluralCategory(20, 'lt')).toBe('many');
+    expect(pluralCategory(111, 'lt')).toBe('many');
   });
 });

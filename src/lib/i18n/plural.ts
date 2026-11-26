@@ -22,6 +22,21 @@ function ltForm(count: number, forms: LtForms): string {
   return forms[2];
 }
 
+/**
+ * Plural category for a count, for keys stored as { one, few, many } in the
+ * translation files. Lithuanian: one (1, 21, 31…), few (2–9, 22–29…), many
+ * (0, 10–20, 30…). English only uses one/many; its `few` copy equals `many`.
+ */
+export type PluralCategory = 'one' | 'few' | 'many';
+
+export function pluralCategory(count: number, locale: Locale): PluralCategory {
+  if (locale === 'lt') {
+    const forms: [PluralCategory, PluralCategory, PluralCategory] = ['one', 'few', 'many'];
+    return ltForm(count, forms) as PluralCategory;
+  }
+  return count === 1 ? 'one' : 'many';
+}
+
 // "2 days" / "2 dienos" (nominative) / "2 dienas" (accusative).
 export function formatDayCount(count: number, locale: Locale, grammaticalCase: DayCountCase = 'nominative'): string {
   if (locale === 'lt') return `${count} ${ltForm(count, LT_DAY_FORMS[grammaticalCase])}`;

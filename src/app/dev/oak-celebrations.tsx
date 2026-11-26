@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 
-import { CheckinSkyScene } from '@/components/oak/CheckinSkyScene';
+import { CheckinSkyScene, useSkyColor } from '@/components/oak/CheckinSkyScene';
 import { OAK_STAGE_LIST, OAK_STAGES } from '@/components/oak/oakConfig';
 import { WateringCelebration } from '@/components/oak/WateringCelebration';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -53,6 +53,7 @@ export default function OakCelebrationsPreview() {
   const [stage, setStage] = useState<OakStage>(1);
   const [replay, setReplay] = useState(0);
   const [skipped, setSkipped] = useState(false);
+  const skyColor = useSkyColor(moment === 'morning' ? 'morning' : 'evening');
 
   if (!__DEV__) return <Redirect href="/" />;
 
@@ -74,7 +75,11 @@ export default function OakCelebrationsPreview() {
   const stageAfter: OakStage = moment === 'growth' ? ((stage + 1) as OakStage) : stage;
 
   return (
-    <View className="flex-1 bg-background dark:bg-backgroundDark">
+    // Sky moments paint the page in their sky colour, like the real screen.
+    <View
+      className="flex-1 bg-background dark:bg-backgroundDark"
+      style={moment === 'training' ? undefined : { backgroundColor: skyColor }}
+    >
       <View className="gap-2 px-4 py-3">
         <View className="flex-row flex-wrap gap-2">
           {MOMENTS.map((value) => (

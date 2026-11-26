@@ -1,15 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, useColorScheme, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeOut, useReducedMotion, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 
-import { CheckinSkyScene, type SkyVariant } from '@/components/oak/CheckinSkyScene';
+import { CheckinSkyScene, useSkyColor, type SkyVariant } from '@/components/oak/CheckinSkyScene';
 import { FALLBACK_OAK_STAGE } from '@/components/oak/oakConfig';
 import { useReminderSettings, useUpdateReminderSettings } from '@/hooks/useReminderSettings';
 import { EVENING_UNLOCK_HOUR } from '@/lib/checkinTiming';
 import type { CelebratedUnlock, CelebrationProgress, CheckinCelebration } from '@/lib/checkinCelebration';
-import { formatDayCount } from '@/lib/i18n/plural';
+import { formatDayCount, pluralCategory } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { OAK_STAGE_NAME_KEYS } from '@/lib/oak';
 import { colors } from '@/lib/theme';
@@ -99,48 +100,85 @@ function SegmentBar({
   );
 }
 
-function ProgressCard({ progress, phase }: { progress: CelebrationProgress; phase: PhaseValue }) {
+// Stat block colours. The label is darker than the subtitle's
+// grey so it keeps ≥4.5:1 contrast on the evening sky; the status green is
+// the Continue button's, lightened in dark mode for contrast on the night sky.
+const STAT_GREEN = colors.primary;
+const STAT_GREEN_DARK = '#8DBB97';
+
+// The next-unlock bar, card-less, under the stat block (only while an unlock is left).
+function NextUnlockRow({ progress, phase }: { progress: CelebrationProgress; phase: PhaseValue }) {
   const { t, locale } = useTranslation();
+  const next = progress.next;
+  if (!next) return null;
+  return (
+    <Animated.View entering={FadeInDown.duration(350)} className="w-full gap-2">
+      <SegmentBar
+        total={next.days}
+        filled={progress.daysAfter}
+        newIndex={progress.isNewDay ? progress.daysBefore : null}
+        showNew={phase >= Phase.Counted}
+      />
+      <View className="flex-row items-center justify-between">
+        <Text className="text-label font-semibold text-black dark:text-white">
+          {t(NEXT_KEYS[next.key], { days: formatDayCount(next.daysRemaining, locale) })}
+        </Text>
+        <Text className="text-label text-[#5C5C66] dark:text-[#B4B6C8]">
+          {t('journey.sheet.progressLabel', { done: progress.daysAfter, total: next.days })}
+        </Text>
+      </View>
+    </Animated.View>
+  );
+}
+
+// The card-less stat block directly under the subtitle, on every check-in
+// complete screen (morning, evening, day complete): the big day count (it
+// pops up by one on a new day), "days logged", and, when this day was
+// already counted, a green "This day already counts" line.
+function DayStats({ progress, phase }: { progress: CelebrationProgress; phase: PhaseValue }) {
+  const { t, locale } = useTranslation();
+  const dark = useColorScheme() === 'dark';
   const counted = phase >= Phase.Counted;
   const shownDays = progress.isNewDay && !counted ? progress.daysBefore : progress.daysAfter;
-  const next = progress.next;
+  const category = pluralCategory(shownDays, locale);
+  const green = dark ? STAT_GREEN_DARK : STAT_GREEN;
 
   return (
-    <Animated.View
-      entering={FadeInDown.duration(350)}
-      className="w-full gap-4 rounded-3xl bg-white p-5 dark:bg-surfaceDark"
-    >
-      <View className="flex-row items-center justify-between">
-        <View>
-          <Text className="text-label text-gray">{t('celebration.dayLabel')}</Text>
-          {/* Keyed by the number, so the new one pops in when it ticks up. */}
-          <Animated.Text
-            key={shownDays}
-            entering={counted && progress.isNewDay ? ZoomIn.springify().damping(10) : undefined}
-            className="text-display text-black dark:text-white"
-          >
-            {shownDays}
-          </Animated.Text>
-        </View>
-        {!progress.isNewDay && <Text className="text-label text-gray">{t('celebration.alreadyCounted')}</Text>}
+    <Animated.View entering={FadeInDown.duration(350)} className="items-center" style={{ marginTop: 36 }}>
+      <View
+        accessible
+        accessibilityLabel={t(`celebration.daysLoggedA11y.${category}`, { count: shownDays })}
+        className="items-center"
+      >
+        {/* Keyed by the number, so the new one pops in when it ticks up. */}
+        <Animated.Text
+          key={shownDays}
+          entering={counted && progress.isNewDay ? ZoomIn.springify().damping(10) : undefined}
+          className="text-center font-bold text-black dark:text-white"
+          style={{ fontSize: 56, lineHeight: 56, letterSpacing: -1, fontVariant: ['tabular-nums'] }}
+        >
+          {shownDays}
+        </Animated.Text>
+        <Text className="text-center text-[15px] text-[#5C5C66] dark:text-[#B4B6C8]" style={{ marginTop: 2 }}>
+          {t(`celebration.daysLoggedLabel.${category}`)}
+        </Text>
       </View>
 
-      {next && (
-        <View className="gap-2">
-          <SegmentBar
-            total={next.days}
-            filled={progress.daysAfter}
-            newIndex={progress.isNewDay ? progress.daysBefore : null}
-            showNew={counted}
-          />
-          <View className="flex-row items-center justify-between">
-            <Text className="text-label font-semibold text-black dark:text-white">
-              {t(NEXT_KEYS[next.key], { days: formatDayCount(next.daysRemaining, locale) })}
-            </Text>
-            <Text className="text-label text-gray">
-              {t('journey.sheet.progressLabel', { done: progress.daysAfter, total: next.days })}
-            </Text>
-          </View>
+      {!progress.isNewDay && (
+        <View accessible className="flex-row items-center" style={{ gap: 5, marginTop: 10 }}>
+          <Svg width={14} height={14} viewBox="0 0 14 14">
+            <Path
+              d="M2.5 7.5 L5.75 10.5 L11.5 3.75"
+              stroke={green}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              fill="none"
+            />
+          </Svg>
+          <Text className="text-[14px] font-medium" style={{ color: green }}>
+            {t('celebration.dayAlreadyCounts')}
+          </Text>
         </View>
       )}
     </Animated.View>
@@ -351,7 +389,7 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
       ? t('celebration.firstSub')
       : t(SUB_LINE_KEYS[(progress?.daysAfter ?? 0) % SUB_LINE_KEYS.length]);
 
-  const skyVariant: SkyVariant = celebration.dayComplete ? 'dayComplete' : celebration.type;
+  const skyVariant = skyVariantFor(celebration);
   const stageBefore = progress?.stageBefore ?? FALLBACK_OAK_STAGE;
 
   // The very first check-in continues to "what's next" instead of closing.
@@ -384,7 +422,7 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
           reduceMotion={reduceMotion}
         />
 
-        <View className="min-h-20 items-center gap-2">
+        <View className="min-h-20 items-center">
           {phase >= Phase.Landed && (
             <Animated.View entering={FadeInDown.duration(350)} className="items-center gap-2">
               <View className="flex-row items-center gap-2">
@@ -396,6 +434,7 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
               <Text className="text-center text-body text-gray">{subLine}</Text>
             </Animated.View>
           )}
+          {progress && phase >= Phase.Grown && <DayStats progress={progress} phase={phase} />}
         </View>
 
         <View className="min-h-12 w-full">
@@ -403,7 +442,7 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
         </View>
 
         <View className="w-full">
-          {progress && phase >= Phase.Grown && <ProgressCard progress={progress} phase={phase} />}
+          {progress && phase >= Phase.Grown && <NextUnlockRow progress={progress} phase={phase} />}
         </View>
       </View>
 
@@ -424,6 +463,11 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
   );
 }
 
+function skyVariantFor(celebration: CheckinCelebration | null): SkyVariant {
+  if (!celebration) return 'evening';
+  return celebration.dayComplete ? 'dayComplete' : celebration.type;
+}
+
 // The "check-in complete" screen, after a check-in is newly logged
 // (useCheckinCelebration). It replaced both the success toast and the old
 // auto-dismissing watering overlay, so finishing is one moment: the sun
@@ -438,6 +482,10 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
 export function WateringCelebrationHost() {
   const visible = useCelebrationStore((state) => state.visible);
   const celebration = useCelebrationStore((state) => state.celebration);
+  // The whole screen takes the sky colour of the moment (warm morning, cool
+  // evening), so the sun/moon scene has no box around it. Via `style`: it's
+  // a theme.ts colour that NativeWind has no class for.
+  const skyColor = useSkyColor(skyVariantFor(celebration));
 
   if (!visible || !celebration) return null;
 
@@ -445,7 +493,8 @@ export function WateringCelebrationHost() {
     <Animated.View
       entering={FadeIn.duration(200)}
       exiting={FadeOut.duration(250)}
-      className="absolute inset-0 bg-background dark:bg-backgroundDark"
+      className="absolute inset-0"
+      style={{ backgroundColor: skyColor }}
     >
       <CelebrationContent celebration={celebration} />
     </Animated.View>

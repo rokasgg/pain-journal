@@ -25,9 +25,6 @@ export type SkyVariant = 'morning' | 'evening' | 'dayComplete';
 // The oak sits at x 0–120 as always; the wider box gives the sun, the moon
 // and the growth burst room around it.
 const VIEW_BOX = { x: -20, y: -10, width: 160, height: 170 };
-// The sky is a rounded window filling the canvas, so the sun, moon and stars
-// always sit on it (the crescent's cut-out disc must match the sky colour).
-const SKY_RADIUS = 28;
 // Everything in the sky is clipped above the soil line, so the sun rises
 // from behind the ground instead of showing through it.
 const HORIZON_Y = 141;
@@ -58,8 +55,6 @@ const FIREFLIES: readonly { dx: number; dy: number; period: number; seed: number
 ];
 
 const T = {
-  sky: 0,
-  skyDuration: 400,
   rise: 100,
   riseDuration: CELEBRATION_PEAK_MS - 100,
   rays: CELEBRATION_PEAK_MS - 400,
@@ -129,7 +124,8 @@ function Sun({
 }
 
 // A crescent: a pale disc with a sky-coloured disc laid over its upper right.
-// The sky disc underneath is a flat colour, so this reads as a real crescent.
+// The screen behind it is painted the same flat sky colour (useSkyColor), so
+// this reads as a real crescent.
 function Moon({ progress, skyColor }: { progress: SharedValue<number>; skyColor: string }) {
   const props = useAnimatedProps(() => {
     const p = progress.get();
@@ -194,26 +190,30 @@ export interface CheckinSkySceneProps {
 // day sets the sun first. At CELEBRATION_PEAK_MS (when the host's chime,
 // haptics and headline land) the oak reacts, and on a milestone it grows
 // (OakGrowthLayer). Everything animates on the UI thread.
+/**
+ * The sky colour for a check-in moment: warm for morning, cool for evening
+ * and a completed day. The celebration screen paints its whole background
+ * with it, so the scene has no box of its own and blends into the page.
+ */
+export function useSkyColor(variant: SkyVariant): string {
+  const dark = useColorScheme() === 'dark';
+  if (variant === 'morning') return dark ? colors.skyMorningDark : colors.skyMorning;
+  return dark ? colors.skyEveningDark : colors.skyEvening;
+}
+
 export function CheckinSkyScene({ variant, stageBefore, stageAfter, skipped, reduceMotion }: CheckinSkySceneProps) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const dark = useColorScheme() === 'dark';
   const grows = stageAfter > stageBefore && !reduceMotion;
   const finalStage = stageAfter;
   const isMorning = variant === 'morning';
-  const skyColor = isMorning
-    ? dark
-      ? colors.skyMorningDark
-      : colors.skyMorning
-    : dark
-      ? colors.skyEveningDark
-      : colors.skyEvening;
+  const skyColor = useSkyColor(variant);
   const starColor = dark ? colors.starDark : colors.star;
   const fireflyColor = dark ? colors.fireflyDark : colors.firefly;
   const crown = OAK_STAGES[finalStage].crown;
 
   const fromAnim = useOakAnimValues();
   const toAnim = useOakAnimValues();
-  const sky = useSharedValue(0);
   const sun = useSharedValue(0);
   const rays = useSharedValue(0);
   const spin = useSharedValue(0);
@@ -235,7 +235,6 @@ export function CheckinSkyScene({ variant, stageBefore, stageAfter, skipped, red
   const stars = [star0, star1, star2, star3, star4, star5];
   const flyPhases = [flyPhase0, flyPhase1, flyPhase2, flyPhase3, flyPhase4];
 
-  const skyProps = useOpacityProps(sky);
   const glowProps = useAnimatedProps(() => {
     const g = glow.get();
     const scale = 0.6 + 0.4 * g;
@@ -263,7 +262,6 @@ export function CheckinSkyScene({ variant, stageBefore, stageAfter, skipped, red
 
   useEffect(() => {
     if (reduceMotion) {
-      sky.set(1);
       sun.set(1);
       rays.set(1);
       glow.set(1);
@@ -274,7 +272,6 @@ export function CheckinSkyScene({ variant, stageBefore, stageAfter, skipped, red
       return;
     }
 
-    sky.set(withDelay(T.sky, timing(1, T.skyDuration)));
     if (isMorning) {
       sun.set(withDelay(T.rise, timing(1, T.riseDuration, EASE_OUT)));
       rays.set(withDelay(T.rays, timing(1, 400)));
@@ -303,7 +300,6 @@ export function CheckinSkyScene({ variant, stageBefore, stageAfter, skipped, red
 
   useEffect(() => {
     if (!skipped || reduceMotion) return;
-    sky.set(1);
     sun.set(1);
     rays.set(1);
     glow.set(1);
@@ -316,7 +312,12 @@ export function CheckinSkyScene({ variant, stageBefore, stageAfter, skipped, red
   }, [skipped]);
 
   const FinalStage = OAK_STAGE_COMPONENTS[finalStage];
-  const svgWidth = Math.min(width - 48, 250);
+  // Short screens only (iPhone SE and similar, under 700pt): the scene
+  // shrinks to ~30% of the screen height, so the text and stats under it
+  // never reach the Continue button. Regular phones keep the full size.
+  const SHORT_SCREEN_HEIGHT = 700;
+  const maxWidth = height < SHORT_SCREEN_HEIGHT ? (height * 0.3 * VIEW_BOX.width) / VIEW_BOX.height : 250;
+  const svgWidth = Math.min(width - 48, 250, maxWidth);
 
   return (
     <Svg
@@ -329,17 +330,6 @@ export function CheckinSkyScene({ variant, stageBefore, stageAfter, skipped, red
           <Rect x={VIEW_BOX.x} y={VIEW_BOX.y} width={VIEW_BOX.width} height={HORIZON_Y - VIEW_BOX.y} />
         </ClipPath>
       </Defs>
-
-      <AnimatedG animatedProps={skyProps}>
-        <Rect
-          x={VIEW_BOX.x}
-          y={VIEW_BOX.y}
-          width={VIEW_BOX.width}
-          height={VIEW_BOX.height}
-          rx={SKY_RADIUS}
-          fill={skyColor}
-        />
-      </AnimatedG>
 
       <G clipPath="url(#checkin-sky-above-ground)">
         {isMorning ? (

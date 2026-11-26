@@ -676,7 +676,7 @@ src/
     - **`dayComplete`:** the evening scene, plus a small sun sinking out of the lower left first.
     - The oak reacts at `CELEBRATION_PEAK_MS`.
     - On a milestone (`stageAfter > stageBefore`), **`OakGrowthLayer`** grows it at peak + 400ms: the old stage wiggles and shrinks, a white flash, the new stage springs in (0.5 → 1.12 → 0.96 → 1), and 8 oak leaves burst out.
-    - The sky is a rounded rect filling the canvas. The crescent is a pale disc with a sky-coloured disc over it, so it only works on that flat colour.
+    - **The scene has no sky box of its own.** `WateringCelebrationHost` paints the whole screen with `useSkyColor(variant)`: warm for morning, cool for evening and day complete. A rounded sky square inside the page was tried and looked unprofessional. The crescent is a pale disc with a sky-coloured disc over it, so the screen behind it must stay that exact colour.
     - Sky colours are SVG fills, so they live only in `theme.ts` (`sky*`, `sun*`, `moon`, `star*`, `firefly*`), picked by `useColorScheme`.
   - **Training: `WateringCelebration`**, after `training/log.tsx` saves. It replaced that screen's success toast.
     - The soft-blue can tips in, five drops fall, splash rings appear, the soil darkens, the oak reacts, then "Watered!".
@@ -721,6 +721,12 @@ src/
     5. +1400ms: Continue
 
     A tap anywhere skips to the end; after that, a tap closes it. **It stays up until Continue**: there's no auto-dismiss.
+  - **No progress card.** Under the subtitle, every variant (morning, evening, day complete) shows a card-less `DayStats` block:
+    - the day count at 56pt bold with tabular numbers, which pops up by one on a new day
+    - "days logged", pluralised via `pluralCategory()` + `celebration.daysLoggedLabel.{one,few,many}`; the number and label are one accessible element
+    - when the day was already counted, a green ✓ "This day already counts"
+
+    The next-unlock bar (`NextUnlockRow`) sits below it, also card-less, only while an unlock is left. The label grey is `#5C5C66` / `#B4B6C8` for ≥4.5:1 on both skies. The white card was rejected as looking out of place on the sky background.
   - **Bar segment fills are mounted layers, never class swaps** (the NativeWind remount gotcha).
   - **Tone:** it only celebrates showing up. No pain comparisons, no streaks, nothing about missed days.
   - **It's still a plain in-tree overlay, never RN's `<Modal>`:** it goes up exactly as the check-in screen pops, which is the Modal-vs-navigation race. It's mounted at root after the Stack, so it covers the tab bar.
