@@ -80,6 +80,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
+    "seed:user": "npx -y tsx --env-file=.env.seed scripts/seed-test-user.ts",
     "test": "jest --watchman=false",
     "test:watch": "jest --watch --watchman=false",
     "postinstall": "patch-package"
