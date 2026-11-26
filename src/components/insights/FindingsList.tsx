@@ -10,7 +10,7 @@ import { useFindings } from '@/hooks/useFindings';
 import { usePremium } from '@/hooks/usePremium';
 import { formatOneDecimal } from '@/lib/dates';
 import { experimentTitle } from '@/lib/experimentText';
-import { factorKey } from '@/lib/flareDetectiveText';
+import { factorKey, flarePatternSentence } from '@/lib/flareDetectiveText';
 import type { Finding } from '@/lib/findings';
 import { formatCount } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -75,11 +75,7 @@ function useRowContent() {
         };
       case 'flare':
         return {
-          text: t('insights.flares.patternSentence', {
-            hits: finding.pattern.hits,
-            total: formatCount(finding.pattern.total, 'flareUpOf', locale),
-            what: BOLD_MARK,
-          }),
+          text: flarePatternSentence(t, locale, finding.pattern.hits, finding.pattern.total, BOLD_MARK),
           bold: t(`insights.flares.what.${factorKey(finding.pattern.factor, finding.pattern.direction)}`),
           footnote:
             finding.morePatterns > 0

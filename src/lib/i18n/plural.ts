@@ -44,7 +44,7 @@ export function formatDayCount(count: number, locale: Locale, grammaticalCase: D
 }
 
 // Other counted nouns shown in Lithuanian copy: "7 vizitai", "6 pratimai".
-export type CountNoun = 'visit' | 'exercise' | 'routine' | 'entry' | 'entryGen' | 'morning' | 'workoutGen' | 'step' | 'day' | 'dayGen' | 'flareUp' | 'flareUpGen' | 'flareUpOf' | 'session' | 'finding';
+export type CountNoun = 'visit' | 'exercise' | 'routine' | 'entry' | 'entryGen' | 'morning' | 'workoutGen' | 'step' | 'day' | 'dayGen' | 'flareUp' | 'flareUpGen' | 'flareUpOf' | 'flareUpAcc' | 'session' | 'finding';
 
 const LT_NOUN_FORMS: Record<CountNoun, LtForms> = {
   visit: ['vizitas', 'vizitai', 'vizitų'],
@@ -66,6 +66,8 @@ const LT_NOUN_FORMS: Record<CountNoun, LtForms> = {
   flareUp: ['paūmėjimu', 'paūmėjimais', 'paūmėjimų'],
   flareUpGen: ['paūmėjimo', 'paūmėjimų', 'paūmėjimų'],
   flareUpOf: ['paūmėjimo', 'paūmėjimų', 'paūmėjimų'],
+  // Accusative, after "Prieš visus …" ("Prieš visus 3 paūmėjimus").
+  flareUpAcc: ['paūmėjimą', 'paūmėjimus', 'paūmėjimų'],
   // Instrumental ("Remiasi 5 treniruotėmis").
   session: ['treniruote', 'treniruotėmis', 'treniruočių'],
   finding: ['įžvalga', 'įžvalgos', 'įžvalgų'],
@@ -86,6 +88,7 @@ const EN_NOUN_FORMS: Record<CountNoun, [one: string, other: string]> = {
   // "After 2 more flare-ups, …"
   flareUpGen: ['more flare-up', 'more flare-ups'],
   flareUpOf: ['flare-up', 'flare-ups'],
+  flareUpAcc: ['flare-up', 'flare-ups'],
   session: ['session', 'sessions'],
   finding: ['finding', 'findings'],
 };

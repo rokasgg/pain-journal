@@ -179,13 +179,16 @@ export const en = {
       nothingBody: 'So far your pain looks about the same whatever your sleep, activity or time of day. Keep logging.',
     },
     tools: {
+      title: 'Tools',
       ask: 'Ask AI',
-      askSub: 'About your data',
+      askSub: 'Ask questions about your data',
       experiments: 'Experiments',
-      experimentsSub: 'Test what helps',
+      experimentsSub: 'Test what helps your pain',
       visit: 'Prepare for visit',
       visitSub: 'Summary PDF',
       visitOverdue: 'Did your visit happen?',
+      // Pending-action pill on a row; keyed by pluralCategory().
+      toDo: { one: '{{count}} to do', few: '{{count}} to do', many: '{{count}} to do' },
     },
     flares: {
       noneTitle: 'No flare-ups in the last 90 days',
@@ -193,6 +196,7 @@ export const en = {
       notEnoughTitle: 'What comes before your flare-ups?',
       notEnoughBody: "After {{count}}, we'll compare the day before each one with your usual days.",
       patternSentence: 'Before {{hits}} of your {{total}}, {{what}}.',
+      patternSentenceAll: 'Before all {{count}} of your flare-ups, {{what}}.',
       usual: 'Usually: {{value}}',
       nothingTitle: 'Nothing stands out yet',
       nothingBody: 'In what you logged, the days before your flare-ups looked like your usual days. A pattern may show up as you keep logging.',

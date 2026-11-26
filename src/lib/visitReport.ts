@@ -15,10 +15,11 @@ import {
   deviationDetail,
   deviationLabel,
   factorKey,
+  flarePatternSentence,
   formatFactorValue,
   formatFlareDuration,
 } from '@/lib/flareDetectiveText';
-import { formatCount, formatDayCount } from '@/lib/i18n/plural';
+import { formatDayCount } from '@/lib/i18n/plural';
 import { progressSinceStart, sleepVsMorningPain } from '@/lib/insightFindings';
 import { dailyAverages, meanOfDays } from '@/lib/painTrend';
 import { trainedDaySet, trainingReliefSummary } from '@/lib/trainingInsights';
@@ -348,11 +349,13 @@ export function buildVisitReportHtml({
           .map(
             (p) =>
               `<li>${escapeHtml(
-                t('insights.flares.patternSentence', {
-                  hits: p.hits,
-                  total: formatCount(p.total, 'flareUpOf', locale),
-                  what: t(`insights.flares.what.${factorKey(p.factor, p.direction)}`),
-                }),
+                flarePatternSentence(
+                  t,
+                  locale,
+                  p.hits,
+                  p.total,
+                  t(`insights.flares.what.${factorKey(p.factor, p.direction)}`),
+                ),
               )}${
                 p.factor !== 'trained'
                   ? ` <span class="muted">${escapeHtml(

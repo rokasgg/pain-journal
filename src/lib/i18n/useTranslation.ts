@@ -11,11 +11,14 @@ function resolve(dict: Dict, path: string): unknown {
     .reduce<unknown>((o, k) => (o && typeof o === 'object' ? (o as Record<string, unknown>)[k] : undefined), dict);
 }
 
-function interpolate(str: string, vars?: Record<string, string | number>): string {
+// Replaces EVERY occurrence of each {{key}}. A string pattern in
+// String.replace only replaces the first, which left the second {{count}}
+// raw in strings that use a placeholder twice (e.g. progressDetail).
+export function interpolate(str: string, vars?: Record<string, string | number>): string {
   if (!vars) return str;
   let result = str;
   for (const [key, value] of Object.entries(vars)) {
-    result = result.replace(`{{${key}}}`, String(value));
+    result = result.split(`{{${key}}}`).join(String(value));
   }
   return result;
 }

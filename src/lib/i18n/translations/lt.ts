@@ -181,13 +181,16 @@ export const lt: typeof en = {
       nothingBody: 'Kol kas skausmas atrodo panašus nepriklausomai nuo miego, aktyvumo ar paros meto. Registruokite toliau.',
     },
     tools: {
+      title: 'Įrankiai',
       ask: 'Klausti DI',
-      askSub: 'Apie jūsų duomenis',
+      askSub: 'Klauskite apie savo duomenis',
       experiments: 'Eksperimentai',
-      experimentsSub: 'Išbandykite, kas padeda',
+      experimentsSub: 'Išbandykite, kas mažina skausmą',
       visit: 'Pasiruošti vizitui',
       visitSub: 'Suvestinė PDF',
       visitOverdue: 'Ar vizitas įvyko?',
+      // Pending-action pill on a row; keyed by pluralCategory().
+      toDo: { one: '{{count}} užduotis', few: '{{count}} užduotys', many: '{{count}} užduočių' },
     },
     flares: {
       noneTitle: 'Per 90 dienų paūmėjimų nebuvo',
@@ -195,6 +198,7 @@ export const lt: typeof en = {
       notEnoughTitle: 'Kas būna prieš jūsų paūmėjimus?',
       notEnoughBody: 'Po dar {{count}} palyginsime dieną prieš kiekvieną su jūsų įprastomis dienomis.',
       patternSentence: 'Prieš {{hits}} iš {{total}} {{what}}.',
+      patternSentenceAll: 'Prieš visus {{total}} {{what}}.',
       usual: 'Įprastai: {{value}}',
       nothingTitle: 'Kol kas niekas neišsiskiria',
       nothingBody: 'Pagal tai, ką įrašėte, dienos prieš paūmėjimus buvo panašios į įprastas. Toliau registruojant dėsningumas gali išryškėti.',

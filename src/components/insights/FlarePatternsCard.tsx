@@ -10,7 +10,7 @@ import { templateForPattern } from '@/constants/experiments';
 import { TRIGGER_LABEL_KEYS } from '@/constants/symptoms';
 import { useExperiments } from '@/hooks/useExperiments';
 import { useFlareDetective } from '@/hooks/useFlareDetective';
-import { factorKey, formatFactorValue, formatFlareDuration } from '@/lib/flareDetectiveText';
+import { factorKey, flarePatternSentence, formatFactorValue, formatFlareDuration } from '@/lib/flareDetectiveText';
 import { formatCount } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
@@ -95,11 +95,7 @@ export function FlarePatternsCard() {
             <View className="gap-1">
               <TextWithBold
                 className="text-[17px] font-semibold leading-6 text-ink dark:text-white"
-                text={t('insights.flares.patternSentence', {
-                  hits: pattern.hits,
-                  total: formatCount(pattern.total, 'flareUpOf', locale),
-                  what: BOLD_MARK,
-                })}
+                text={flarePatternSentence(t, locale, pattern.hits, pattern.total, BOLD_MARK)}
                 bold={t(`insights.flares.what.${factorKey(pattern.factor, pattern.direction)}`)}
               />
               {pattern.factor !== 'trained' && (

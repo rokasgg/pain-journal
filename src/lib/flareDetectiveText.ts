@@ -1,6 +1,7 @@
 import { SCREEN_TIME_BUCKETS, screenTimeBucketId, STRESS_LEVELS } from '@/lib/checkinChoices';
 import { formatOneDecimal } from '@/lib/dates';
 import type { Deviation, Direction, FactorId } from '@/lib/flareDetective';
+import { formatCount } from '@/lib/i18n/plural';
 import { formatDuration } from '@/lib/sleep';
 import type { Locale } from '@/store/useLocaleStore';
 
@@ -8,6 +9,21 @@ import type { Locale } from '@/store/useLocaleStore';
 // flare-up detail screen and the visit PDF, so all three say the same thing.
 
 type Translate = (key: string, vars?: Record<string, string | number>) => string;
+
+/**
+ * "Before 2 of your 3 flare-ups, …", or "Before all 3 of your flare-ups, …"
+ * when the factor was off before every one of them.
+ */
+export function flarePatternSentence(t: Translate, locale: Locale, hits: number, total: number, what: string): string {
+  if (hits >= total) {
+    return t('insights.flares.patternSentenceAll', {
+      count: total,
+      total: formatCount(total, 'flareUpAcc', locale),
+      what,
+    });
+  }
+  return t('insights.flares.patternSentence', { hits, total: formatCount(total, 'flareUpOf', locale), what });
+}
 
 export function factorKey(factor: FactorId, direction: Direction): string {
   return `${factor}_${direction}`;
