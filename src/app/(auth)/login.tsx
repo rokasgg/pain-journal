@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { OakTree } from '@/components/OakTree';
 import { Input } from '@/components/ui/Input';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -12,6 +13,9 @@ import { loginSchema, type LoginFormData } from '@/lib/validations/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { skipAuthForDev } from '@/utils/devAuth';
 import { toast } from '@/utils/toast';
+
+// Placeholder logo until there's a real one: the mighty oak, as on the splash.
+const LOGO_SIZE = 96;
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -50,6 +54,9 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
       >
+        <View className="mb-2 items-center">
+          <OakTree stage={5} variant="icon" size={LOGO_SIZE} />
+        </View>
         <Text className="mb-1 text-center text-2xl font-bold text-primary dark:text-primaryDark">
           {t('auth.appTitle')}
         </Text>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { OakTree } from '@/components/OakTree';
 import { Input } from '@/components/ui/Input';
 import { LanguageToggle } from '@/components/ui/LanguageToggle';
 import { useTranslation } from '@/lib/i18n/useTranslation';
@@ -11,6 +12,9 @@ import { colors } from '@/lib/theme';
 import { registerSchema, type RegisterFormData } from '@/lib/validations/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { toast } from '@/utils/toast';
+
+// Placeholder logo until there's a real one (login shows stage 5).
+const LOGO_SIZE = 96;
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -47,6 +51,9 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
       >
+        <View className="mb-2 items-center">
+          <OakTree stage={4} variant="icon" size={LOGO_SIZE} />
+        </View>
         <Text className="mb-4 text-center text-2xl font-bold text-primary dark:text-primaryDark">
           {t('auth.registerTitle')}
         </Text>
