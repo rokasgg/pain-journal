@@ -93,6 +93,24 @@ export const en = {
     stage4: 'Sturdy oak',
     stage5: 'Mighty oak',
   },
+  oakCelebration: {
+    watered: 'Watered!',
+    wateredBody: 'Routine done. Your {{stage}} drank it all up.',
+    alreadyWatered: 'Already watered today. Your oak grows once a day.',
+    progress: '{{count}} of {{total}} waterings to {{stage}}',
+    newStage: 'New stage',
+    grewTitle: 'Your oak grew!',
+    grewBody: "It's a {{stage}} now.",
+    tapToSkip: 'Tap to skip',
+  },
+  dev: {
+    oakPreview: {
+      title: 'Oak celebrations',
+      water: 'Water: {{stage}}',
+      grow: '{{from}} → {{to}}',
+      replay: 'Replay',
+    },
+  },
   celebration: {
     morningTitle: 'Morning logged',
     eveningTitle: 'Evening logged',

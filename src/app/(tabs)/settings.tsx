@@ -209,6 +209,13 @@ export default function SettingsScreen() {
               showChevron={false}
             />
           )}
+          {__DEV__ && (
+            <SettingsRow
+              icon="leaf-outline"
+              title={t('dev.oakPreview.title')}
+              onPress={() => router.push('/dev/oak-celebrations' as Href)}
+            />
+          )}
         </SettingsSection>
 
         <SettingsSection title={t('settings.sectionRecovery')}>

@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { buildTrainingCelebration } from '@/components/oak/oakConfig';
 import {
   buildTrainingInsert,
   EMPTY_TRAINING_FORM,
@@ -9,18 +10,19 @@ import {
   type TrainingFormValue,
 } from '@/components/training/TrainingLogBody';
 import { useExercises } from '@/hooks/useExercises';
-import { useCreateExerciseLog } from '@/hooks/useExerciseLogs';
+import { useCreateExerciseLog, useOakWaterings } from '@/hooks/useExerciseLogs';
 import { useKeepFocusedInputVisible } from '@/hooks/useKeepFocusedInputVisible';
 import { usePresets } from '@/hooks/useRoutines';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
-import { trainingSavedToastKey } from '@/lib/trainingInsights';
 import { applyPreset } from '@/lib/trainingLog';
+import { useTrainingCelebrationStore } from '@/store/useTrainingCelebrationStore';
 import { toast } from '@/utils/toast';
 
 // Log a workout: tick what you did (optionally starting from a preset via
 // `?preset=<routine id>`), type anything new, Save. Free — it's part of the
-// daily habit; only the AI import is Premium.
+// daily habit; only the AI import is Premium. A saved workout waters the
+// training oak (TrainingCelebrationHost) instead of showing a toast.
 export default function TrainingLogScreen() {
   const keepFocusedVisible = useKeepFocusedInputVisible();
   const { preset: presetParam } = useLocalSearchParams<{ preset?: string }>();
@@ -29,6 +31,7 @@ export default function TrainingLogScreen() {
   const { exercises } = useExercises();
   const { presets, isLoading: presetsLoading } = usePresets();
   const createLog = useCreateExerciseLog();
+  const { waterings, wateredToday } = useOakWaterings();
 
   const [form, setForm] = useState<TrainingFormValue>(EMPTY_TRAINING_FORM);
   const [seededPreset, setSeededPreset] = useState(false);
@@ -48,6 +51,9 @@ export default function TrainingLogScreen() {
     const insert = buildTrainingInsert(form, exercises, presets);
     if (!insert) return;
 
+    // Captured before the save: the save invalidates the count, and a
+    // refetch landing first would make this workout look already counted.
+    const celebration = buildTrainingCelebration(waterings, wateredToday);
     setIsSaving(true);
     const { error } = await createLog.mutateAsync(insert);
     setIsSaving(false);
@@ -56,12 +62,9 @@ export default function TrainingLogScreen() {
       return;
     }
 
-    toast.success(
-      t(trainingSavedToastKey(form.painBefore, form.painAfter), {
-        before: form.painBefore ?? '',
-        after: form.painAfter ?? '',
-      }),
-    );
+    // The oak celebration replaced the success toast. Show it first, then
+    // pop underneath it (same order as the check-in celebration).
+    useTrainingCelebrationStore.getState().show(celebration);
     router.back();
   };
 

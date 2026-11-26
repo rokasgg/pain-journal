@@ -231,6 +231,7 @@ src/
   - `warning()`: a destructive `ConfirmModal` opens.
   - `error()`: an error toast.
   - `droplets()`: three soft impacts, 140ms apart. **Reserved for new check-ins.**
+  - `waterDrop()` (light impact) per landing drop, and `grow()` (medium impact) on the flash: the training oak celebration only.
 - **Vibrate on** a choice made, a value stepping, a completion or a warning. **Never** on scrolling, typing, plain navigation links, or every button press. Final Save buttons don't vibrate on tap; the success haptic fires only once the save resolves (via the success toast), so a failed save never feels successful.
 - **Wizards use `useStepHaptic(step)`** (`src/hooks/useStepHaptic.ts`), one call per wizard, rather than a call per Next/Back button. It fires `tap()` whenever the step key changes (skipping first mount), so Next, Back, jump-to-step and summary "Edit" are all covered. `CheckinForm` keys it on `` `${step}-${flareUpStepDone}-${routineStepDone}` `` so its pre-steps count as pages. Add the hook to any new wizard.
 - **Chosen spots:**
@@ -671,6 +672,21 @@ src/
     - With reduced motion, only the fades play.
   - **WebView gotcha (still applies to `ExerciseWeekCalendar`'s flame):** don't add `alignItems`/`justifyContent` to a `View` wrapping a `flex: 1` `WebView`. It collapses to zero width, because the default `stretch` is what gave it a width. Give the `WebView` an explicit `width: '100%', height: '100%'` instead.
   - It's used in the Home healing chip, the splash (stage 5), the watering overlay, `UnlockProgressSheet`, `OnboardingIntro` (stage 1) and the Wrap intro slide. Its accessibility label is `oak.a11y` ("Ąžuolas, Gilė").
+- **Training oak celebration** (`src/components/oak/`). It's the "routine complete" moment after `training/log.tsx` saves, and it replaced that screen's success toast. It's vector only (react-native-svg + Reanimated + `haptics`), with no GIF or Lottie.
+  - **Its own progression, separate from the check-in oak** (`getOakStage`, logged check-in days). Stages come from **waterings**: distinct local days with an `exercise_logs` row (`countWaterings`, `useOakWaterings()` in `useExerciseLogs.ts`; no new table). The thresholds are 0 / 3 / 10 / 25 / 50 (`OAK_STAGES` + `getOakProgress()` in `oakConfig.ts`, tested). A second workout on the same day counts nothing ("Already watered today"). It never goes backwards.
+  - **`buildTrainingCelebration(before, wateredToday)`** decides between watering and growth. `before` is captured **before** the save, for the same refetch reason as the check-in `capture()`. Then the store is shown, then `router.back()`.
+  - **Stage art:**
+    - `stages/Oak*.tsx` are the five `assets/oak/oak-N-*.svg` scene files, with paths and colours unchanged. Parts are wrapped in `AnimatedG`: body (everything but the ground shadow) and a `soilWet` copy, plus the acorn, the leaf groups, canopy back/front, or the Mighty acorns.
+    - They take `anim: OakAnimValues` (`oakAnim.ts`), so the parent drives every part.
+    - **Transforms are the native `matrix` prop**, built by `pivotMatrix()` with an explicit pivot and passed through `gMatrixProps()`. `matrix` isn't in the public `GProps` type, hence the cast. On Fabric, Reanimated sends animated props straight to the native view.
+  - **Screens:**
+    - `WateringCelebration` (150×160 canvas, so the soft-blue can fits on the right)
+    - `GrowthCelebration` (a wider canvas for the glow, the flash and the 8-leaf burst)
+    - Both are shown by **`TrainingCelebrationHost`** (root, after `WateringCelebrationHost`; a plain overlay, never `<Modal>`) from `useTrainingCelebrationStore`.
+    - Tap anywhere to skip to the end state. Reduce Motion shows the end state with no can, drops, flash or burst.
+    - Timelines live in `oakTimeline.ts` (reactions, the ±1.2° idle loop, `settle`). The only JS-side work is the haptic timers and one `done` flag.
+  - **Not wired into the evening check-in's `RoutineTrainingStep`**, which keeps its toast, because the check-in's own celebration follows a moment later.
+  - **Dev preview:** `src/app/dev/oak-celebrations.tsx` (registered only under `__DEV__`, Settings → "Oak celebrations"). It covers all 5 waterings and all 4 growths, with Replay.
 - **Check-in complete screen** (`src/components/WateringCelebrationHost.tsx`, `src/store/useCelebrationStore.ts`, `src/lib/checkinCelebration.ts`). It's the Duolingo-style moment after a *new* check-in, and it replaced both the success toast and the old 3-second auto-dismissing watering overlay, so finishing is one moment, not two.
   - **Wiring:**
     - `checkin/[type].tsx` (including late logging) and `checkin/backfill.tsx` use `useCheckinCelebration()`.

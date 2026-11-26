@@ -95,6 +95,24 @@ export const lt: typeof en = {
     stage4: 'Tvirtas ąžuolas',
     stage5: 'Galingas ąžuolas',
   },
+  oakCelebration: {
+    watered: 'Palaistyta!',
+    wateredBody: 'Treniruotė atlikta. {{stage}} viską išgėrė.',
+    alreadyWatered: 'Šiandien jau palaistyta. Ąžuolas auga kartą per dieną.',
+    progress: 'Iki etapo „{{stage}}“: {{count}} iš {{total}} laistymų',
+    newStage: 'Naujas etapas',
+    grewTitle: 'Jūsų ąžuolas paaugo!',
+    grewBody: 'Dabar tai – „{{stage}}“.',
+    tapToSkip: 'Bakstelėkite, kad praleistumėte',
+  },
+  dev: {
+    oakPreview: {
+      title: 'Ąžuolo šventės',
+      water: 'Laistyti: {{stage}}',
+      grow: '{{from}} → {{to}}',
+      replay: 'Kartoti',
+    },
+  },
   celebration: {
     morningTitle: 'Rytinis įrašas išsaugotas',
     eveningTitle: 'Vakarinis įrašas išsaugotas',

@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppSplashScreen } from '@/components/AppSplashScreen';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { HeaderBackButton } from '@/components/ui/HeaderBackButton';
+import { TrainingCelebrationHost } from '@/components/oak/TrainingCelebrationHost';
 import { WateringCelebrationHost } from '@/components/WateringCelebrationHost';
 import { KeyboardDoneBar } from '@/components/ui/KeyboardDoneBar';
 import { ToastModalHost } from '@/components/ui/ToastModalHost';
@@ -291,6 +292,12 @@ function RootLayoutNav() {
           name="wrap/[month]"
           options={{ presentation: 'fullScreenModal', animation: 'fade', headerShown: false }}
         />
+        {__DEV__ && (
+          <Stack.Screen
+            name="dev/oak-celebrations"
+            options={{ headerShown: true, title: t('dev.oakPreview.title'), headerBackButtonDisplayMode: 'minimal' }}
+          />
+        )}
         <Stack.Screen
           name="training/log"
           options={{
@@ -442,6 +449,7 @@ function RootLayoutNav() {
       </Stack>
       <ToastModalHost />
       <WateringCelebrationHost />
+      <TrainingCelebrationHost />
       <KeyboardDoneBar />
     </ErrorBoundary>
   );

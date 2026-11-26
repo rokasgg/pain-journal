@@ -28,6 +28,10 @@ export const haptics = {
   warning: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)),
   /** Something failed. */
   error: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)),
+  /** One drop from the watering can landing (training celebration only). */
+  waterDrop: () => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)),
+  /** The flash as the training oak grows a stage. */
+  grow: () => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)),
   /** Signature pattern, check-in completion only: three soft "water drops". */
   droplets: () => {
     for (let i = 0; i < DROPLET_COUNT; i++) {
