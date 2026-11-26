@@ -15,10 +15,11 @@ import Animated, {
 import Svg, { Ellipse, Path, Rect } from 'react-native-svg';
 
 import { AnimatedG, gMatrixProps, pivotMatrix, useOakAnimValues } from '@/components/oak/oakAnim';
-import { getOakProgress, OAK_STAGES, type OakPoint, type OakWateringLayout } from '@/components/oak/oakConfig';
+import { OAK_STAGES, type OakPoint, type OakWateringLayout } from '@/components/oak/oakConfig';
 import { settle, startIdle, startReaction, startSettledLoops, timing } from '@/components/oak/oakTimeline';
 import { OAK_STAGE_COMPONENTS } from '@/components/oak/stages';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import type { OakStage } from '@/lib/oak';
 import { colors } from '@/lib/theme';
 import { haptics } from '@/utils/haptics';
 
@@ -140,24 +141,28 @@ function ProgressDrop({ filled, isNew, pop }: { filled: boolean; isNew: boolean;
 }
 
 export interface WateringCelebrationProps {
-  stageIndex: number;
-  /** Waterings after this workout; null hides the progress card. */
-  waterings: number | null;
-  /** True when this workout added a watering (its drop pops in). */
+  /** The one oak's stage (from check-in days). Watering never changes it. */
+  stage: OakStage;
+  /** Training days this week after this workout; null hides the weekly card. */
+  sessions: number | null;
+  /** The weekly training goal (profiles.weekly_training_goal). */
+  goal: number;
+  /** True when this workout added a training day (its drop pops in). */
   counted: boolean;
   onDone: () => void;
 }
 
-// After a logged workout that didn't grow the oak: the can tips in, five
-// drops water the soil, the stage reacts, then "Watered!" and the progress
-// towards the next stage. Everything animates on the UI thread; the only JS
+// After a logged workout: the can tips in, five drops water the soil, the
+// oak reacts, then "Watered!" and this week's training days against the
+// weekly goal (one drop each). The oak's stage comes from check-in days, so
+// watering never grows it. Everything animates on the UI thread; the only JS
 // work is the haptic timers and one `done` flag. Tap anywhere to skip.
-export function WateringCelebration({ stageIndex, waterings, counted, onDone }: WateringCelebrationProps) {
+export function WateringCelebration({ stage: oakStage, sessions, goal, counted, onDone }: WateringCelebrationProps) {
   const { t } = useTranslation();
   const { width } = useWindowDimensions();
   const reduceMotion = useReducedMotion();
-  const stage = OAK_STAGES[stageIndex];
-  const Stage = OAK_STAGE_COMPONENTS[stageIndex];
+  const stage = OAK_STAGES[oakStage];
+  const Stage = OAK_STAGE_COMPONENTS[oakStage];
   const layout = stage.water;
 
   const anim = useOakAnimValues();
@@ -261,9 +266,10 @@ export function WateringCelebration({ stageIndex, waterings, counted, onDone }: 
 
   const handlePress = () => (done ? onDone() : finish(true));
 
-  const progress = waterings === null ? null : getOakProgress(waterings);
   const stageName = t(stage.nameKey);
-  const newIndex = counted && progress && progress.inStage > 0 ? progress.inStage - 1 : null;
+  // One drop per goal day, or more once the goal is beaten.
+  const dropCount = sessions === null ? 0 : Math.max(goal, sessions);
+  const newIndex = counted && sessions !== null && sessions > 0 ? sessions - 1 : null;
   const svgWidth = Math.min(width - 48, 300);
 
   return (
@@ -301,25 +307,21 @@ export function WateringCelebration({ stageIndex, waterings, counted, onDone }: 
         </Animated.View>
         <Animated.View style={subtitleStyle}>
           <Text className="text-center text-body text-gray">
-            {counted || waterings === null
-              ? t('oakCelebration.wateredBody', { stage: stageName })
-              : t('oakCelebration.alreadyWatered')}
+            {counted ? t('oakCelebration.wateredBody', { stage: stageName }) : t('oakCelebration.alreadyWatered')}
           </Text>
         </Animated.View>
 
-        {progress?.next && (
+        {sessions !== null && (
           <Animated.View style={cardStyle} className="mt-2 w-full gap-3 rounded-3xl bg-surface p-5 dark:bg-surfaceDark">
-            <View className="flex-row flex-wrap justify-center gap-1">
-              {Array.from({ length: progress.needed }, (_, index) => (
-                <ProgressDrop key={index} filled={index < progress.inStage} isNew={index === newIndex} pop={pop} />
+            <View className="flex-row flex-wrap justify-center gap-1.5">
+              {Array.from({ length: dropCount }, (_, index) => (
+                <ProgressDrop key={index} filled={index < sessions} isNew={index === newIndex} pop={pop} />
               ))}
             </View>
             <Text className="text-center text-label text-ink dark:text-white">
-              {t('oakCelebration.progress', {
-                count: progress.inStage,
-                total: progress.needed,
-                stage: t(progress.next.nameKey),
-              })}
+              {sessions >= goal
+                ? t('oakCelebration.weekGoalMet', { count: sessions, total: goal })
+                : t('oakCelebration.weekProgress', { count: sessions, total: goal })}
             </Text>
           </Animated.View>
         )}

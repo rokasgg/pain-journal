@@ -31,5 +31,19 @@ export const colors = {
   // Insights: overdue-visit banner.
   creamTint: '#FBF3E4',
   creamTintDark: '#2A2417',
+  // Check-in celebration sky (CheckinSkyScene). SVG fills, so they live here
+  // only, not in tailwind.config.js.
+  skyMorning: '#FCEFD6',
+  skyMorningDark: '#2B2314',
+  skyEvening: '#E1E3F5',
+  skyEveningDark: '#151933',
+  sun: '#F4B740',
+  sunRay: '#E39A2B',
+  sunGlow: '#FFE3A3',
+  moon: '#F3EED7',
+  star: '#8C92D9',
+  starDark: '#E6E8FF',
+  firefly: '#E2B92E',
+  fireflyDark: '#F7E27A',
 
 } as const;

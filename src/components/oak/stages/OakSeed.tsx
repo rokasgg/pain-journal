@@ -4,7 +4,7 @@ import { AnimatedG, useBodyProps, useRotateProps } from '@/components/oak/oakAni
 import { OAK_STAGES } from '@/components/oak/oakConfig';
 import { OakSoilParts, type OakStageProps } from '@/components/oak/stages/OakParts';
 
-const SOIL = OAK_STAGES[0].soil;
+const SOIL = OAK_STAGES[1].soil;
 
 // assets/oak/oak-1-seed.svg, parts wrapped for animation. Paths unchanged.
 export function OakSeed({ anim }: OakStageProps) {

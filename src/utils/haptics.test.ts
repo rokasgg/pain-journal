@@ -38,9 +38,9 @@ describe('haptics', () => {
     expect(Haptics.notificationAsync).toHaveBeenNthCalledWith(3, 'error');
   });
 
-  it('plays three soft droplets in sequence', () => {
+  it('plays three soft beats in sequence', () => {
     jest.useFakeTimers();
-    haptics.droplets();
+    haptics.checkin();
     jest.runAllTimers();
     expect(Haptics.impactAsync).toHaveBeenCalledTimes(3);
     expect(Haptics.impactAsync).toHaveBeenCalledWith('soft');
@@ -52,7 +52,7 @@ describe('haptics', () => {
     useHapticsStore.setState({ enabled: false });
     haptics.tick();
     haptics.success();
-    haptics.droplets();
+    haptics.checkin();
     jest.runAllTimers();
     expect(Haptics.selectionAsync).not.toHaveBeenCalled();
     expect(Haptics.notificationAsync).not.toHaveBeenCalled();

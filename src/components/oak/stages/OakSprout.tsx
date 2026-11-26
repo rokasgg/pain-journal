@@ -4,7 +4,7 @@ import { AnimatedG, useBodyProps, useRotateProps } from '@/components/oak/oakAni
 import { OAK_STAGES } from '@/components/oak/oakConfig';
 import { OAK_LEAF_PATH, OakSoilParts, type OakStageProps } from '@/components/oak/stages/OakParts';
 
-const SOIL = OAK_STAGES[1].soil;
+const SOIL = OAK_STAGES[2].soil;
 
 // assets/oak/oak-2-sprout.svg, parts wrapped for animation. Paths unchanged.
 // One leaf group, pivoting where the leaves meet the stem.

@@ -10,19 +10,23 @@ import {
   type TrainingFormValue,
 } from '@/components/training/TrainingLogBody';
 import { useExercises } from '@/hooks/useExercises';
-import { useCreateExerciseLog, useOakWaterings } from '@/hooks/useExerciseLogs';
+import { useCreateExerciseLog, useExerciseLogHistory, useTodayTrainingLog } from '@/hooks/useExerciseLogs';
 import { useKeepFocusedInputVisible } from '@/hooks/useKeepFocusedInputVisible';
+import { useOakStage } from '@/hooks/useOakStage';
+import { useProfile } from '@/hooks/useProfile';
 import { usePresets } from '@/hooks/useRoutines';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { colors } from '@/lib/theme';
+import { weeklyTrainingProgress } from '@/lib/trainingInsights';
 import { applyPreset } from '@/lib/trainingLog';
+import { useToday } from '@/store/useTodayStore';
 import { useTrainingCelebrationStore } from '@/store/useTrainingCelebrationStore';
 import { toast } from '@/utils/toast';
 
 // Log a workout: tick what you did (optionally starting from a preset via
 // `?preset=<routine id>`), type anything new, Save. Free — it's part of the
-// daily habit; only the AI import is Premium. A saved workout waters the
-// training oak (TrainingCelebrationHost) instead of showing a toast.
+// daily habit; only the AI import is Premium. A saved workout waters the oak
+// (TrainingCelebrationHost) instead of showing a toast.
 export default function TrainingLogScreen() {
   const keepFocusedVisible = useKeepFocusedInputVisible();
   const { preset: presetParam } = useLocalSearchParams<{ preset?: string }>();
@@ -31,7 +35,14 @@ export default function TrainingLogScreen() {
   const { exercises } = useExercises();
   const { presets, isLoading: presetsLoading } = usePresets();
   const createLog = useCreateExerciseLog();
-  const { waterings, wateredToday } = useOakWaterings();
+  // For the watering moment: the one oak's stage and this week's training
+  // days (the same 84-day cache as Home's weekly-goal card).
+  const { stage: oakStage } = useOakStage();
+  const { profile } = useProfile();
+  const { logs: recentLogs, isLoading: logsLoading } = useExerciseLogHistory(84);
+  const { log: todayLog, isLoading: todayLoading } = useTodayTrainingLog();
+  const today = useToday();
+  const weeklyGoal = profile?.weekly_training_goal ?? 3;
 
   const [form, setForm] = useState<TrainingFormValue>(EMPTY_TRAINING_FORM);
   const [seededPreset, setSeededPreset] = useState(false);
@@ -53,7 +64,13 @@ export default function TrainingLogScreen() {
 
     // Captured before the save: the save invalidates the count, and a
     // refetch landing first would make this workout look already counted.
-    const celebration = buildTrainingCelebration(waterings, wateredToday);
+    const weekLoaded = !logsLoading && !todayLoading;
+    const celebration = buildTrainingCelebration({
+      stage: oakStage,
+      weekCountBefore: weekLoaded ? weeklyTrainingProgress(recentLogs, weeklyGoal, today).count : null,
+      goal: weeklyGoal,
+      wateredToday: todayLog !== null,
+    });
     setIsSaving(true);
     const { error } = await createLog.mutateAsync(insert);
     setIsSaving(false);

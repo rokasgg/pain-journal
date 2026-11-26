@@ -2,15 +2,15 @@ import { View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { GrowthCelebration } from '@/components/oak/GrowthCelebration';
+import { FALLBACK_OAK_STAGE } from '@/components/oak/oakConfig';
 import { WateringCelebration } from '@/components/oak/WateringCelebration';
 import { useTrainingCelebrationStore } from '@/store/useTrainingCelebrationStore';
 
-// The training oak's moment after a logged workout: watering, or growth when
-// a stage threshold is crossed. A plain in-tree overlay, never RN's <Modal>,
-// for the same reason as WateringCelebrationHost: it goes up as
-// training/log.tsx pops. Mounted once at root after the Stack, so it also
-// covers the tab bar.
+// The watering moment after a logged workout, on the same oak as everywhere
+// else (its stage comes from check-in days; watering never grows it). A
+// plain in-tree overlay, never RN's <Modal>, for the same reason as
+// WateringCelebrationHost: it goes up as training/log.tsx pops. Mounted once
+// at root after the Stack, so it also covers the tab bar.
 export function TrainingCelebrationHost() {
   const celebration = useTrainingCelebrationStore((state) => state.celebration);
   const hide = useTrainingCelebrationStore((state) => state.hide);
@@ -25,20 +25,13 @@ export function TrainingCelebrationHost() {
       className="absolute inset-0 bg-background dark:bg-backgroundDark"
     >
       <View className="flex-1" style={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}>
-        {celebration.kind === 'growth' ? (
-          <GrowthCelebration
-            fromStageIndex={celebration.fromStageIndex}
-            stageIndex={celebration.stageIndex}
-            onDone={hide}
-          />
-        ) : (
-          <WateringCelebration
-            stageIndex={celebration.stageIndex}
-            waterings={celebration.waterings}
-            counted={celebration.counted}
-            onDone={hide}
-          />
-        )}
+        <WateringCelebration
+          stage={celebration.stage ?? FALLBACK_OAK_STAGE}
+          sessions={celebration.sessions}
+          goal={celebration.goal}
+          counted={celebration.counted}
+          onDone={hide}
+        />
       </View>
     </Animated.View>
   );

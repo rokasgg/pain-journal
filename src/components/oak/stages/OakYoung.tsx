@@ -4,7 +4,7 @@ import { AnimatedG, useBodyProps, useRotateProps } from '@/components/oak/oakAni
 import { OAK_STAGES } from '@/components/oak/oakConfig';
 import { OakSoilParts, type OakStageProps } from '@/components/oak/stages/OakParts';
 
-const SOIL = OAK_STAGES[3].soil;
+const SOIL = OAK_STAGES[4].soil;
 // Where the trunk meets the canopy: both canopy layers sway around it.
 const CANOPY_PIVOT = { x: 60, y: 88 };
 

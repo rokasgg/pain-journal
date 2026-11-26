@@ -7,8 +7,8 @@ import { useHapticsStore } from '@/store/useHapticsStore';
 // Vibrate on: a choice made, a value stepping, an action finishing, a
 // warning. Never on: scrolling, typing, plain navigation, every button.
 
-const DROPLET_COUNT = 3;
-const DROPLET_INTERVAL_MS = 140;
+const CHECKIN_BEATS = 3;
+const CHECKIN_BEAT_INTERVAL_MS = 140;
 
 function run(effect: () => Promise<void>) {
   if (!useHapticsStore.getState().enabled) return;
@@ -30,12 +30,12 @@ export const haptics = {
   error: () => run(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)),
   /** One drop from the watering can landing (training celebration only). */
   waterDrop: () => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)),
-  /** The flash as the training oak grows a stage. */
+  /** The flash as the oak grows a stage (check-in milestone). */
   grow: () => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)),
-  /** Signature pattern, check-in completion only: three soft "water drops". */
-  droplets: () => {
-    for (let i = 0; i < DROPLET_COUNT; i++) {
-      setTimeout(() => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)), i * DROPLET_INTERVAL_MS);
+  /** Signature pattern, check-in completion only: three soft beats as the sun or moon lands. */
+  checkin: () => {
+    for (let i = 0; i < CHECKIN_BEATS; i++) {
+      setTimeout(() => run(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft)), i * CHECKIN_BEAT_INTERVAL_MS);
     }
   },
 };

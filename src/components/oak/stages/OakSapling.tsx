@@ -4,7 +4,7 @@ import { AnimatedG, useBodyProps, useRotateProps } from '@/components/oak/oakAni
 import { OAK_STAGES } from '@/components/oak/oakConfig';
 import { OAK_LEAF_PATH, OakSoilParts, type OakStageProps } from '@/components/oak/stages/OakParts';
 
-const SOIL = OAK_STAGES[2].soil;
+const SOIL = OAK_STAGES[3].soil;
 
 // assets/oak/oak-3-sapling.svg, parts wrapped for animation. Paths unchanged.
 // Two leaf groups: the branch leaves (pivot 70,104) and the top cluster (60,96).

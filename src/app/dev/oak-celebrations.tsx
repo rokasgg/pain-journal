@@ -1,79 +1,120 @@
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 
-import { GrowthCelebration } from '@/components/oak/GrowthCelebration';
-import { LAST_OAK_STAGE_INDEX, OAK_STAGES } from '@/components/oak/oakConfig';
+import { CheckinSkyScene } from '@/components/oak/CheckinSkyScene';
+import { OAK_STAGE_LIST, OAK_STAGES } from '@/components/oak/oakConfig';
 import { WateringCelebration } from '@/components/oak/WateringCelebration';
 import { useTranslation } from '@/lib/i18n/useTranslation';
+import type { OakStage } from '@/lib/oak';
 
-type Preview = { kind: 'watering'; stageIndex: number } | { kind: 'growth'; fromStageIndex: number };
+type Moment = 'morning' | 'evening' | 'dayComplete' | 'growth' | 'training';
+const MOMENTS: readonly Moment[] = ['morning', 'evening', 'dayComplete', 'growth', 'training'];
+const MOMENT_KEYS: Record<Moment, string> = {
+  morning: 'dev.oakPreview.morning',
+  evening: 'dev.oakPreview.evening',
+  dayComplete: 'dev.oakPreview.dayComplete',
+  growth: 'dev.oakPreview.growth',
+  training: 'dev.oakPreview.training',
+};
 
-// Dev-only: preview the training oak's watering for each stage and each
-// growth transition, with a replay. Reached from Settings (__DEV__ only).
+function Chip({
+  label,
+  selected,
+  disabled,
+  onPress,
+}: {
+  label: string;
+  selected: boolean;
+  disabled?: boolean;
+  onPress: () => void;
+}) {
+  // Selection via style, not a className swap (NativeWind remount gotcha).
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      className="rounded-full bg-surface px-3 py-2 dark:bg-surfaceDark"
+      style={{ opacity: disabled ? 0.25 : selected ? 1 : 0.5 }}
+    >
+      <Text className="text-label text-black dark:text-white">{label}</Text>
+    </Pressable>
+  );
+}
+
+// Dev-only: preview the check-in sky moments, a check-in milestone growth
+// (stage N → N+1) and the training watering, for every oak stage, with a
+// replay. Reached from Settings (__DEV__ only).
 export default function OakCelebrationsPreview() {
   const { t } = useTranslation();
-  const [preview, setPreview] = useState<Preview>({ kind: 'watering', stageIndex: 0 });
+  const reduceMotion = useReducedMotion();
+  const [moment, setMoment] = useState<Moment>('morning');
+  const [stage, setStage] = useState<OakStage>(1);
   const [replay, setReplay] = useState(0);
+  const [skipped, setSkipped] = useState(false);
 
   if (!__DEV__) return <Redirect href="/" />;
 
-  const choose = (next: Preview) => {
-    setPreview(next);
+  const again = () => {
+    setSkipped(false);
     setReplay((count) => count + 1);
   };
-  const again = () => setReplay((count) => count + 1);
-  const isSelected = (next: Preview) => JSON.stringify(next) === JSON.stringify(preview);
+  const chooseMoment = (next: Moment) => {
+    setMoment(next);
+    if (next === 'growth' && stage === 5) setStage(4);
+    again();
+  };
+  const chooseStage = (next: OakStage) => {
+    setStage(next);
+    again();
+  };
 
-  const options: { label: string; value: Preview }[] = [
-    ...OAK_STAGES.map((stage, stageIndex) => ({
-      label: t('dev.oakPreview.water', { stage: t(stage.nameKey) }),
-      value: { kind: 'watering', stageIndex } as Preview,
-    })),
-    ...OAK_STAGES.slice(0, LAST_OAK_STAGE_INDEX).map((stage, fromStageIndex) => ({
-      label: t('dev.oakPreview.grow', { from: t(stage.nameKey), to: t(OAK_STAGES[fromStageIndex + 1].nameKey) }),
-      value: { kind: 'growth', fromStageIndex } as Preview,
-    })),
-  ];
-
-  // Two waterings into the stage, so the progress row has a drop to pop.
-  const wateringsFor = (stageIndex: number) => OAK_STAGES[stageIndex].minWaterings + 2;
+  const isSky = moment !== 'training';
+  const stageAfter: OakStage = moment === 'growth' ? ((stage + 1) as OakStage) : stage;
 
   return (
     <View className="flex-1 bg-background dark:bg-backgroundDark">
-      <View className="max-h-36">
-        <ScrollView contentContainerClassName="flex-row flex-wrap gap-2 px-4 py-3">
-          {options.map((option) => (
-            <Pressable
-              key={option.label}
-              onPress={() => choose(option.value)}
-              className="rounded-full bg-surface px-3 py-2 dark:bg-surfaceDark"
-              style={isSelected(option.value) ? { opacity: 1 } : { opacity: 0.55 }}
-            >
-              <Text className="text-label text-black dark:text-white">{option.label}</Text>
-            </Pressable>
+      <View className="gap-2 px-4 py-3">
+        <View className="flex-row flex-wrap gap-2">
+          {MOMENTS.map((value) => (
+            <Chip
+              key={value}
+              label={t(MOMENT_KEYS[value])}
+              selected={value === moment}
+              onPress={() => chooseMoment(value)}
+            />
           ))}
-        </ScrollView>
+        </View>
+        <View className="flex-row flex-wrap gap-2">
+          {OAK_STAGE_LIST.map((value) => (
+            <Chip
+              key={value}
+              label={t(OAK_STAGES[value].nameKey)}
+              selected={value === stage}
+              disabled={moment === 'growth' && value === 5}
+              onPress={() => chooseStage(value)}
+            />
+          ))}
+        </View>
       </View>
 
-      <View className="flex-1 py-4">
-        {preview.kind === 'watering' ? (
-          <WateringCelebration
+      {isSky ? (
+        <Pressable onPress={() => setSkipped(true)} className="flex-1 items-center justify-center">
+          <CheckinSkyScene
             key={replay}
-            stageIndex={preview.stageIndex}
-            waterings={preview.stageIndex === LAST_OAK_STAGE_INDEX ? 52 : wateringsFor(preview.stageIndex)}
-            counted
-            onDone={again}
+            variant={moment === 'growth' ? 'evening' : moment}
+            stageBefore={stage}
+            stageAfter={stageAfter}
+            skipped={skipped}
+            reduceMotion={reduceMotion}
           />
-        ) : (
-          <GrowthCelebration
-            key={replay}
-            fromStageIndex={preview.fromStageIndex}
-            stageIndex={preview.fromStageIndex + 1}
-            onDone={again}
-          />
-        )}
-      </View>
+        </Pressable>
+      ) : (
+        <View className="flex-1 py-4">
+          <WateringCelebration key={replay} stage={stage} sessions={2} goal={3} counted onDone={again} />
+        </View>
+      )}
 
       <View className="px-6 pb-10">
         <Pressable onPress={again} className="items-center rounded-2xl bg-surface py-3 dark:bg-surfaceDark">

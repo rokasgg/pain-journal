@@ -1,7 +1,6 @@
 import { subDays } from 'date-fns';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { countWaterings } from '@/components/oak/oakConfig';
 import { useSession } from '@/hooks/useSession';
 import { isToday } from '@/lib/dates';
 import { t } from '@/lib/i18n/useTranslation';
@@ -113,30 +112,4 @@ export function useAppendExerciseLogNote() {
       queryClient.invalidateQueries({ queryKey: ['exerciseLogs'] });
     },
   });
-}
-
-// The training oak's waterings: distinct local days with a logged workout,
-// over all time (only `logged_at`, so it stays small). Refreshed by the same
-// ['exerciseLogs'] invalidation as everything else here.
-export function useOakWaterings() {
-  const { user } = useSession();
-
-  const { data: loggedAts, isLoading } = useQuery({
-    queryKey: ['exerciseLogs', 'waterings', user?.id],
-    queryFn: async (): Promise<string[]> => {
-      if (!user) return [];
-      const { data, error } = await supabase.from('exercise_logs').select('logged_at').eq('user_id', user.id);
-      if (error) throw error;
-      return ((data ?? []) as { logged_at: string }[]).map((row) => row.logged_at);
-    },
-    enabled: !!user,
-    staleTime: 60_000,
-  });
-
-  if (!loggedAts) return { waterings: null, wateredToday: false, isLoading };
-  return {
-    waterings: countWaterings(loggedAts),
-    wateredToday: loggedAts.some((ts) => isToday(ts)),
-    isLoading,
-  };
 }

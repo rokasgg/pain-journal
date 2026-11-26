@@ -1,21 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import Animated, {
-  Easing as ReanimatedEasing,
-  FadeIn,
-  FadeInDown,
-  FadeOut,
-  interpolate,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withTiming,
-  ZoomIn,
-} from 'react-native-reanimated';
+import Animated, { FadeIn, FadeInDown, FadeOut, useReducedMotion, ZoomIn } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { OakTree } from '@/components/OakTree';
+import { CheckinSkyScene, type SkyVariant } from '@/components/oak/CheckinSkyScene';
+import { FALLBACK_OAK_STAGE } from '@/components/oak/oakConfig';
 import { useReminderSettings, useUpdateReminderSettings } from '@/hooks/useReminderSettings';
 import { EVENING_UNLOCK_HOUR } from '@/lib/checkinTiming';
 import type { CelebratedUnlock, CelebrationProgress, CheckinCelebration } from '@/lib/checkinCelebration';
@@ -24,7 +14,7 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 import { OAK_STAGE_NAME_KEYS } from '@/lib/oak';
 import { colors } from '@/lib/theme';
 import { hourToTime } from '@/lib/time';
-import { DROP_LAND_MS, useCelebrationStore } from '@/store/useCelebrationStore';
+import { CELEBRATION_PEAK_MS, useCelebrationStore } from '@/store/useCelebrationStore';
 import { haptics } from '@/utils/haptics';
 import {
   DEFAULT_EVENING_REMINDER,
@@ -33,32 +23,21 @@ import {
 } from '@/utils/notifications';
 import { sounds } from '@/utils/sounds';
 
-const BOX_WIDTH = 140;
-const BOX_HEIGHT = 300;
-const OAK_HEIGHT = (BOX_WIDTH * 160) / 120;
-const DROP_COLOR = '#3B9AE1';
-// DROP_LAND_MS = DROP_DURATION_MS · sqrt(0.8): the drop reaches the oak at
-// 80% of its eased (quad-in) travel. The "droplets" haptic, the chime and
-// the oak's watered state all fire right then, so they land with the water.
-const DROP_DURATION_MS = DROP_LAND_MS / Math.sqrt(0.8);
-const DROP_START_Y = -24;
-const DROP_END_Y = BOX_HEIGHT - OAK_HEIGHT - 10;
-
-// The sequence after the drop lands. Each phase reveals one more thing, so
+// The sequence after the sky moment peaks (CheckinSkyScene). Each phase reveals one more thing, so
 // the moment builds up instead of arriving all at once.
 const Phase = {
-  Falling: 0,
-  Landed: 1, // oak watered, chime, headline
+  Rising: 0, // the sun or moon is on its way
+  Landed: 1, // sun/moon in place, chime, headline
   Grown: 2, // milestone growth + leaf burst, the day counter appears
   Counted: 3, // the day number ticks up, the new bar segment fills
   Done: 4, // Continue appears
 } as const;
 type PhaseValue = (typeof Phase)[keyof typeof Phase];
 const PHASE_AT_MS = {
-  landed: DROP_LAND_MS,
-  grown: DROP_LAND_MS + 400,
-  counted: DROP_LAND_MS + 900,
-  done: DROP_LAND_MS + 1400,
+  landed: CELEBRATION_PEAK_MS,
+  grown: CELEBRATION_PEAK_MS + 400,
+  counted: CELEBRATION_PEAK_MS + 900,
+  done: CELEBRATION_PEAK_MS + 1400,
 };
 
 const SUB_LINE_KEYS = [
@@ -81,94 +60,6 @@ const NEXT_KEYS: Record<CelebratedUnlock, string> = {
   insights: 'celebration.nextInsights',
   reports: 'celebration.nextReports',
 };
-
-const LEAF_COUNT = 9;
-const LEAF_COLORS = [colors.primary, '#6FA27C', '#A9C98A'];
-
-function WaterDrop() {
-  const fall = useSharedValue(0);
-
-  useEffect(() => {
-    fall.set(withTiming(1, { duration: DROP_DURATION_MS, easing: ReanimatedEasing.in(ReanimatedEasing.quad) }));
-  }, [fall]);
-
-  const style = useAnimatedStyle(() => {
-    const p = fall.get();
-    return {
-      opacity: interpolate(p, [0, 0.8, 1], [1, 1, 0]),
-      transform: [
-        { translateY: interpolate(p, [0, 0.8, 1], [DROP_START_Y, DROP_END_Y, DROP_END_Y]) },
-        { scale: interpolate(p, [0, 0.8, 1], [1, 2, 5]) },
-      ],
-    };
-  });
-
-  return (
-    <Animated.View pointerEvents="none" style={[{ position: 'absolute', top: 0, left: BOX_WIDTH / 2 - 8 }, style]}>
-      <Ionicons name="water" size={16} color={DROP_COLOR} />
-    </Animated.View>
-  );
-}
-
-// One leaf of the milestone burst: flies out from the crown and fades.
-function Leaf({ index }: { index: number }) {
-  const progress = useSharedValue(0);
-  const angle = (index / LEAF_COUNT) * Math.PI * 2 + 0.3;
-  const distance = 70 + (index % 3) * 18;
-
-  useEffect(() => {
-    progress.set(withTiming(1, { duration: 900, easing: ReanimatedEasing.out(ReanimatedEasing.cubic) }));
-  }, [progress]);
-
-  const style = useAnimatedStyle(() => {
-    const p = progress.get();
-    return {
-      opacity: p < 0.6 ? 1 : 1 - (p - 0.6) / 0.4,
-      transform: [
-        { translateX: Math.cos(angle) * distance * p },
-        // A little gravity: up first, then drifting down.
-        { translateY: Math.sin(angle) * distance * p + 30 * p * p },
-        { rotate: `${(index % 2 === 0 ? 1 : -1) * 160 * p}deg` },
-        { scale: 0.6 + 0.6 * p },
-      ],
-    };
-  });
-
-  return (
-    <Animated.View pointerEvents="none" style={[{ position: 'absolute', left: BOX_WIDTH / 2 - 9, top: '45%' }, style]}>
-      <Ionicons name="leaf" size={18} color={LEAF_COLORS[index % LEAF_COLORS.length]} />
-    </Animated.View>
-  );
-}
-
-function CelebrationOak({
-  progress,
-  phase,
-  reduceMotion,
-}: {
-  progress: CelebrationProgress | null;
-  phase: PhaseValue;
-  reduceMotion: boolean;
-}) {
-  const stageBefore = progress?.stageBefore ?? 3;
-  const stageAfter = progress?.stageAfter ?? stageBefore;
-  const grew = stageAfter > stageBefore;
-  const stage = grew && phase >= Phase.Grown ? stageAfter : stageBefore;
-  const isMilestone = progress?.tier === 'milestone';
-
-  return (
-    <View style={{ width: BOX_WIDTH, height: BOX_HEIGHT }}>
-      <View style={{ position: 'absolute', bottom: 0, left: 0, width: BOX_WIDTH, height: OAK_HEIGHT }}>
-        <OakTree stage={stage} watered={phase >= Phase.Landed} size={BOX_WIDTH} />
-      </View>
-      {!reduceMotion && phase === Phase.Falling && <WaterDrop />}
-      {!reduceMotion &&
-        isMilestone &&
-        phase >= Phase.Grown &&
-        Array.from({ length: LEAF_COUNT }, (_, index) => <Leaf key={index} index={index} />)}
-    </View>
-  );
-}
 
 // One segment per required day. Stable classes on every segment; the fill is
 // a separate layer mounted inside it (never a className swap: see the
@@ -418,7 +309,8 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
   const hide = useCelebrationStore((state) => state.hide);
-  const [phase, setPhase] = useState<PhaseValue>(Phase.Falling);
+  const [phase, setPhase] = useState<PhaseValue>(Phase.Rising);
+  const [skipped, setSkipped] = useState(false);
   const [showNextUp, setShowNextUp] = useState(false);
   const { progress } = celebration;
   const isMilestone = progress?.tier === 'milestone';
@@ -433,7 +325,7 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
     const timers = [
       setTimeout(() => {
         advance(Phase.Landed);
-        haptics.droplets();
+        haptics.checkin();
         if (isMilestone) sounds.milestone();
         else sounds.celebrate();
       }, PHASE_AT_MS.landed),
@@ -459,10 +351,20 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
       ? t('celebration.firstSub')
       : t(SUB_LINE_KEYS[(progress?.daysAfter ?? 0) % SUB_LINE_KEYS.length]);
 
+  const skyVariant: SkyVariant = celebration.dayComplete ? 'dayComplete' : celebration.type;
+  const stageBefore = progress?.stageBefore ?? FALLBACK_OAK_STAGE;
+
   // The very first check-in continues to "what's next" instead of closing.
   const finish = () => (progress?.isFirstEver ? setShowNextUp(true) : hide());
   // A tap anywhere before the end skips to it; after that it continues.
-  const handlePress = () => (phase >= Phase.Done ? finish() : setPhase(Phase.Done));
+  const handlePress = () => {
+    if (phase >= Phase.Done) {
+      finish();
+      return;
+    }
+    setSkipped(true);
+    setPhase(Phase.Done);
+  };
 
   if (showNextUp) return <NextUpPage type={celebration.type} onDone={hide} />;
 
@@ -474,7 +376,13 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
       style={{ paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24 }}
     >
       <View className="w-full flex-1 items-center justify-center gap-5">
-        <CelebrationOak progress={progress} phase={phase} reduceMotion={reduceMotion} />
+        <CheckinSkyScene
+          variant={skyVariant}
+          stageBefore={stageBefore}
+          stageAfter={progress?.stageAfter ?? stageBefore}
+          skipped={skipped}
+          reduceMotion={reduceMotion}
+        />
 
         <View className="min-h-20 items-center gap-2">
           {phase >= Phase.Landed && (
@@ -518,9 +426,10 @@ function CelebrationContent({ celebration }: { celebration: CheckinCelebration }
 
 // The "check-in complete" screen, after a check-in is newly logged
 // (useCheckinCelebration). It replaced both the success toast and the old
-// auto-dismissing watering overlay, so finishing is one moment: the drop
-// waters the oak, then what the user earned (the day count, the next unlock,
-// and on milestones the oak growing and a leaf burst), then Continue.
+// auto-dismissing watering overlay, so finishing is one moment: the sun
+// rises (morning) or the moon and fireflies come out (evening) over the oak
+// (CheckinSkyScene), then what the user earned (the day count, the next
+// unlock, and on milestones the oak growing and a leaf burst), then Continue.
 //
 // Plain in-tree overlay, not RN's <Modal>: it goes up right as the check-in
 // screen pops (router.back()), and a native Modal presenting at that moment

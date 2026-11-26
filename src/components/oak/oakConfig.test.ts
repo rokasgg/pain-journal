@@ -1,69 +1,35 @@
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
-);
+import { buildTrainingCelebration, OAK_STAGE_LIST, OAK_STAGES } from './oakConfig';
 
-import { buildTrainingCelebration, countWaterings, getOakProgress } from './oakConfig';
-
-describe('getOakProgress', () => {
-  it('starts as a seed', () => {
-    const progress = getOakProgress(0);
-    expect(progress.stage.key).toBe('seed');
-    expect(progress.next?.key).toBe('sprout');
-    expect(progress).toMatchObject({ stageIndex: 0, inStage: 0, needed: 3 });
-  });
-
-  it('counts within the current stage', () => {
-    expect(getOakProgress(13)).toMatchObject({ stageIndex: 2, inStage: 3, needed: 15 });
-  });
-
-  it('switches exactly at the thresholds', () => {
-    expect(getOakProgress(2).stage.key).toBe('seed');
-    expect(getOakProgress(3).stage.key).toBe('sprout');
-    expect(getOakProgress(24).stage.key).toBe('sapling');
-    expect(getOakProgress(25).stage.key).toBe('young');
-    expect(getOakProgress(50).stage.key).toBe('mighty');
-  });
-
-  it('has no next stage at Mighty', () => {
-    const progress = getOakProgress(80);
-    expect(progress.next).toBeNull();
-    expect(progress.needed).toBe(0);
-  });
-
-  it('treats negative input as zero', () => {
-    expect(getOakProgress(-4).stageIndex).toBe(0);
-  });
-});
-
-describe('countWaterings', () => {
-  it('counts one watering per local day', () => {
-    const day = new Date(2026, 10, 20, 9, 0).toISOString();
-    const sameDay = new Date(2026, 10, 20, 19, 0).toISOString();
-    const nextDay = new Date(2026, 10, 21, 8, 0).toISOString();
-    expect(countWaterings([day, sameDay, nextDay])).toBe(2);
+describe('OAK_STAGES', () => {
+  it('has a config for every oak stage', () => {
+    OAK_STAGE_LIST.forEach((stage) => expect(OAK_STAGES[stage].stage).toBe(stage));
   });
 });
 
 describe('buildTrainingCelebration', () => {
-  it('waters when no threshold is crossed', () => {
-    expect(buildTrainingCelebration(4, false)).toEqual({
-      kind: 'watering',
-      fromStageIndex: 1,
-      stageIndex: 1,
-      waterings: 5,
+  it('counts the first workout of the day', () => {
+    expect(buildTrainingCelebration({ stage: 3, weekCountBefore: 1, goal: 3, wateredToday: false })).toEqual({
+      stage: 3,
+      sessions: 2,
+      goal: 3,
       counted: true,
     });
   });
 
-  it('grows when the new watering crosses a threshold', () => {
-    expect(buildTrainingCelebration(9, false)).toMatchObject({ kind: 'growth', fromStageIndex: 1, stageIndex: 2 });
+  it('adds nothing for a second workout on the same day', () => {
+    expect(buildTrainingCelebration({ stage: 3, weekCountBefore: 2, goal: 3, wateredToday: true })).toMatchObject({
+      sessions: 2,
+      counted: false,
+    });
   });
 
-  it('counts nothing for a second workout on the same day', () => {
-    expect(buildTrainingCelebration(9, true)).toMatchObject({ kind: 'watering', waterings: 9, counted: false });
+  it('hides the weekly card when the week was not loaded', () => {
+    expect(
+      buildTrainingCelebration({ stage: null, weekCountBefore: null, goal: 3, wateredToday: false }),
+    ).toMatchObject({ sessions: null });
   });
 
-  it('shows no progress when the count was not loaded', () => {
-    expect(buildTrainingCelebration(null, false)).toMatchObject({ kind: 'watering', waterings: null });
+  it('never uses a goal below one', () => {
+    expect(buildTrainingCelebration({ stage: 1, weekCountBefore: 0, goal: 0, wateredToday: false }).goal).toBe(1);
   });
 });

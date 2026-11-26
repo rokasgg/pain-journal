@@ -230,8 +230,8 @@ src/
   - `success()`: an action actually finished.
   - `warning()`: a destructive `ConfirmModal` opens.
   - `error()`: an error toast.
-  - `droplets()`: three soft impacts, 140ms apart. **Reserved for new check-ins.**
-  - `waterDrop()` (light impact) per landing drop, and `grow()` (medium impact) on the flash: the training oak celebration only.
+  - `checkin()`: three soft impacts, 140ms apart, as the sun or moon lands. **Reserved for new check-ins.**
+  - `waterDrop()` (light impact) per landing drop in the training watering, and `grow()` (medium impact) on the flash when the oak grows a stage at a check-in milestone.
 - **Vibrate on** a choice made, a value stepping, a completion or a warning. **Never** on scrolling, typing, plain navigation links, or every button press. Final Save buttons don't vibrate on tap; the success haptic fires only once the save resolves (via the success toast), so a failed save never feels successful.
 - **Wizards use `useStepHaptic(step)`** (`src/hooks/useStepHaptic.ts`), one call per wizard, rather than a call per Next/Back button. It fires `tap()` whenever the step key changes (skipping first mount), so Next, Back, jump-to-step and summary "Edit" are all covered. `CheckinForm` keys it on `` `${step}-${flareUpStepDone}-${routineStepDone}` `` so its pre-steps count as pages. Add the hook to any new wizard.
 - **Chosen spots:**
@@ -240,8 +240,8 @@ src/
   - Tabs tick via `screenListeners` in `(tabs)/_layout.tsx`, only when `!navigation.isFocused()`.
 - **Check-in completion is a sequence, not a double buzz** (all fired from `WateringCelebrationHost`):
   - `success()` as the screen opens.
-  - `droplets()` plus the chime when the drop lands on the oak (`DROP_LAND_MS` in `useCelebrationStore.ts`, `1350ms * sqrt(0.8)`, because the drop reaches the oak at 80% of its quad-in eased travel). The oak's `watered` state starts at the same moment.
-  - On milestones only, a second `success()` as the oak grows.
+  - `checkin()` plus the chime at the sky moment's peak (`CELEBRATION_PEAK_MS`, 1100ms, in `useCelebrationStore.ts`): the sun reaches the top or the moon settles, and the oak reacts.
+  - On milestones only, a second `success()` as the oak grows, plus `grow()` on the flash.
   - One `tick()` as the day number ticks up.
 
   Edits get none of this, because the celebration only fires for *new* check-ins.
@@ -657,36 +657,45 @@ src/
 - **Oak tree mascot** (`src/components/OakTree.tsx`, `src/lib/oak.ts`, `src/hooks/useOakStage.ts`) replaced the flower, which had a rolling 0–10 health score that wilted. **The oak never regresses or wilts**, by explicit decision: missed days only pause its growth.
   - **Its stage comes from logged days** (distinct `checkin_date`s, the same count as the journey unlocks), via `getOakStage()` (tested): 0 → 1 Acorn/Gilė, 1–2 → 2 Sprout/Daigas, 3–6 → 3 Sapling/Sodinukas, 7–13 → 4 Sturdy oak/Tvirtas ąžuolas, 14+ → 5 Mighty oak/Ąžuolas galiūnas. Training no longer affects it.
   - **`useOakStage()` returns `stage: null` while loading.** Callers render a fixed-size empty box instead, so the tree doesn't mount as an acorn and visibly "grow" on every launch. Don't use `useJourney().state.loggedDays` for this, because it reports `MAX_SAFE_INTEGER` while loading.
-  - **The art lives in `assets/oak/`** as two sets plus an overlay, imported as components via **`react-native-svg-transformer`**. `metro.config.js` sets `babelTransformerPath` and moves `svg` from `assetExts` to `sourceExts`, and `src/types/svg.d.ts` types the imports. It composes with NativeWind, which wraps `transformerPath` instead.
+  - **The art lives in `assets/oak/`** as two sets, imported as components via **`react-native-svg-transformer`**. `metro.config.js` sets `babelTransformerPath` and moves `svg` from `assetExts` to `sourceExts`, and `src/types/svg.d.ts` types the imports. It composes with NativeWind, which wraps `transformerPath` instead.
     - `oak-1…5-*.svg`: the **scene** set, 120×160, stages to scale on one ground line.
     - `oak-icon-1…5-*.svg`: the **icon** set, 64×64. It's a redraw where every stage fills the tile; the acorn and sprout are drawn big, and all stages share a ground line at y≈58.
-    - `oak-water-overlay.svg`: 120×160, only drops, wet soil and sway marks.
     - The originals are in `assets/possible-app-design/new app icon` and `…/tree icons`.
     - **The icon set exists because the scene art at 56–64pt left the acorn as a speck at the bottom of a mostly empty box.** About 80% of the stage-1 canvas is empty sky, which made the Home card too tall.
   - **`OakTree` takes `variant: 'scene' | 'icon'`** (default `scene`) and renders in a fixed box: `size × size·160/120` for scene, `size × size` for icon.
     - **Use `icon` for small spots**, meaning the Home header's healing chip (30, inside the check-in ring) and `UnlockProgressSheet` (64). Use `scene` where height should show growth.
     - A stage change crossfades old → new over 300ms, with the new one scaling 0.96 → 1 from the bottom centre. The outgoing stage is derived during render, not in an effect.
-    - **`watered` fades the water overlay in *on top of* the current stage for 1.5s**, with a ±2° sway pivoting at the bottom. The overlay sits outside the sway, so the drops fall straight.
-    - It replaced a full `oak-watered.svg` that was drawn as a sapling. Crossfading to it made a mighty oak briefly shrink, which broke the never-regresses rule. That file is deleted.
-    - The icon variant has no overlay (it's drawn for the scene canvas), so it only sways.
-    - With reduced motion, only the fades play.
+    - With reduced motion, only the fade plays.
+    - **It has no celebration animation any more.** The `watered` prop and `oak-water-overlay.svg` were removed; the animated oaks are `src/components/oak/` (below). A full `oak-watered.svg` drawn as a sapling was tried before that and deleted: crossfading to it made a mighty oak briefly shrink, which broke the never-regresses rule.
   - **WebView gotcha (still applies to `ExerciseWeekCalendar`'s flame):** don't add `alignItems`/`justifyContent` to a `View` wrapping a `flex: 1` `WebView`. It collapses to zero width, because the default `stretch` is what gave it a width. Give the `WebView` an explicit `width: '100%', height: '100%'` instead.
-  - It's used in the Home healing chip, the splash (stage 5), the watering overlay, `UnlockProgressSheet`, `OnboardingIntro` (stage 1) and the Wrap intro slide. Its accessibility label is `oak.a11y` ("Ąžuolas, Gilė").
-- **Training oak celebration** (`src/components/oak/`). It's the "routine complete" moment after `training/log.tsx` saves, and it replaced that screen's success toast. It's vector only (react-native-svg + Reanimated + `haptics`), with no GIF or Lottie.
-  - **Its own progression, separate from the check-in oak** (`getOakStage`, logged check-in days). Stages come from **waterings**: distinct local days with an `exercise_logs` row (`countWaterings`, `useOakWaterings()` in `useExerciseLogs.ts`; no new table). The thresholds are 0 / 3 / 10 / 25 / 50 (`OAK_STAGES` + `getOakProgress()` in `oakConfig.ts`, tested). A second workout on the same day counts nothing ("Already watered today"). It never goes backwards.
-  - **`buildTrainingCelebration(before, wateredToday)`** decides between watering and growth. `before` is captured **before** the save, for the same refetch reason as the check-in `capture()`. Then the store is shown, then `router.back()`.
+  - It's used in the Home healing chip, the splash (stage 5), `UnlockProgressSheet`, `OnboardingIntro` (stage 1) and the Wrap intro slide. Its accessibility label is `oak.a11y` ("Ąžuolas, Gilė").
+- **Animated oak** (`src/components/oak/`): vector only (react-native-svg + Reanimated + `haptics`), with no GIF or Lottie. **There is one oak**, and its stage is always `getOakStage` (logged check-in days). Two moments draw it:
+  - **Check-ins: `CheckinSkyScene`**, used by the check-in complete screen (below). The user picked a sun & moon metaphor, meaning "you showed up today", after the old single falling drop looked bad.
+    - **Morning:** the sun rises from behind the ground line, with slowly turning rays and a warm glow behind the crown.
+    - **Evening:** a crescent moon drifts in, six stars twinkle, and fireflies wander around the crown.
+    - **`dayComplete`:** the evening scene, plus a small sun sinking out of the lower left first.
+    - The oak reacts at `CELEBRATION_PEAK_MS`.
+    - On a milestone (`stageAfter > stageBefore`), **`OakGrowthLayer`** grows it at peak + 400ms: the old stage wiggles and shrinks, a white flash, the new stage springs in (0.5 → 1.12 → 0.96 → 1), and 8 oak leaves burst out.
+    - The sky is a rounded rect filling the canvas. The crescent is a pale disc with a sky-coloured disc over it, so it only works on that flat colour.
+    - Sky colours are SVG fills, so they live only in `theme.ts` (`sky*`, `sun*`, `moon`, `star*`, `firefly*`), picked by `useColorScheme`.
+  - **Training: `WateringCelebration`**, after `training/log.tsx` saves. It replaced that screen's success toast.
+    - The soft-blue can tips in, five drops fall, splash rings appear, the soil darkens, the oak reacts, then "Watered!".
+    - Then a **weekly-goal card**: one drop per training day this week, from the same `weeklyTrainingProgress()` as Home's card. This workout's drop pops in, and the card says "Weekly goal reached 🎉" once met.
+    - **Watering never changes the stage.** An earlier version had its own stage thresholds on a second oak; it was merged by explicit decision, because two oaks showed different stages.
+    - `buildTrainingCelebration()` (`oakConfig.ts`, tested) takes the stage and this week's count, captured **before** the save, for the same refetch reason as the check-in `capture()`. A second workout the same day adds no day.
+    - It's shown by `TrainingCelebrationHost` (root, a plain overlay, never `<Modal>`) from `useTrainingCelebrationStore`, then `router.back()`.
+    - **Not wired into the evening check-in's `RoutineTrainingStep`**, which keeps its toast, because the check-in's own celebration follows a moment later.
   - **Stage art:**
-    - `stages/Oak*.tsx` are the five `assets/oak/oak-N-*.svg` scene files, with paths and colours unchanged. Parts are wrapped in `AnimatedG`: body (everything but the ground shadow) and a `soilWet` copy, plus the acorn, the leaf groups, canopy back/front, or the Mighty acorns.
+    - `stages/Oak*.tsx` are the five `assets/oak/oak-N-*.svg` scene files, with paths and colours unchanged, keyed by `OakStage` (`OAK_STAGE_COMPONENTS`, `OAK_STAGES` with soil, crown, reaction and watering layout).
+    - Parts are wrapped in `AnimatedG`: body (everything but the ground shadow) and a `soilWet` copy, plus the acorn, the leaf groups, canopy back/front, or the Mighty acorns.
     - They take `anim: OakAnimValues` (`oakAnim.ts`), so the parent drives every part.
     - **Transforms are the native `matrix` prop**, built by `pivotMatrix()` with an explicit pivot and passed through `gMatrixProps()`. `matrix` isn't in the public `GProps` type, hence the cast. On Fabric, Reanimated sends animated props straight to the native view.
-  - **Screens:**
-    - `WateringCelebration` (150×160 canvas, so the soft-blue can fits on the right)
-    - `GrowthCelebration` (a wider canvas for the glow, the flash and the 8-leaf burst)
-    - Both are shown by **`TrainingCelebrationHost`** (root, after `WateringCelebrationHost`; a plain overlay, never `<Modal>`) from `useTrainingCelebrationStore`.
-    - Tap anywhere to skip to the end state. Reduce Motion shows the end state with no can, drops, flash or burst.
-    - Timelines live in `oakTimeline.ts` (reactions, the ±1.2° idle loop, `settle`). The only JS-side work is the haptic timers and one `done` flag.
-  - **Not wired into the evening check-in's `RoutineTrainingStep`**, which keeps its toast, because the check-in's own celebration follows a moment later.
-  - **Dev preview:** `src/app/dev/oak-celebrations.tsx` (registered only under `__DEV__`, Settings → "Oak celebrations"). It covers all 5 waterings and all 4 growths, with Replay.
+  - **Timing and motion:**
+    - Timelines live in `oakTimeline.ts`: reactions, the ±1.2° idle loop, and `settle`.
+    - Tap anywhere to skip to the end state; the loops keep running.
+    - Reduce Motion shows the end state: no can, drops, flash, burst or wandering.
+    - The only JS-side work is haptic timers and one `done`/`skipped` flag.
+  - **Dev preview:** `src/app/dev/oak-celebrations.tsx` (registered only under `__DEV__`, Settings → "Oak celebrations"). Pick a moment (Morning / Evening / Day complete / Growth / Training) × a stage, with Replay; tap the scene to test skip.
 - **Check-in complete screen** (`src/components/WateringCelebrationHost.tsx`, `src/store/useCelebrationStore.ts`, `src/lib/checkinCelebration.ts`). It's the Duolingo-style moment after a *new* check-in, and it replaced both the success toast and the old 3-second auto-dismissing watering overlay, so finishing is one moment, not two.
   - **Wiring:**
     - `checkin/[type].tsx` (including late logging) and `checkin/backfill.tsx` use `useCheckinCelebration()`.
@@ -704,10 +713,10 @@ src/
     - `tier`: `'milestone'` when the oak grew, something unlocked, or a round number was hit
 
     With the history not loaded at save time, `progress` is `null`, and the screen shows only the oak, the headline and Continue, never a wrong number.
-  - **The sequence is phase timers off `DROP_LAND_MS`:**
-    1. the drop falls
-    2. landing: watered, the chime, the headline and a rotating warm sub-line
-    3. +400ms: on milestones, the oak switches to its new stage (OakTree crossfades), a 9-leaf burst plays, and the "✨ New: …" pills appear; the progress card appears
+  - **The sequence is phase timers off `CELEBRATION_PEAK_MS`**, with the visuals in `CheckinSkyScene` (see Animated oak):
+    1. the sun rises, or the moon comes in
+    2. the peak: the oak reacts, the chime, the headline and a rotating warm sub-line
+    3. +400ms: on milestones, `OakGrowthLayer` grows the oak and the "✨ New: …" pills appear; the progress card appears
     4. +900ms: the day number pops up by one and the new bar segment fills
     5. +1400ms: Continue
 

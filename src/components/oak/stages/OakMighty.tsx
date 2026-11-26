@@ -4,7 +4,7 @@ import { AnimatedG, useBodyProps, useRotateProps, useTranslateYProps } from '@/c
 import { OAK_STAGES } from '@/components/oak/oakConfig';
 import { OakSoilParts, type OakStageProps } from '@/components/oak/stages/OakParts';
 
-const SOIL = OAK_STAGES[4].soil;
+const SOIL = OAK_STAGES[5].soil;
 const CANOPY_PIVOT = { x: 60, y: 92 };
 // Each acorn's nut (cx, cy); its cap sits 2.7 above.
 const ACORNS = [
