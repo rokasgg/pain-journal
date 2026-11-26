@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Link, type Href } from 'expo-router';
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, useState, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
 import { experimentHref } from '@/components/insights/ExperimentCard';
@@ -143,6 +143,8 @@ function useRowContent() {
   };
 }
 
+const FINDINGS_PREVIEW = 3;
+
 function Card({ children }: { children: ReactNode }) {
   return <View className="rounded-[18px] bg-surface px-4 py-1 dark:bg-surfaceDark">{children}</View>;
 }
@@ -181,6 +183,7 @@ export function FindingsList() {
   const { t, locale } = useTranslation();
   const { findings, pending, isLoading } = useFindings();
   const { isPremium } = usePremium();
+  const [expanded, setExpanded] = useState(false);
   if (isLoading) return null;
 
   if (findings.length === 0) {
@@ -213,14 +216,35 @@ export function FindingsList() {
     );
   }
 
+  // buildFindings() orders strongest kind first, so the top 3 are the most
+  // relevant; the rest expand. Keeps the screen short as finding types grow.
+  const hidden = findings.length - FINDINGS_PREVIEW;
+  const shown = expanded || hidden <= 0 ? findings : findings.slice(0, FINDINGS_PREVIEW);
+
   return (
     <Card>
-      {findings.map((finding, index) => (
+      {shown.map((finding, index) => (
         <Fragment key={`${finding.kind}-${index}`}>
           {index > 0 && <View className="ml-8 h-px bg-borderLight dark:bg-borderDark" />}
           <FindingRow finding={finding} />
         </Fragment>
       ))}
+      {hidden > 0 && (
+        <>
+          <View className="h-px bg-borderLight dark:bg-borderDark" />
+          <Pressable
+            onPress={() => setExpanded((value) => !value)}
+            accessibilityRole="button"
+            accessibilityState={{ expanded }}
+            className="flex-row items-center justify-center gap-1 py-3 active:opacity-70"
+          >
+            <Text className="text-[15px] font-semibold text-accent dark:text-primaryDark">
+              {expanded ? t('insights.found.showLess') : t('insights.found.showAll', { count: findings.length })}
+            </Text>
+            <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color={colors.accent} />
+          </Pressable>
+        </>
+      )}
       {pending > 0 && (
         <>
           <View className="h-px bg-borderLight dark:bg-borderDark" />

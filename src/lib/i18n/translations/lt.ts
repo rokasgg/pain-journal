@@ -161,6 +161,9 @@ export const lt: typeof en = {
     found: {
       progressBetter: 'Vidutinis skausmas nuo pradžios sumažėjo nuo {{start}} iki {{now}}.',
       progressWorse: 'Vidutinis skausmas šiek tiek didesnis nei pradžioje: {{start}} → {{now}}. Verta paminėti per kitą vizitą.',
+      // The list shows the top 3; the rest expand.
+      showAll: 'Rodyti visas {{count}}',
+      showLess: 'Rodyti mažiau',
       progressDetail: 'pirmosios {{count}} įrašų dienos ir paskutinės {{count}}',
       stress: 'Įtemptomis dienomis vakaro skausmas {{word}} nei ramiomis.',
       stressValues: 'įtemptos dienos {{stressful}} · ramios dienos {{calm}}',
@@ -181,16 +184,9 @@ export const lt: typeof en = {
       nothingBody: 'Kol kas skausmas atrodo panašus nepriklausomai nuo miego, aktyvumo ar paros meto. Registruokite toliau.',
     },
     tools: {
-      title: 'Įrankiai',
       ask: 'Klausti DI',
-      askSub: 'Klauskite apie savo duomenis',
       experiments: 'Eksperimentai',
-      experimentsSub: 'Išbandykite, kas mažina skausmą',
-      visit: 'Pasiruošti vizitui',
-      visitSub: 'Suvestinė PDF',
-      visitOverdue: 'Ar vizitas įvyko?',
-      // Pending-action pill on a row; keyed by pluralCategory().
-      toDo: { one: '{{count}} užduotis', few: '{{count}} užduotys', many: '{{count}} užduočių' },
+      visitShort: 'Vizitui',
     },
     flares: {
       noneTitle: 'Per 90 dienų paūmėjimų nebuvo',

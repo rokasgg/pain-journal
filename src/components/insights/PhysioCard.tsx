@@ -1,20 +1,19 @@
 import { Ionicons } from '@expo/vector-icons';
-import { format, parseISO } from 'date-fns';
-import { Link, useRouter, type Href } from 'expo-router';
+import { parseISO } from 'date-fns';
+import { Link, type Href } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, useColorScheme, View } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 
-import { BOLD_MARK, TextWithBold } from '@/components/ui/TextWithBold';
-import { usePhysioAssessments, useUpdatePhysioAssessment } from '@/hooks/usePhysioAssessments';
+import { useRescheduleNextVisit, VisitOverdueBanner } from '@/components/insights/VisitOverdueBanner';
+import { usePhysioAssessments } from '@/hooks/usePhysioAssessments';
 import { useVisitReport } from '@/hooks/useVisitReport';
-import { formatDayLabel, formatShortDayLabel } from '@/lib/dates';
+import { formatShortDayLabel } from '@/lib/dates';
 import { formatCount } from '@/lib/i18n/plural';
 import { useTranslation } from '@/lib/i18n/useTranslation';
 import { overdueNextVisit } from '@/lib/physioVisits';
 import { colors } from '@/lib/theme';
 import type { PhysioAssessment } from '@/types/database.types';
-import { toast } from '@/utils/toast';
 import { useToday } from '@/store/useTodayStore';
 
 const PICKER_LOCALES = { en: 'en-GB', lt: 'lt-LT' } as const;
@@ -37,10 +36,9 @@ function Stat({ label, children }: { label: string; children: ReactNode }) {
 //  - "All visits" → history/physio-visits
 export function PhysioCard() {
   const { t, locale } = useTranslation();
-  const router = useRouter();
   const isDark = useColorScheme() === 'dark';
   const { assessments, isLoading } = usePhysioAssessments();
-  const updateAssessment = useUpdatePhysioAssessment();
+  const reschedule = useRescheduleNextVisit();
   const report = useVisitReport();
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const today = useToday();
@@ -49,27 +47,7 @@ export function PhysioCard() {
 
   const saveNextVisit = async (date: Date) => {
     setIsPickerOpen(false);
-    if (!latest) return;
-    // Pass the visit's findings through unchanged — the update deletes and
-    // reinserts them (same as physio-visit/edit/[id].tsx).
-    const { error } = await updateAssessment.mutateAsync({
-      id: latest.id,
-      assessment: {
-        visit_date: latest.visit_date,
-        physio_name: latest.physio_name,
-        overall_notes: latest.overall_notes,
-        next_visit_date: format(date, 'yyyy-MM-dd'),
-        questions: latest.questions,
-      },
-      findings: (latest.muscle_findings ?? []).map((finding) => ({
-        muscle_name: finding.muscle_name,
-        status: finding.status,
-        side: finding.side as 'left' | 'right' | 'bilateral' | null,
-        severity: finding.severity,
-        notes: finding.notes,
-      })),
-    });
-    if (error) toast.error(error);
+    if (latest) await reschedule(latest, date);
   };
 
   if (isLoading) {
@@ -98,34 +76,7 @@ export function PhysioCard() {
   return (
     <View className="rounded-[18px] bg-surface dark:bg-surfaceDark">
       <View className="gap-4 p-4">
-        {overdue && (
-          <View className="gap-3 rounded-xl bg-creamTint p-3.5 dark:bg-creamTintDark">
-            <View className="flex-row items-center gap-2">
-              <Ionicons name="calendar-outline" size={18} color="#B7791F" />
-              <TextWithBold
-                className="flex-1 text-[15px] text-ink dark:text-white"
-                text={t('insights.visitHappened', { date: BOLD_MARK })}
-                bold={formatDayLabel(parseISO(overdue), locale, false)}
-              />
-            </View>
-            <View className="flex-row gap-2 pl-6">
-              <Pressable
-                onPress={() => router.push(`/physio-visit/new?date=${overdue}` as Href)}
-                accessibilityRole="button"
-                className="h-10 items-center justify-center rounded-lg bg-accent px-4 active:opacity-80 dark:bg-primaryDark"
-              >
-                <Text className="text-[15px] font-semibold text-white">{t('common.yes')}</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => setIsPickerOpen(true)}
-                accessibilityRole="button"
-                className="h-10 items-center justify-center rounded-lg border border-borderLight bg-surface px-4 active:opacity-70 dark:border-borderDark dark:bg-surfaceDark"
-              >
-                <Text className="text-[15px] font-semibold text-ink dark:text-white">{t('insights.visitReschedule')}</Text>
-              </Pressable>
-            </View>
-          </View>
-        )}
+        {overdue && <VisitOverdueBanner visit={latest} overdueDate={overdue} variant="inset" />}
 
         <View className="flex-row gap-3">
           <Stat label={t('insights.statLast')}>

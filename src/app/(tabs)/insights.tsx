@@ -10,8 +10,10 @@ import { useTranslation } from '@/lib/i18n/useTranslation';
 // Insights answers one question: "what have I learned about my pain?". The
 // app's purpose is "log quickly, then learn what makes my pain better or
 // worse", and this page is the payoff. So it's only two things:
-//  * "What I've learned": real findings, strongest first (src/lib/findings.ts)
-//  * three tools one tap away: Ask AI, Experiments, Prepare for visit
+//  * at the top, three compact tools (Ask AI, Experiments, Visit prep), with a
+//    "did your visit happen?" banner above them when that's waiting
+//  * "What I've learned": the top 3 findings, strongest first
+//    (src/lib/findings.ts), with "Show all N" for the rest
 // Training lives on Home; physio visits and the AI reports are behind
 // "Prepare for visit" (insights/visit). Don't stack new sections here: add a
 // finding to findings.ts, or put it behind a tool.
@@ -43,14 +45,14 @@ export default function InsightsScreen() {
           <Text className="text-[15px] text-inkSecondary dark:text-gray">{t('insights.subtitle')}</Text>
         </View>
 
+        <InsightsTools />
+
         <View className="gap-3">
           <Text className="px-1 text-[13px] font-semibold uppercase tracking-wide text-inkSecondary dark:text-gray">
             {t('insights.found.title')}
           </Text>
           <FindingsList />
         </View>
-
-        <InsightsTools />
       </ScrollView>
     </SafeAreaView>
   );
